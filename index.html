@@ -1,475 +1,1458 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101827">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg">
-<title>BTC Signal 2.0</title><style>
-:root{
- color-scheme:dark;
- --bg:#07101d;--card:#111b2d;--muted:#8ea0b8;
- --text:#f5f7fb;--line:#263650;
- --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;
-}
-*{box-sizing:border-box}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC Signal 2.1</title>
+
+<style>
 body{
- margin:0;background:linear-gradient(180deg,#0b1220,#07101d);
- color:var(--text);
- font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#0d1117;
+    color:#fff;
 }
-.wrap{max-width:620px;margin:auto;padding:18px 14px 35px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
-h1{font-size:25px;margin:0}
-.sub{color:var(--muted);font-size:12px;margin-top:3px}
-button,select{
- background:#17243a;color:var(--text);
- border:1px solid var(--line);border-radius:10px;
- padding:10px 12px;font-size:14px
+.container{
+    max-width:700px;
+    margin:auto;
+    padding:15px;
+}
+h1{
+    text-align:center;
+    margin:5px 0;
+}
+.version{
+    text-align:center;
+    color:#777;
+    font-size:12px;
+    margin-bottom:15px;
 }
 .card{
- background:rgba(17,27,45,.96);
- border:1px solid var(--line);
- border-radius:18px;padding:16px;margin-top:14px;
- box-shadow:0 8px 30px rgba(0,0,0,.18)
+    background:#161b22;
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:0 3px 12px rgba(0,0,0,.25);
 }
-.price{font-size:34px;font-weight:800;margin-top:4px}
-.muted{color:var(--muted)}
+.price{
+    font-size:34px;
+    font-weight:bold;
+    text-align:center;
+}
+select,button{
+    width:100%;
+    padding:13px;
+    margin-top:10px;
+    border-radius:10px;
+    border:0;
+    font-size:16px;
+}
+button{
+    background:#238636;
+    color:white;
+    font-weight:bold;
+}
+button:disabled{
+    opacity:.5;
+}
 .signal{
- margin-top:12px;border-radius:16px;padding:18px;
- text-align:center;border:1px solid var(--line)
+    text-align:center;
+    font-size:32px;
+    font-weight:bold;
+    margin:15px 0;
 }
-.signal strong{display:block;font-size:30px;letter-spacing:.5px}
-.score{font-size:15px;margin-top:5px}
-.buy{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4)}
-.sell{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4)}
-.hold{background:rgba(245,158,11,.10);border-color:rgba(245,158,11,.35)}
-.controls{display:flex;gap:8px;margin-top:14px}
-.controls>*{flex:1}
+.buy{color:#3fb950}
+.sell{color:#f85149}
+.hold{color:#d29922}
+
+.bar{
+    height:18px;
+    background:#30363d;
+    border-radius:10px;
+    overflow:hidden;
+}
+.bar-inner{
+    height:100%;
+    width:50%;
+    background:#238636;
+}
+.small{
+    color:#8b949e;
+    font-size:13px;
+}
+.reason{
+    padding:6px 0;
+    border-bottom:1px solid #30363d;
+}
 .grid{
- display:grid;grid-template-columns:1fr 1fr;
- gap:9px;margin-top:12px
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
 }
 .metric{
- padding:12px;background:#0c1626;
- border:1px solid var(--line);border-radius:12px
+    background:#21262d;
+    padding:10px;
+    border-radius:10px;
 }
-.metric b{display:block;font-size:17px;margin-top:4px}
-.bar{
- height:12px;background:#0b1422;border-radius:20px;
- overflow:hidden;margin-top:10px;border:1px solid var(--line)
-}
-.barin{height:100%;width:0%;transition:.5s}
-.status{font-size:12px;color:var(--muted);margin-top:10px}
-.good{color:#86efac}.danger{color:#fca5a5}.warn{color:#fcd34d}
-ul{margin:9px 0 0;padding-left:20px}
-.small{font-size:12px;line-height:1.45}
-.install{display:none}
-.install.show{display:block}
-</style></head><body>
-<div class="wrap"><div class="top">
- <div>
-  <h1>₿ BTC Signal 2.0</h1>
-  <div class="sub">Мультииндикаторный анализ BTC/USDT</div>
- </div>
- <button id="refresh">↻ Обновить</button>
-</div><div class="card"> <div class="muted">BTC / USDT</div>
- <div id="price" class="price">—</div>
- <div id="time" class="status">Загрузка…</div> <div id="signal" class="signal hold">
-  <strong>Загрузка</strong>
-  <div class="score">Получаем данные</div>
- </div> <div class="bar">
-  <div id="barin" class="barin"></div>
- </div> <div class="controls">
-  <select id="tf">
-   <option value="15m">15 минут</option>
-   <option value="1h" selected>1 час</option>
-   <option value="4h">4 часа</option>
-   <option value="1d">1 день</option>
-  </select>
-  <button id="notify">🔔 Уведомления</button>
- </div></div><div class="card">
- <b>Индикаторы</b> <div class="grid">
-  <div class="metric">
-   <span class="muted">RSI</span>
-   <b id="rsi">—</b>
-  </div>  <div class="metric">
-   <span class="muted">MACD</span>
-   <b id="macd">—</b>
-  </div>  <div class="metric">
-   <span class="muted">EMA 20</span>
-   <b id="e20">—</b>
-  </div>  <div class="metric">
-   <span class="muted">EMA 50</span>
-   <b id="e50">—</b>
-  </div>  <div class="metric">
-   <span class="muted">EMA 200</span>
-   <b id="e200">—</b>
-  </div>  <div class="metric">
-   <span class="muted">Объём</span>
-   <b id="vol">—</b>
-  </div>
- </div>
-</div><div class="card">
- <b>Почему такой сигнал?</b>
- <ul id="reasons">
-  <li class="muted">—</li>
- </ul>
- <div id="status" class="status"></div>
-</div><div class="card">
- <b>Риск</b>
- <div id="risk" class="small muted" style="margin-top:8px">
-  Рассчитывается…
- </div>
-</div><div id="install" class="card install">
- <b>Установить приложение</b>
- <p class="small">
- В Chrome открой меню ⋮ → <b>Добавить на главный экран</b>
- или <b>Установить приложение</b>.
- </p>
-</div></div><script>
-
-const $=id=>document.getElementById(id);
-
-let lastSignal=null;
-
-const fmt=n=>Number(n).toLocaleString("en-US",{
- maximumFractionDigits:2
-});
-
-function ema(a,p){
- let k=2/(p+1);
- let e=a[0];
-
- for(let i=1;i<a.length;i++)
-  e=a[i]*k+e*(1-k);
-
- return e;
+.metric b{
+    display:block;
+    margin-bottom:4px;
 }
 
-function rsi(a,p=14){
-
- let g=0,l=0;
-
- for(let i=1;i<=p;i++){
-  let d=a[i]-a[i-1];
-  if(d>=0)g+=d;
-  else l-=d;
- }
-
- g/=p;
- l/=p;
-
- let rs=l?g/l:100;
- let out=100-100/(1+rs);
-
- for(let i=p+1;i<a.length;i++){
-
-  let d=a[i]-a[i-1];
-
-  g=(g*(p-1)+Math.max(d,0))/p;
-  l=(l*(p-1)+Math.max(-d,0))/p;
-
-  rs=l?g/l:100;
-  out=100-100/(1+rs);
- }
-
- return out;
+.btbox{
+    background:#21262d;
+    border-radius:10px;
+    padding:12px;
+    margin-top:10px;
+}
+.bt-title{
+    font-weight:bold;
+    font-size:17px;
+    margin-bottom:8px;
+}
+.bt-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+.bt-stat{
+    background:#161b22;
+    padding:9px;
+    border-radius:8px;
+    font-size:13px;
+}
+.bt-stat b{
+    display:block;
+    margin-bottom:4px;
 }
 
-function macdData(a){
-
- let e12=ema(a,12);
- let e26=ema(a,26);
-
- let macd=[];
-
- for(let i=25;i<a.length;i++){
-  let m=ema(a.slice(0,i+1),12)-ema(a.slice(0,i+1),26);
-  macd.push(m);
- }
-
- let signal=ema(macd.slice(-20),9);
- let hist=macd.at(-1)-signal;
-
- return {
-  macd:macd.at(-1),
-  signal,
-  hist
- };
+.status{
+    margin-top:10px;
+    color:#8b949e;
+    font-size:13px;
+    text-align:center;
 }
 
-function calculate(c){
-
- let close=c.map(x=>+x[4]);
- let volume=c.map(x=>+x[5]);
-
- let price=close.at(-1);
-
- let e20=ema(close,20);
- let e50=ema(close,50);
- let e200=ema(close,200);
-
- let R=rsi(close);
- let M=macdData(close);
-
- let v=volume.at(-1);
- let avgVol=volume.slice(-21,-1)
-  .reduce((a,b)=>a+b,0)/20;
-
- let volumeRatio=v/avgVol;
-
- /*
-  Система оценки:
-  EMA20/50 = 20 баллов
-  EMA200 = 20
-  RSI = 20
-  MACD = 20
-  Объём = 20
- */
-
- let bull=0;
- let bear=0;
- let reasons=[];
-
- // TREND EMA20 / EMA50
- if(e20>e50){
-  bull+=20;
-  reasons.push("EMA20 выше EMA50 — краткосрочный тренд бычий");
- }else{
-  bear+=20;
-  reasons.push("EMA20 ниже EMA50 — краткосрочный тренд медвежий");
- }
-
- // LONG TERM TREND
- if(price>e200){
-  bull+=20;
-  reasons.push("BTC выше EMA200 — долгосрочный тренд положительный");
- }else{
-  bear+=20;
-  reasons.push("BTC ниже EMA200 — долгосрочный тренд отрицательный");
- }
-
- // RSI
- if(R>=52 && R<=68){
-  bull+=20;
-  reasons.push("RSI показывает здоровый бычий импульс");
- }
- else if(R>75){
-  bear+=10;
-  reasons.push("RSI выше 75 — рынок перегрет");
- }
- else if(R<30){
-  bull+=10;
-  reasons.push("RSI ниже 30 — возможна перепроданность");
- }
- else if(R<45){
-  bear+=15;
-  reasons.push("RSI слабый");
- }
- else{
-  bull+=10;
-  bear+=10;
-  reasons.push("RSI нейтральный");
- }
-
- // MACD
- if(M.hist>0 && M.macd>0){
-  bull+=20;
-  reasons.push("MACD подтверждает восходящий импульс");
- }
- else if(M.hist<0 && M.macd<0){
-  bear+=20;
-  reasons.push("MACD подтверждает нисходящий импульс");
- }
- else if(M.hist>0){
-  bull+=12;
-  reasons.push("MACD histogram положительный");
- }
- else{
-  bear+=12;
-  reasons.push("MACD histogram отрицательный");
- }
-
- // VOLUME
- if(volumeRatio>=1.25){
-
-  if(price>e20){
-   bull+=20;
-   reasons.push("Повышенный объём поддерживает рост");
-  }else{
-   bear+=20;
-   reasons.push("Повышенный объём поддерживает снижение");
-  }
-
- }else{
-  bull+=10;
-  bear+=10;
-  reasons.push("Объём не даёт сильного подтверждения");
- }
-
- let total=bull+bear;
-
- let probability=Math.round(
-   50+(bull-bear)/2
- );
-
- probability=Math.max(0,Math.min(100,probability));
-
- let label;
-
- if(probability>=70) label="BUY";
- else if(probability<=30) label="SELL";
- else label="HOLD";
-
- let risk;
-
- if(
-  Math.abs(probability-50)<10 ||
-  (R>72 && probability>60) ||
-  (R<28 && probability<40)
- ){
-  risk="Повышенный риск. Индикаторы дают неоднозначную картину.";
- }else if(Math.abs(probability-50)<20){
-  risk="Средний риск. Сигнал требует подтверждения.";
- }else{
-  risk="Относительно сильный сигнал, но это не гарантия движения цены.";
- }
-
- return{
-  price,e20,e50,e200,R,
-  M,volumeRatio,
-  probability,
-  label,
-  reasons,
-  risk
- };
+hr{
+    border:0;
+    border-top:1px solid #30363d;
+    margin:15px 0;
 }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>₿ BTC Signal</h1>
+<div class="version">Version 2.1 · Backtest 1 year</div>
+
+<div class="card">
+
+    <div id="price" class="price">Загрузка...</div>
+
+    <select id="tf">
+        <option value="15m">15 минут</option>
+        <option value="1h" selected>1 час</option>
+        <option value="4h">4 часа</option>
+        <option value="1d">1 день</option>
+    </select>
+
+    <button id="refresh">🔄 Обновить сигнал</button>
+
+</div>
+
+<div class="card">
+
+    <div id="signal" class="signal hold">HOLD</div>
+
+    <div class="bar">
+        <div id="bar" class="bar-inner"></div>
+    </div>
+
+    <p id="scoreText" style="text-align:center">
+        Score: —
+    </p>
+
+</div>
+
+<div class="card">
+
+    <h3>Индикаторы</h3>
+
+    <div class="grid">
+
+        <div class="metric">
+            <b>RSI</b>
+            <span id="rsi">—</span>
+        </div>
+
+        <div class="metric">
+            <b>MACD</b>
+            <span id="macd">—</span>
+        </div>
+
+        <div class="metric">
+            <b>EMA 20</b>
+            <span id="ema20">—</span>
+        </div>
+
+        <div class="metric">
+            <b>EMA 50</b>
+            <span id="ema50">—</span>
+        </div>
+
+        <div class="metric">
+            <b>EMA 200</b>
+            <span id="ema200">—</span>
+        </div>
+
+        <div class="metric">
+            <b>Volume</b>
+            <span id="volume">—</span>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h3>Почему такой сигнал?</h3>
+
+    <div id="reasons"></div>
+
+</div>
+
+<div class="card">
+
+    <h3>⚠️ Риск</h3>
+
+    <div id="risk" class="small">
+        —
+    </div>
+
+</div>
+
+<!-- BACKTEST -->
+
+<div class="card">
+
+    <h3>📊 Исторический тест — 1 год</h3>
+
+    <div class="small">
+        Проверяются только закрытые свечи.
+        Сигнал формируется на закрытии свечи,
+        вход выполняется на открытии следующей.
+        Будущие данные не используются.
+    </div>
+
+    <button id="backtest">
+        📊 Тестировать 1 год
+    </button>
+
+    <div id="btProgress" class="status"></div>
+
+    <div id="btResult"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const $ = id => document.getElementById(id);
+
+const BINANCE =
+    "https://api.binance.com/api/v3/klines?symbol=BTCUSDT";
+
+const sleep = ms =>
+    new Promise(resolve => setTimeout(resolve,ms));
+
+/* =========================
+   LIVE INDICATORS
+========================= */
+
+function ema(values, period){
+
+    const k = 2/(period+1);
+
+    let result = [];
+    let prev = values[0];
+
+    result.push(prev);
+
+    for(let i=1;i<values.length;i++){
+
+        prev =
+            values[i]*k +
+            prev*(1-k);
+
+        result.push(prev);
+    }
+
+    return result;
+}
+
+function rsi(values, period=14){
+
+    if(values.length <= period)
+        return 50;
+
+    let gains = 0;
+    let losses = 0;
+
+    for(let i=1;i<=period;i++){
+
+        const d =
+            values[i]-values[i-1];
+
+        if(d>=0) gains += d;
+        else losses -= d;
+    }
+
+    let avgGain = gains/period;
+    let avgLoss = losses/period;
+
+    for(let i=period+1;i<values.length;i++){
+
+        const d =
+            values[i]-values[i-1];
+
+        const gain = Math.max(d,0);
+        const loss = Math.max(-d,0);
+
+        avgGain =
+            (avgGain*(period-1)+gain)/period;
+
+        avgLoss =
+            (avgLoss*(period-1)+loss)/period;
+    }
+
+    if(avgLoss===0)
+        return 100;
+
+    const rs = avgGain/avgLoss;
+
+    return 100-(100/(1+rs));
+}
+
+function macdData(values){
+
+    const e12 = ema(values,12);
+    const e26 = ema(values,26);
+
+    const macd = [];
+
+    for(let i=0;i<values.length;i++){
+        macd.push(e12[i]-e26[i]);
+    }
+
+    const signal = ema(macd,9);
+
+    const hist =
+        macd[macd.length-1] -
+        signal[signal.length-1];
+
+    return {
+        macd:macd[macd.length-1],
+        signal:signal[signal.length-1],
+        hist
+    };
+}
+
+/* =========================
+   MODEL
+========================= */
+
+function modelScore(
+    price,
+    e20,
+    e50,
+    e200,
+    RSI,
+    macd,
+    hist,
+    volumeRatio
+){
+
+    let bull = 0;
+    let bear = 0;
+
+    if(e20>e50)
+        bull += 20;
+    else
+        bear += 20;
+
+    if(price>e200)
+        bull += 20;
+    else
+        bear += 20;
+
+    if(RSI>=52 && RSI<=68)
+        bull += 20;
+    else if(RSI>75)
+        bear += 10;
+    else if(RSI<30)
+        bull += 10;
+    else if(RSI<45)
+        bear += 15;
+    else{
+        bull += 10;
+        bear += 10;
+    }
+
+    if(hist>0 && macd>0)
+        bull += 20;
+    else if(hist<0 && macd<0)
+        bear += 20;
+    else if(hist>0)
+        bull += 12;
+    else
+        bear += 12;
+
+    if(volumeRatio>=1.25){
+
+        if(price>e20)
+            bull += 20;
+        else
+            bear += 20;
+
+    }else{
+
+        bull += 10;
+        bear += 10;
+    }
+
+    let score =
+        50 + (bull-bear)/2;
+
+    score =
+        Math.max(0,Math.min(100,score));
+
+    let label = "HOLD";
+
+    if(score>=70)
+        label = "BUY";
+
+    if(score<=30)
+        label = "SELL";
+
+    return {
+        score,
+        label,
+        bull,
+        bear
+    };
+}
+
+/* =========================
+   LIVE SIGNAL
+========================= */
 
 async function load(){
 
- try{
+    try{
 
-  $("status").textContent="Получаем данные Binance…";
+        const tf = $("tf").value;
 
-  let tf=$("tf").value;
+        const url =
+            BINANCE +
+            "&interval="+tf+
+            "&limit=250";
 
-  let url=
-   `https://api.binance.com/api/v3/klines`+
-   `?symbol=BTCUSDT&interval=${tf}&limit=250`;
+        const response =
+            await fetch(url,{cache:"no-store"});
 
-  let response=await fetch(url,{cache:"no-store"});
+        if(!response.ok)
+            throw new Error("Binance API error");
 
-  if(!response.ok)
-   throw new Error("HTTP "+response.status);
+        const data =
+            await response.json();
 
-  let candles=await response.json();
+        const candles =
+            data.filter(x =>
+                Number(x[6]) < Date.now()
+            );
 
-  let x=calculate(candles);
+        const closes =
+            candles.map(x=>Number(x[4]));
 
-  $("price").textContent="$"+fmt(x.price);
+        const volumes =
+            candles.map(x=>Number(x[5]));
 
-  $("time").textContent=
-   "Обновлено: "+
-   new Date().toLocaleString("ru-RU");
+        const price =
+            closes[closes.length-1];
 
-  $("rsi").textContent=fmt(x.R);
-  $("macd").textContent=fmt(x.M.hist);
+        const e20arr = ema(closes,20);
+        const e50arr = ema(closes,50);
+        const e200arr = ema(closes,200);
 
-  $("e20").textContent="$"+fmt(x.e20);
-  $("e50").textContent="$"+fmt(x.e50);
-  $("e200").textContent="$"+fmt(x.e200);
+        const e20 =
+            e20arr[e20arr.length-1];
 
-  $("vol").textContent=
-   fmt(x.volumeRatio)+"×";
+        const e50 =
+            e50arr[e50arr.length-1];
 
-  let cls=
-   x.label==="BUY"?"buy":
-   x.label==="SELL"?"sell":"hold";
+        const e200 =
+            e200arr[e200arr.length-1];
 
-  $("signal").className="signal "+cls;
+        const RSI =
+            rsi(closes);
 
-  $("signal").innerHTML=
-   `<strong>${x.label}</strong>
-    <div class="score">
-     Вероятность по модели: ${x.probability} / 100
-    </div>`;
+        const md =
+            macdData(closes);
 
-  $("barin").style.width=
-   x.probability+"%";
+        const avgVolume =
+            volumes
+                .slice(-21,-1)
+                .reduce((a,b)=>a+b,0) / 20;
 
-  $("reasons").innerHTML=
-   x.reasons.map(v=>`<li>${v}</li>`).join("");
+        const volumeRatio =
+            volumes[volumes.length-1] /
+            avgVolume;
 
-  $("risk").textContent=x.risk;
+        const result =
+            modelScore(
+                price,
+                e20,
+                e50,
+                e200,
+                RSI,
+                md.macd,
+                md.hist,
+                volumeRatio
+            );
 
-  $("status").textContent=
-   `Binance · BTCUSDT · ${tf} · обновление каждую минуту`;
+        $("price").textContent =
+            "$"+price.toLocaleString();
 
-  if(
-   lastSignal &&
-   lastSignal!==x.label &&
-   "Notification" in window &&
-   Notification.permission==="granted"
-  ){
+        $("signal").textContent =
+            result.label;
 
-   new Notification(
-    "BTC Signal",
-    {
-     body:
-      `BTC: ${x.label} · ${x.probability}/100`
+        $("signal").className =
+            "signal "+
+            (
+                result.label==="BUY"
+                ? "buy"
+                : result.label==="SELL"
+                ? "sell"
+                : "hold"
+            );
+
+        $("bar").style.width =
+            result.score+"%";
+
+        $("scoreText").textContent =
+            "Score: "+
+            result.score.toFixed(0)+"/100";
+
+        $("rsi").textContent =
+            RSI.toFixed(1);
+
+        $("macd").textContent =
+            md.hist.toFixed(4);
+
+        $("ema20").textContent =
+            "$"+e20.toFixed(0);
+
+        $("ema50").textContent =
+            "$"+e50.toFixed(0);
+
+        $("ema200").textContent =
+            "$"+e200.toFixed(0);
+
+        $("volume").textContent =
+            volumeRatio.toFixed(2)+"x";
+
+        let reasons = [];
+
+        if(e20>e50)
+            reasons.push("EMA20 выше EMA50 → бычий тренд");
+        else
+            reasons.push("EMA20 ниже EMA50 → медвежий тренд");
+
+        if(price>e200)
+            reasons.push("Цена выше EMA200");
+        else
+            reasons.push("Цена ниже EMA200");
+
+        if(RSI>=52 && RSI<=68)
+            reasons.push("RSI поддерживает рост");
+        else if(RSI<45)
+            reasons.push("RSI слабый");
+        else
+            reasons.push("RSI нейтральный");
+
+        if(md.hist>0)
+            reasons.push("MACD положительный");
+        else
+            reasons.push("MACD отрицательный");
+
+        if(volumeRatio>=1.25)
+            reasons.push("Повышенный объём");
+        else
+            reasons.push("Объём обычный");
+
+        $("reasons").innerHTML =
+            reasons
+                .map(x=>`<div class="reason">• ${x}</div>`)
+                .join("");
+
+        if(result.label==="BUY")
+            $("risk").textContent =
+                "Бычий сигнал. Риск снижения сохраняется.";
+
+        else if(result.label==="SELL")
+            $("risk").textContent =
+                "Медвежий сигнал. Возможен резкий отскок.";
+
+        else
+            $("risk").textContent =
+                "Нет сильного преимущества покупателей или продавцов.";
+
+    }catch(error){
+
+        console.error(error);
+
+        $("price").textContent =
+            "Ошибка";
+
+        $("risk").textContent =
+            "Не удалось получить данные Binance.";
     }
-   );
-  }
-
-  lastSignal=x.label;
-
- }catch(e){
-
-  $("status").innerHTML=
-   `<span class="danger">
-    Ошибка: ${e.message}. Проверь интернет или доступ к Binance.
-   </span>`;
- }
 }
 
-$("refresh").onclick=load;
+/* =========================
+   HISTORICAL DATA
+========================= */
 
-$("tf").onchange=load;
+async function fetchHistory(tf){
 
-$("notify").onclick=async()=>{
+    const endTime =
+        Date.now();
 
- if(!("Notification" in window)){
-  alert("Уведомления не поддерживаются");
-  return;
- }
+    const startTime =
+        endTime -
+        365*24*60*60*1000;
 
- let p=await Notification.requestPermission();
+    let start =
+        startTime;
 
- $("status").textContent=
-  p==="granted"
-  ?"Уведомления разрешены"
-  :"Уведомления не разрешены";
-};
+    let all = [];
+
+    const expected = {
+        "15m":35040,
+        "1h":8760,
+        "4h":2190,
+        "1d":365
+    }[tf];
+
+    const requests =
+        Math.ceil(expected/1000);
+
+    let requestNumber = 0;
+
+    while(start<endTime){
+
+        requestNumber++;
+
+        $("btProgress").textContent =
+            "Загрузка истории: "+
+            requestNumber+
+            " / примерно "+
+            requests;
+
+        const url =
+            BINANCE+
+            "&interval="+tf+
+            "&startTime="+start+
+            "&endTime="+endTime+
+            "&limit=1000";
+
+        let response;
+
+        let retry = 0;
+
+        while(true){
+
+            response =
+                await fetch(url,{
+                    cache:"no-store"
+                });
+
+            if(response.status!==429)
+                break;
+
+            retry++;
+
+            if(retry>=3)
+                throw new Error(
+                    "Binance rate limit"
+                );
+
+            $("btProgress").textContent =
+                "Binance временно ограничил запросы...";
+
+            await sleep(2000);
+        }
+
+        if(!response.ok)
+            throw new Error(
+                "Ошибка Binance: "+
+                response.status
+            );
+
+        const batch =
+            await response.json();
+
+        if(!batch.length)
+            break;
+
+        all.push(...batch);
+
+        const lastClose =
+            Number(
+                batch[batch.length-1][6]
+            );
+
+        const next =
+            lastClose+1;
+
+        if(next<=start)
+            break;
+
+        start = next;
+
+        if(batch.length<1000)
+            break;
+
+        /*
+          Небольшая пауза,
+          чтобы не создавать
+          лишнюю нагрузку на API.
+        */
+        await sleep(150);
+    }
+
+    /*
+      Убираем незакрытую текущую свечу.
+    */
+
+    all =
+        all.filter(x =>
+            Number(x[6]) < Date.now()
+        );
+
+    return all;
+}
+
+/* =========================
+   FAST HISTORICAL MODEL
+========================= */
+
+function buildHistoricalSignals(candles){
+
+    const signals = [];
+
+    const k20 =
+        2/(20+1);
+
+    const k50 =
+        2/(50+1);
+
+    const k200 =
+        2/(200+1);
+
+    const k12 =
+        2/(12+1);
+
+    const k26 =
+        2/(26+1);
+
+    const k9 =
+        2/(9+1);
+
+    let e20 = null;
+    let e50 = null;
+    let e200 = null;
+
+    let e12 = null;
+    let e26 = null;
+
+    let signalLine = null;
+    let macdQueue = [];
+
+    let gainSum = 0;
+    let lossSum = 0;
+
+    let avgGain = null;
+    let avgLoss = null;
+
+    let prevClose = null;
+
+    let volumeQueue = [];
+    let volumeSum = 0;
+
+    for(let i=0;i<candles.length;i++){
+
+        const close =
+            Number(candles[i][4]);
+
+        const volume =
+            Number(candles[i][5]);
+
+        if(i===0){
+
+            e20 =
+            e50 =
+            e200 =
+            e12 =
+            e26 =
+            close;
+
+            prevClose = close;
+
+            volumeQueue.push(volume);
+            volumeSum += volume;
+
+            continue;
+        }
+
+        /*
+          EMA
+        */
+
+        e20 =
+            close*k20 +
+            e20*(1-k20);
+
+        e50 =
+            close*k50 +
+            e50*(1-k50);
+
+        e200 =
+            close*k200 +
+            e200*(1-k200);
+
+        e12 =
+            close*k12 +
+            e12*(1-k12);
+
+        e26 =
+            close*k26 +
+            e26*(1-k26);
+
+        /*
+          RSI
+        */
+
+        const diff =
+            close-prevClose;
+
+        const gain =
+            Math.max(diff,0);
+
+        const loss =
+            Math.max(-diff,0);
+
+        if(i<=14){
+
+            gainSum += gain;
+            lossSum += loss;
+
+            if(i===14){
+
+                avgGain =
+                    gainSum/14;
+
+                avgLoss =
+                    lossSum/14;
+            }
+
+        }else{
+
+            avgGain =
+                (avgGain*13+gain)/14;
+
+            avgLoss =
+                (avgLoss*13+loss)/14;
+        }
+
+        let RSI = null;
+
+        if(avgGain!==null){
+
+            if(avgLoss===0)
+                RSI = 100;
+
+            else{
+
+                const rs =
+                    avgGain/avgLoss;
+
+                RSI =
+                    100-(100/(1+rs));
+            }
+        }
+
+        /*
+          MACD
+        */
+
+        const macdLine =
+            e12-e26;
+
+        if(signalLine===null){
+
+            macdQueue.push(macdLine);
+
+            if(macdQueue.length===9){
+
+                signalLine =
+                    macdQueue
+                        .reduce((a,b)=>a+b,0)/9;
+            }
+
+        }else{
+
+            signalLine =
+                macdLine*k9 +
+                signalLine*(1-k9);
+        }
+
+        let hist = null;
+
+        if(signalLine!==null)
+            hist =
+                macdLine-signalLine;
+
+        /*
+          Volume ratio.
+          Используем предыдущие 20 свечей,
+          а не текущую.
+        */
+
+        let volumeRatio = 1;
+
+        if(volumeQueue.length>=20){
+
+            const avgVolume =
+                volumeSum/volumeQueue.length;
+
+            if(avgVolume>0)
+                volumeRatio =
+                    volume/avgVolume;
+        }
+
+        volumeQueue.push(volume);
+        volumeSum += volume;
+
+        if(volumeQueue.length>20){
+
+            volumeSum -=
+                volumeQueue.shift();
+        }
+
+        prevClose = close;
+
+        /*
+          После 200 свечей
+          индикаторы уже достаточно прогреты.
+        */
+
+        if(
+            i>=200 &&
+            RSI!==null &&
+            hist!==null
+        ){
+
+            const result =
+                modelScore(
+                    close,
+                    e20,
+                    e50,
+                    e200,
+                    RSI,
+                    macdLine,
+                    hist,
+                    volumeRatio
+                );
+
+            if(
+                result.label==="BUY" ||
+                result.label==="SELL"
+            ){
+
+                signals.push({
+                    index:i,
+                    label:result.label,
+                    score:result.score
+                });
+            }
+        }
+    }
+
+    return signals;
+}
+
+/* =========================
+   BACKTEST STATS
+========================= */
+
+function getStats(values){
+
+    if(!values.length)
+        return null;
+
+    const wins =
+        values.filter(x=>x>0).length;
+
+    const average =
+        values.reduce(
+            (a,b)=>a+b,0
+        )/values.length;
+
+    return {
+
+        count:values.length,
+
+        wins,
+
+        accuracy:
+            wins/values.length*100,
+
+        average,
+
+        best:
+            Math.max(...values),
+
+        worst:
+            Math.min(...values)
+    };
+}
+
+/* =========================
+   HORIZONS
+========================= */
+
+function getHorizons(tf){
+
+    if(tf==="15m"){
+
+        return {
+            "1 час":4,
+            "4 часа":16,
+            "24 часа":96
+        };
+    }
+
+    if(tf==="1h"){
+
+        return {
+            "1 час":1,
+            "4 часа":4,
+            "24 часа":24
+        };
+    }
+
+    if(tf==="4h"){
+
+        return {
+            "1 час":null,
+            "4 часа":1,
+            "24 часа":6
+        };
+    }
+
+    return {
+
+        "1 час":null,
+        "4 часа":null,
+        "24 часа":1
+    };
+}
+
+/* =========================
+   BACKTEST
+========================= */
+
+async function runBacktest(){
+
+    const button =
+        $("backtest");
+
+    button.disabled = true;
+
+    $("btResult").innerHTML = "";
+
+    try{
+
+        const tf =
+            $("tf").value;
+
+        $("btProgress").textContent =
+            "Начинаем тест...";
+
+        const candles =
+            await fetchHistory(tf);
+
+        $("btProgress").textContent =
+            "Свечей загружено: "+
+            candles.length+
+            ". Расчёт сигналов...";
+
+        const signals =
+            buildHistoricalSignals(candles);
+
+        const horizons =
+            getHorizons(tf);
+
+        let html = "";
+
+        html +=
+            `<div class="btbox">
+                <div class="bt-title">
+                    Результат
+                </div>
+                <div class="small">
+                    Таймфрейм: ${tf}<br>
+                    Свечей: ${candles.length}<br>
+                    BUY: ${signals.filter(x=>x.label==="BUY").length}<br>
+                    SELL: ${signals.filter(x=>x.label==="SELL").length}
+                </div>
+            </div>`;
+
+        /*
+          Статистика по каждому горизонту
+        */
+
+        for(const name in horizons){
+
+            const bars =
+                horizons[name];
+
+            html +=
+                `<div class="btbox">
+                    <div class="bt-title">
+                        ${name}
+                    </div>`;
+
+            if(bars===null){
+
+                html +=
+                    `<div class="small">
+                        Для таймфрейма ${tf}
+                        такой горизонт невозможно
+                        честно измерить.
+                    </div>`;
+
+                html += `</div>`;
+
+                continue;
+            }
+
+            const buyResults = [];
+            const sellResults = [];
+
+            for(const signal of signals){
+
+                const entryIndex =
+                    signal.index+1;
+
+                const exitIndex =
+                    entryIndex+bars-1;
+
+                if(
+                    entryIndex>=candles.length ||
+                    exitIndex>=candles.length
+                )
+                    continue;
+
+                const entry =
+                    Number(
+                        candles[entryIndex][1]
+                    );
+
+                const exit =
+                    Number(
+                        candles[exitIndex][4]
+                    );
+
+                const raw =
+                    (exit-entry)/
+                    entry*100;
+
+                const directional =
+                    signal.label==="BUY"
+                    ? raw
+                    : -raw;
+
+                if(signal.label==="BUY")
+                    buyResults.push(directional);
+                else
+                    sellResults.push(directional);
+            }
+
+            const buy =
+                getStats(buyResults);
+
+            const sell =
+                getStats(sellResults);
+
+            html += statsHtml(
+                "BUY",
+                buy
+            );
+
+            html += statsHtml(
+                "SELL",
+                sell
+            );
+
+            html += `</div>`;
+        }
+
+        /*
+          Простая виртуальная стратегия
+          с горизонтом 24 часа.
+          Сделки не пересекаются.
+        */
+
+        const h24 =
+            horizons["24 часа"];
+
+        if(h24!==null){
+
+            let equity = 1;
+            let peak = 1;
+            let maxDrawdown = 0;
+            let trades = 0;
+            let wins = 0;
+            let nextFreeIndex = 0;
+
+            for(const signal of signals){
+
+                const entryIndex =
+                    signal.index+1;
+
+                if(entryIndex<nextFreeIndex)
+                    continue;
+
+                const exitIndex =
+                    entryIndex+h24-1;
+
+                if(exitIndex>=candles.length)
+                    break;
+
+                const entry =
+                    Number(
+                        candles[entryIndex][1]
+                    );
+
+                const exit =
+                    Number(
+                        candles[exitIndex][4]
+                    );
+
+                const raw =
+                    (exit-entry)/
+                    entry*100;
+
+                const result =
+                    signal.label==="BUY"
+                    ? raw
+                    : -raw;
+
+                equity *=
+                    1+result/100;
+
+                if(result>0)
+                    wins++;
+
+                trades++;
+
+                if(equity>peak)
+                    peak=equity;
+
+                const drawdown =
+                    (peak-equity)/
+                    peak*100;
+
+                if(drawdown>maxDrawdown)
+                    maxDrawdown=drawdown;
+
+                nextFreeIndex =
+                    exitIndex+1;
+            }
+
+            const totalReturn =
+                (equity-1)*100;
+
+            html +=
+                `<div class="btbox">
+                    <div class="bt-title">
+                        💰 Виртуальная стратегия · 24 часа
+                    </div>
+
+                    <div class="bt-grid">
+
+                        <div class="bt-stat">
+                            Сделок
+                            <b>${trades}</b>
+                        </div>
+
+                        <div class="bt-stat">
+                            Успешных
+                            <b>
+                                ${
+                                    trades
+                                    ? (wins/trades*100).toFixed(1)
+                                    : "—"
+                                }%
+                            </b>
+                        </div>
+
+                        <div class="bt-stat">
+                            Результат
+                            <b>
+                                ${
+                                    totalReturn>=0
+                                    ? "+"
+                                    : ""
+                                }${totalReturn.toFixed(2)}%
+                            </b>
+                        </div>
+
+                        <div class="bt-stat">
+                            Max Drawdown
+                            <b>
+                                -${maxDrawdown.toFixed(2)}%
+                            </b>
+                        </div>
+
+                    </div>
+
+                    <div class="small" style="margin-top:10px">
+                        Это модельный расчёт без комиссий,
+                        проскальзывания и налогов.
+                        Он нужен для проверки качества сигнала,
+                        а не является гарантией будущей прибыли.
+                    </div>
+                </div>`;
+        }
+
+        $("btResult").innerHTML =
+            html;
+
+        $("btProgress").textContent =
+            "✅ Тест завершён";
+
+    }catch(error){
+
+        console.error(error);
+
+        $("btProgress").textContent =
+            "❌ Ошибка: "+
+            error.message;
+
+    }finally{
+
+        button.disabled = false;
+    }
+}
+
+/* =========================
+   STATS HTML
+========================= */
+
+function statsHtml(title,data){
+
+    if(!data){
+
+        return `
+        <div class="bt-stat"
+             style="margin-top:8px">
+            <b>${title}</b>
+            Недостаточно данных
+        </div>`;
+    }
+
+    return `
+    <div class="bt-stat"
+         style="margin-top:8px">
+
+        <b>${title}</b>
+
+        Сигналов: ${data.count}<br>
+
+        Успешных:
+        ${data.accuracy.toFixed(1)}%<br>
+
+        Средний результат:
+        ${
+            data.average>=0
+            ? "+"
+            : ""
+        }${data.average.toFixed(2)}%<br>
+
+        Лучший:
+        +${data.best.toFixed(2)}%<br>
+
+        Худший:
+        ${data.worst.toFixed(2)}%
+
+    </div>`;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+$("refresh").addEventListener(
+    "click",
+    load
+);
+
+$("tf").addEventListener(
+    "change",
+    load
+);
+
+$("backtest").addEventListener(
+    "click",
+    runBacktest
+);
+
+/* =========================
+   SERVICE WORKER
+========================= */
 
 if("serviceWorker" in navigator){
 
- navigator.serviceWorker
- .register("sw.js")
- .catch(()=>{});
+    navigator.serviceWorker.register(
+        "./sw.js"
+    ).catch(error =>
+        console.log(
+            "Service Worker:",
+            error
+        )
+    );
 }
 
-if(
- window.matchMedia("(display-mode: standalone)").matches===false
-){
- $("install").classList.add("show");
-}
+/* =========================
+   START
+========================= */
 
 load();
 
-setInterval(load,60000);
+setInterval(
+    load,
+    60000
+);
 
-</script></body>
+</script>
+
+</body>
 </html>
