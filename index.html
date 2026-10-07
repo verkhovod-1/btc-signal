@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101827">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg">
+  <title>BTC Signal</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1220;--card:#111b2d;--muted:#8ea0b8;--text:#f5f7fb;--line:#233149;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--blue:#60a5fa}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#0b1220,#07101d);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    .wrap{max-width:620px;margin:auto;padding:18px 14px 30px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    h1{font-size:25px;margin:0}.sub{color:var(--muted);font-size:12px;margin-top:3px}
+    button,select{background:#17243a;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+    .card{background:rgba(17,27,45,.94);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:14px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+    .price{font-size:32px;font-weight:800;margin-top:4px}.muted{color:var(--muted)}
+    .signal{margin-top:12px;border-radius:16px;padding:17px;text-align:center;border:1px solid var(--line)}
+    .signal strong{display:block;font-size:28px;letter-spacing:.5px}.score{font-size:15px;margin-top:4px}
+    .long{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.35)}.short{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35)}.neutral{background:rgba(245,158,11,.10);border-color:rgba(245,158,11,.3)}
+    .controls{display:flex;gap:8px;margin-top:14px}.controls>*{flex:1}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.metric{padding:12px;background:#0c1626;border:1px solid var(--line);border-radius:12px}.metric b{display:block;font-size:17px;margin-top:4px}
+    ul{margin:9px 0 0;padding-left:20px}.status{font-size:12px;color:var(--muted);margin-top:10px}
+    .danger{color:#fca5a5}.good{color:#86efac}.warn{color:#fcd34d}
+    .install{display:none}.install.show{display:block}.small{font-size:12px;line-height:1.45}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>₿ BTC Signal</h1><div class="sub">Технические сигналы, не гарантия прибыли</div></div>
+    <button id="refresh">↻ Обновить</button>
+  </div>
+
+  <div class="card">
+    <div class="muted">BTC / USDT</div>
+    <div id="price" class="price">—</div>
+    <div id="time" class="status">Загрузка…</div>
+    <div id="signal" class="signal neutral"><strong>Загрузка</strong><div class="score">Получаем данные</div></div>
+    <div class="controls">
+      <select id="tf">
+        <option value="15m">15 минут</option><option value="1h" selected>1 час</option>
+        <option value="4h">4 часа</option><option value="1d">1 день</option>
+      </select>
+      <button id="notify">🔔 Уведомления</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <b>Индикаторы</b>
+    <div class="grid">
+      <div class="metric"><span class="muted">RSI</span><b id="rsi">—</b></div>
+      <div class="metric"><span class="muted">MACD hist</span><b id="macd">—</b></div>
+      <div class="metric"><span class="muted">EMA 20</span><b id="e20">—</b></div>
+      <div class="metric"><span class="muted">EMA 50</span><b id="e50">—</b></div>
+      <div class="metric"><span class="muted">EMA 200</span><b id="e200">—</b></div>
+      <div class="metric"><span class="muted">Объём / средний</span><b id="vol">—</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <b>Почему такой сигнал?</b>
+    <ul id="reasons"><li class="muted">—</li></ul>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div id="install" class="card install">
+    <b>Установить приложение</b>
+    <p class="small">В Chrome открой меню ⋮ → <b>Добавить на главный экран</b> или <b>Установить приложение</b>.</p>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let lastSignal=null;
+const fmt=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
+function ema(a,p){let k=2/(p+1),e=a[0];for(let i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e}
+function rsi(a,p=14){let g=0,l=0;for(let i=1;i<=p;i++){let d=a[i]-a[i-1];if(d>=0)g+=d;else l-=d}g/=p;l/=p;let rs=l?g/l:100;let out=100-100/(1+rs);for(let i=p+1;i<a.length;i++){let d=a[i]-a[i-1];g=(g*(p-1)+Math.max(d,0))/p;l=(l*(p-1)+Math.max(-d,0))/p;rs=l?g/l:100;out=100-100/(1+rs)}return out}
+function macdHist(a){let e12=ema(a,12),e26=ema(a,26);let mac=[];for(let i=25;i<a.length;i++)mac.push(ema(a.slice(0,i+1),12)-ema(a.slice(0,i+1),26));return mac[mac.length-1]-ema(mac.slice(Math.max(0,mac.length-9)),9)}
+function calc(c){let close=c.map(x=>+x[4]),vol=c.map(x=>+x[5]);let price=close.at(-1),e20=ema(close,20),e50=ema(close,50),e200=ema(close,200),R=rsi(close),M=macdHist(close),v=vol.at(-1),avg=vol.slice(-21,-1).reduce((a,b)=>a+b,0)/20;let score=0,reasons=[];
+if(price>e20){score+=1;reasons.push("Цена выше EMA20");}else{score-=1;reasons.push("Цена ниже EMA20")}
+if(e20>e50){score+=2;reasons.push("EMA20 выше EMA50");}else{score-=2;reasons.push("EMA20 ниже EMA50")}
+if(price>e200){score+=2;reasons.push("Цена выше EMA200");}else{score-=2;reasons.push("Цена ниже EMA200")}
+if(R>=55&&R<=70){score+=2;reasons.push("RSI подтверждает бычий импульс")}else if(R<40){score-=2;reasons.push("RSI слабый")}else if(R>75){score-=1;reasons.push("RSI перегрет")}
+if(M>0){score+=2;reasons.push("MACD histogram положительный")}else{score-=2;reasons.push("MACD histogram отрицательный")}
+if(v/avg>1.25){score += price>e20?1:-1; reasons.push("Повышенный объём")}
+let label=score>=6?"STRONG LONG":score>=3?"LONG":score<=-6?"STRONG SHORT":score<=-3?"SHORT":"NEUTRAL";return {price,e20,e50,e200,R,M,vr:v/avg,score,label,reasons}}
+async function load(){try{
+$("status").textContent="Получаем свечи Binance…";
+let tf=$("tf").value, u=`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${tf}&limit=250`;
+let r=await fetch(u,{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);let c=await r.json();let x=calc(c);
+$("price").textContent="$"+fmt(x.price);$("time").textContent=new Date().toLocaleString("ru-RU");
+$("rsi").textContent=fmt(x.R);$("macd").textContent=fmt(x.M);$("e20").textContent="$"+fmt(x.e20);$("e50").textContent="$"+fmt(x.e50);$("e200").textContent="$"+fmt(x.e200);$("vol").textContent=fmt(x.vr)+"×";
+$("signal").className="signal "+(x.score>=3?"long":x.score<=-3?"short":"neutral");$("signal").innerHTML=`<strong>${x.label}</strong><div class="score">Сила сигнала: ${x.score>0?"+":""}${x.score} / 10</div>`;
+$("reasons").innerHTML=x.reasons.map(v=>`<li>${v}</li>`).join("");$("status").textContent="Данные: Binance · "+tf;
+if(lastSignal&&lastSignal!==x.label&&Notification.permission==="granted") new Notification("BTC Signal",{body:`BTC: ${x.label} (${x.score})`});lastSignal=x.label;
+}catch(e){$("status").innerHTML=`<span class="danger">Ошибка: ${e.message}. Проверь интернет или доступ к Binance.</span>`}}
+$("refresh").onclick=load;$("tf").onchange=load;
+$("notify").onclick=async()=>{if(!("Notification"in window)){alert("Уведомления не поддерживаются");return}let p=await Notification.requestPermission();$("status").textContent=p==="granted"?"Уведомления разрешены":"Уведомления не разрешены"};
+if("serviceWorker"in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+if(window.matchMedia("(display-mode: standalone)").matches===false) $("install").classList.add("show");
+load();setInterval(load,60000);
+</script>
+</body>
+</html>
