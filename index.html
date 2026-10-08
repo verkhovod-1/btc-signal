@@ -5,1092 +5,1183 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.webmanifest">
-<title>₿ BTC Signal v3.4</title>
+<title>₿ BTC Signal v3.5</title>
 
 <style>
 body{
   margin:0;
   padding:16px;
-  background:#111827;
-  color:#f3f4f6;
+  background:#0b1220;
+  color:#e5e7eb;
   font-family:Arial,sans-serif;
 }
-h1{font-size:24px;margin:0 0 5px}
-h2{font-size:18px;margin:20px 0 10px}
+h1{font-size:24px;margin:0 0 8px}
+h2{font-size:18px;margin:24px 0 8px}
+h3{font-size:15px;margin:18px 0 6px}
 .card{
-  background:#1f2937;
+  background:#111827;
   border-radius:12px;
   padding:14px;
   margin:10px 0;
 }
-.good{color:#4ade80}
-.warn{color:#fbbf24}
-.bad{color:#f87171}
+.big{
+  font-size:28px;
+  font-weight:bold;
+}
+.good{color:#22c55e}
+.bad{color:#ef4444}
+.neutral{color:#f59e0b}
 .small{
-  font-size:13px;
+  font-size:12px;
   color:#9ca3af;
-  line-height:1.45;
+}
+button{
+  width:100%;
+  padding:13px;
+  margin:6px 0;
+  border:0;
+  border-radius:9px;
+  background:#2563eb;
+  color:white;
+  font-size:16px;
 }
 table{
   width:100%;
   border-collapse:collapse;
-  font-size:11px;
+  font-size:12px;
 }
 th,td{
-  padding:7px 3px;
   border-bottom:1px solid #374151;
+  padding:7px 4px;
   text-align:right;
 }
 th:first-child,td:first-child{
   text-align:left;
 }
-button{
-  width:100%;
-  padding:13px;
+.pos{color:#22c55e}
+.neg{color:#ef4444}
+.warn{color:#f59e0b}
+.loading{
+  text-align:center;
+  padding:20px;
+}
+hr{
   border:0;
-  border-radius:10px;
-  background:#2563eb;
-  color:white;
-  font-size:16px;
+  border-top:1px solid #374151;
+  margin:15px 0;
 }
 </style>
 </head>
 
 <body>
 
-<h1>₿ BTC Signal</h1>
-<div class="small">v3.4 · BTC 1H · 6/12/24/48/72h</div>
-
-<div class="card" id="status">
-  Загрузка BTC…
-</div>
-
-<div class="card" id="current"></div>
+<h1>₿ BTC Signal v3.5</h1>
 
 <div class="card">
-  <h2>⏱ Сравнение горизонтов</h2>
-
-  <div class="small">
-    Сигнал: EMA20 &gt; EMA50 + ADX &gt;25 + Volume &gt; average
-  </div>
-
-  <div id="horizon"></div>
+  <div id="status" class="loading">Загрузка данных Binance...</div>
 </div>
 
-<div class="card">
-  <h2>🔒 Финальный независимый тест</h2>
-
-  <div class="small">
-    Последние 10% часовых наблюдений полностью исключены
-    из анализа сигнала.
-  </div>
-
-  <div id="holdout"></div>
-</div>
-
-<div class="card">
-  <h2>📈 Последовательность сигналов</h2>
-  <div id="sequence"></div>
-</div>
-
-<button onclick="location.reload()">
-  🔄 Обновить данные
-</button>
-
+<div id="app"></div>
 
 <script>
 
 const API="https://api.binance.com/api/v3/klines";
-
+const SYMBOL="BTCUSDT";
 const INTERVAL="1h";
-const BATCHES=10;
+
 const LIMIT=1000;
+const BATCHES=10;
+
+const HORIZONS=[6,12,24,48,72];
 
 let candles=[];
 let rows=[];
-
+let signalRows=[];
 
 /* =========================
-   ВСПОМОГАТЕЛЬНЫЕ
+   ОБЩИЕ ФУНКЦИИ
 ========================= */
 
-function fmt(x){
-
-  if(!Number.isFinite(x))
-    return "—";
-
-  return (x>=0?"+":"")+x.toFixed(2)+"%";
+function avg(a){
+  if(!a.length) return 0;
+  return a.reduce((x,y)=>x+y,0)/a.length;
 }
 
-
-function median(arr){
-
-  if(!arr.length)
-    return NaN;
-
-  const a=[...arr].sort((x,y)=>x-y);
-
-  const m=Math.floor(a.length/2);
-
-  return a.length%2
-    ? a[m]
-    : (a[m-1]+a[m])/2;
+function median(a){
+  if(!a.length) return 0;
+  let b=[...a].sort((x,y)=>x-y);
+  let m=Math.floor(b.length/2);
+  return b.length%2 ? b[m] : (b[m-1]+b[m])/2;
 }
 
+function pct(a){
+  return (a*100).toFixed(2)+"%";
+}
 
-function maxLosingStreak(arr){
+function num(a){
+  return Number(a).toFixed(2);
+}
 
-  let cur=0;
-  let max=0;
+function cellPct(v){
+  let c=v>=0 ? "pos":"neg";
+  return `<span class="${c}">${pct(v)}</span>`;
+}
 
+function winRate(arr){
+  if(!arr.length) return 0;
+  return arr.filter(x=>x>0).length/arr.length;
+}
+
+function maxLossStreak(arr){
+  let cur=0,max=0;
   for(const x of arr){
-
-    if(x<0){
-
+    if(x<=0){
       cur++;
-
-      if(cur>max)
-        max=cur;
-
+      if(cur>max)max=cur;
     }else{
-
       cur=0;
     }
   }
-
   return max;
 }
-
 
 /* =========================
    EMA
 ========================= */
 
-function ema(values,period){
-
-  const out=
-    new Array(values.length).fill(null);
-
-  if(values.length<period)
-    return out;
+function EMA(values,period){
+  let out=new Array(values.length).fill(null);
+  if(values.length<period)return out;
 
   let sum=0;
 
-  for(let i=0;i<period;i++)
+  for(let i=0;i<period;i++){
     sum+=values[i];
+  }
 
   out[period-1]=sum/period;
 
-  const k=2/(period+1);
+  let k=2/(period+1);
 
   for(let i=period;i<values.length;i++){
-
-    out[i]=
-      values[i]*k+
-      out[i-1]*(1-k);
+    out[i]=values[i]*k+out[i-1]*(1-k);
   }
 
   return out;
 }
 
-
 /* =========================
    ADX
 ========================= */
 
-function calcADX(
-  high,
-  low,
-  close,
-  period=14
-){
+function calculateADX(data,period=14){
 
-  const n=close.length;
+  const n=data.length;
 
-  const tr=
-    new Array(n).fill(null);
-
-  const plusDM=
-    new Array(n).fill(0);
-
-  const minusDM=
-    new Array(n).fill(0);
+  let tr=new Array(n).fill(0);
+  let plusDM=new Array(n).fill(0);
+  let minusDM=new Array(n).fill(0);
 
   for(let i=1;i<n;i++){
 
-    const up=
-      high[i]-high[i-1];
+    const high=data[i].high;
+    const low=data[i].low;
 
-    const down=
-      low[i-1]-low[i];
+    const prevHigh=data[i-1].high;
+    const prevLow=data[i-1].low;
+    const prevClose=data[i-1].close;
 
     tr[i]=Math.max(
-      high[i]-low[i],
-      Math.abs(
-        high[i]-close[i-1]
-      ),
-      Math.abs(
-        low[i]-close[i-1]
-      )
+      high-low,
+      Math.abs(high-prevClose),
+      Math.abs(low-prevClose)
     );
 
-    plusDM[i]=
-      (up>down && up>0)
-      ? up
-      : 0;
+    const up=high-prevHigh;
+    const down=prevLow-low;
 
-    minusDM[i]=
-      (down>up && down>0)
-      ? down
-      : 0;
+    plusDM[i]=(up>down && up>0)?up:0;
+    minusDM[i]=(down>up && down>0)?down:0;
   }
 
-  const adx=
-    new Array(n).fill(null);
+  let atr=new Array(n).fill(null);
+  let pdi=new Array(n).fill(null);
+  let mdi=new Array(n).fill(null);
+  let dx=new Array(n).fill(null);
+  let adx=new Array(n).fill(null);
 
-  let atr=0;
-  let pdm=0;
-  let mdm=0;
+  let trSum=0;
+  let plusSum=0;
+  let minusSum=0;
 
   for(let i=1;i<=period;i++){
-
-    atr+=tr[i]||0;
-    pdm+=plusDM[i];
-    mdm+=minusDM[i];
+    trSum+=tr[i];
+    plusSum+=plusDM[i];
+    minusSum+=minusDM[i];
   }
 
-  atr/=period;
-  pdm/=period;
-  mdm/=period;
+  atr[period]=trSum/period;
 
-  const dx=[];
+  let plusDI=100*(plusSum/period)/atr[period];
+  let minusDI=100*(minusSum/period)/atr[period];
 
-  for(let i=period;i<n;i++){
+  pdi[period]=plusDI;
+  mdi[period]=minusDI;
 
-    if(i>period){
+  dx[period]=
+    100*Math.abs(plusDI-minusDI)/
+    Math.max(plusDI+minusDI,1e-10);
 
-      atr=
-        (atr*(period-1)+(tr[i]||0))
-        /period;
+  for(let i=period+1;i<n;i++){
 
-      pdm=
-        (pdm*(period-1)+plusDM[i])
-        /period;
+    atr[i]=((atr[i-1]*(period-1))+tr[i])/period;
 
-      mdm=
-        (mdm*(period-1)+minusDM[i])
-        /period;
-    }
+    plusSum=((plusSum*(period-1))+plusDM[i])/period;
+    minusSum=((minusSum*(period-1))+minusDM[i])/period;
 
-    const pdi=
-      atr ? 100*pdm/atr : 0;
+    plusDI=100*plusSum/atr[i];
+    minusDI=100*minusSum/atr[i];
 
-    const mdi=
-      atr ? 100*mdm/atr : 0;
+    pdi[i]=plusDI;
+    mdi[i]=minusDI;
 
-    const d=
-      pdi+mdi===0
-      ? 0
-      : 100*Math.abs(pdi-mdi)
-        /(pdi+mdi);
+    dx[i]=
+      100*Math.abs(plusDI-minusDI)/
+      Math.max(plusDI+minusDI,1e-10);
+  }
 
-    dx.push(d);
+  let firstADXStart=period*2;
 
-    if(dx.length===period){
+  if(firstADXStart<n){
 
-      let sum=0;
+    let s=0;
+    let count=0;
 
-      for(const x of dx)
-        sum+=x;
-
-      adx[i]=sum/period;
-    }
-
-    if(dx.length>period){
-
-      const prev=adx[i-1];
-
-      if(prev!=null){
-
-        adx[i]=
-          (prev*(period-1)+d)
-          /period;
+    for(let i=period;i<firstADXStart;i++){
+      if(dx[i]!=null){
+        s+=dx[i];
+        count++;
       }
+    }
+
+    if(count){
+      adx[firstADXStart-1]=s/count;
+    }
+
+    for(let i=firstADXStart;i<n;i++){
+      adx[i]=
+        ((adx[i-1]*(period-1))+dx[i])/period;
     }
   }
 
   return adx;
 }
 
+/* =========================
+   ЗАГРУЗКА BINANCE
+========================= */
+
+async function loadData(){
+
+  document.getElementById("status").innerHTML=
+    "Загружаем 10 000 часовых свечей...";
+
+  let all=[];
+  let endTime=null;
+
+  for(let b=0;b<BATCHES;b++){
+
+    let url=
+      `${API}?symbol=${SYMBOL}&interval=${INTERVAL}&limit=${LIMIT}`;
+
+    if(endTime!==null){
+      url+=`&endTime=${endTime}`;
+    }
+
+    const r=await fetch(url);
+
+    if(!r.ok){
+      throw new Error("Ошибка Binance: "+r.status);
+    }
+
+    const batch=await r.json();
+
+    if(!batch.length)break;
+
+    all.push(...batch);
+
+    endTime=batch[0][0]-1;
+
+    document.getElementById("status").innerHTML=
+      `Загрузка: ${all.length.toLocaleString()} свечей...`;
+
+    await new Promise(r=>setTimeout(r,100));
+  }
+
+  const map=new Map();
+
+  for(const x of all){
+    map.set(x[0],x);
+  }
+
+  candles=[...map.values()]
+    .sort((a,b)=>a[0]-b[0])
+    .map(x=>({
+      time:x[0],
+      open:+x[1],
+      high:+x[2],
+      low:+x[3],
+      close:+x[4],
+      volume:+x[5]
+    }));
+
+  return candles;
+}
 
 /* =========================
-   ИНДИКАТОРЫ
+   ПОСТРОЕНИЕ ИНДИКАТОРОВ
 ========================= */
 
 function buildRows(){
 
-  const close=
-    candles.map(x=>+x[4]);
+  const closes=candles.map(x=>x.close);
 
-  const high=
-    candles.map(x=>+x[2]);
+  const ema20=EMA(closes,20);
+  const ema50=EMA(closes,50);
+  const ema200=EMA(closes,200);
+  const adx=calculateADX(candles,14);
 
-  const low=
-    candles.map(x=>+x[3]);
+  let volAvg=new Array(candles.length).fill(null);
 
-  const volume=
-    candles.map(x=>+x[5]);
+  let sum=0;
 
-  const e20=
-    ema(close,20);
+  for(let i=0;i<candles.length;i++){
 
-  const e50=
-    ema(close,50);
+    sum+=candles[i].volume;
 
-  const adx=
-    calcADX(
-      high,
-      low,
-      close,
-      14
-    );
-
-  const volAvg=
-    new Array(volume.length)
-      .fill(null);
-
-  for(let i=19;i<volume.length;i++){
-
-    let sum=0;
-
-    for(let j=i-19;j<=i;j++)
-      sum+=volume[j];
-
-    volAvg[i]=sum/20;
+    if(i>=20){
+      sum-=candles[i-20].volume;
+      volAvg[i]=sum/20;
+    }
   }
 
   rows=[];
 
   /*
-    Вход:
-    OPEN следующей 1H свечи.
-
-    Горизонты:
-    6h
-    12h
-    24h
-    48h
-    72h
-
-    Важно:
-    доходность считается от одного
-    и того же входа.
+     Начинаем с 200-й свечи,
+     потому что нам нужна EMA200.
   */
 
-  const maxH=72;
-
-  for(
-    let i=50;
-    i<candles.length-maxH-1;
-    i++
-  ){
+  for(let i=200;i<candles.length;i++){
 
     if(
-      e20[i]==null ||
-      e50[i]==null ||
+      ema20[i]==null ||
+      ema50[i]==null ||
+      ema200[i]==null ||
       adx[i]==null ||
       volAvg[i]==null
-    ){
-      continue;
-    }
+    )continue;
 
-    const active=
-      e20[i]>e50[i] &&
+    /*
+       ФИКСИРОВАННЫЙ СИГНАЛ.
+
+       Он НЕ меняется в зависимости
+       от результатов теста.
+    */
+
+    const signal=
+      ema20[i]>ema50[i] &&
       adx[i]>25 &&
-      volume[i]>volAvg[i];
+      candles[i].volume>volAvg[i];
 
-    const entry=
-      +candles[i+1][1];
-
-    if(!Number.isFinite(entry) || entry<=0)
-      continue;
-
-    const r={
-
+    rows.push({
       i,
+      time:candles[i].time,
+      open:candles[i].open,
+      close:candles[i].close,
 
-      active,
+      ema20:ema20[i],
+      ema50:ema50[i],
+      ema200:ema200[i],
+      adx:adx[i],
 
-      ret6:
-        (
-          +candles[i+1+6][4]
-          -entry
-        )/entry*100,
+      volume:candles[i].volume,
+      volAvg:volAvg[i],
 
-      ret12:
-        (
-          +candles[i+1+12][4]
-          -entry
-        )/entry*100,
+      volRatio:candles[i].volume/volAvg[i],
 
-      ret24:
-        (
-          +candles[i+1+24][4]
-          -entry
-        )/entry*100,
+      priceEma200:
+        (candles[i].close/ema200[i])-1,
 
-      ret48:
-        (
-          +candles[i+1+48][4]
-          -entry
-        )/entry*100,
+      emaSpread:
+        (ema20[i]/ema50[i])-1,
 
-      ret72:
-        (
-          +candles[i+1+72][4]
-          -entry
-        )/entry*100
-    };
-
-    rows.push(r);
+      signal
+    });
   }
+
+  signalRows=rows.filter(x=>x.signal);
 }
 
+/* =========================
+   ВОЗВРАТЫ
+========================= */
+
+function getReturn(row,h){
+
+  const entryIndex=row.i+1;
+  const exitIndex=entryIndex+h-1;
+
+  if(
+    entryIndex>=candles.length ||
+    exitIndex>=candles.length
+  ){
+    return null;
+  }
+
+  const entry=candles[entryIndex].open;
+  const exit=candles[exitIndex].close;
+
+  return exit/entry-1;
+}
+
+/*
+   BTC baseline:
+   доходность любого часа,
+   независимо от наличия сигнала.
+*/
+
+function getBaseline(i,h){
+
+  const entryIndex=i+1;
+  const exitIndex=entryIndex+h-1;
+
+  if(
+    entryIndex>=candles.length ||
+    exitIndex>=candles.length
+  ){
+    return null;
+  }
+
+  const entry=candles[entryIndex].open;
+  const exit=candles[exitIndex].close;
+
+  return exit/entry-1;
+}
 
 /* =========================
    СТАТИСТИКА
 ========================= */
 
-function calcStats(
-  signalRows,
-  allRows,
-  key
-){
+function stats(signalList,h,baselineRows){
 
-  if(!signalRows.length){
+  let sig=[];
+  let base=[];
 
-    return {
-      n:0,
-      avg:NaN,
-      base:NaN,
-      edge:NaN,
-      med:NaN,
-      win:NaN,
-      gt1:NaN,
-      lt1:NaN,
-      streak:0
-    };
+  for(const r of signalList){
+
+    const s=getReturn(r,h);
+
+    if(s!=null){
+      sig.push(s);
+    }
   }
 
-  const signal=
-    signalRows.map(x=>x[key]);
+  for(const r of baselineRows){
 
-  const all=
-    allRows.map(x=>x[key]);
+    const b=getBaseline(r.i,h);
 
-  const avg=
-    signal.reduce(
-      (a,b)=>a+b,
-      0
-    )/signal.length;
+    if(b!=null){
+      base.push(b);
+    }
+  }
 
-  const base=
-    all.reduce(
-      (a,b)=>a+b,
-      0
-    )/all.length;
+  if(!sig.length || !base.length){
+    return null;
+  }
+
+  const signalAvg=avg(sig);
+  const baseAvg=avg(base);
 
   return {
-
-    n:signal.length,
-
-    avg,
-
-    base,
-
-    edge:avg-base,
-
-    med:median(signal),
-
-    win:
-      signal.filter(x=>x>0)
-      .length/signal.length*100,
-
-    gt1:
-      signal.filter(x=>x>1)
-      .length/signal.length*100,
-
-    lt1:
-      signal.filter(x=>x<-1)
-      .length/signal.length*100,
-
-    streak:
-      maxLosingStreak(signal)
+    n:sig.length,
+    signal:signalAvg,
+    btc:baseAvg,
+    edge:signalAvg-baseAvg,
+    median:median(sig),
+    win:winRate(sig),
+    lossStreak:maxLossStreak(sig)
   };
 }
 
-
 /* =========================
-   ТАБЛИЦА
+   РЕЖИМ РЫНКА
 ========================= */
 
-function rowHTML(
-  label,
-  s
-){
+/*
+   ВАЖНО:
 
-  return `
-  <tr>
+   Мы НЕ используем EMA20>EMA50
+   как отдельный режим, потому что
+   это уже часть самого сигнала.
 
-    <td>${label}</td>
+   То же самое касается ADX>25
+   и Volume>average.
 
-    <td>${s.n}</td>
+   Поэтому смотрим на более тонкие
+   характеристики внутри сигнала.
+*/
 
-    <td>${fmt(s.avg)}</td>
+function regimeName(r){
 
-    <td>${fmt(s.base)}</td>
+  /*
+     1. Цена относительно EMA200
+  */
 
-    <td class="${
-      s.edge>0
-      ?"good"
-      :s.edge<0
-      ?"bad"
-      :""
-    }">
-      ${fmt(s.edge)}
-    </td>
+  const trend=
+    r.priceEma200>0
+      ?"Цена выше EMA200"
+      :"Цена ниже EMA200";
 
-    <td>${fmt(s.med)}</td>
+  /*
+     2. Сила ADX
+  */
 
-    <td>
-      ${
-        Number.isFinite(s.win)
-        ?s.win.toFixed(1)+"%"
-        :"—"
-      }
-    </td>
+  let adxReg;
 
-    <td>${s.streak}</td>
+  if(r.adx<30){
+    adxReg="ADX 25–30";
+  }else{
+    adxReg="ADX >30";
+  }
 
-  </tr>`;
+  /*
+     3. Объём
+  */
+
+  let volReg;
+
+  if(r.volRatio<1.2){
+    volReg="Объём 1.0–1.2x";
+  }else{
+    volReg="Объём >1.2x";
+  }
+
+  return {
+    trend,
+    adx:adxReg,
+    volume:volReg
+  };
 }
 
-
 /* =========================
-   ОБЩАЯ СТАТИСТИКА
+   РАСШИРЕННЫЕ РЕЖИМЫ
 ========================= */
 
-function renderHorizons(){
+function spreadRegime(r){
 
-  const active=
-    rows.filter(x=>x.active);
+  const x=r.emaSpread*100;
 
-  const hs=[
+  if(x<0.5){
+    return "EMA-spread 0–0.5%";
+  }
 
-    ["6h","ret6"],
-    ["12h","ret12"],
-    ["24h","ret24"],
-    ["48h","ret48"],
-    ["72h","ret72"]
+  if(x<1.5){
+    return "EMA-spread 0.5–1.5%";
+  }
 
-  ];
+  return "EMA-spread >1.5%";
+}
+
+function distanceRegime(r){
+
+  const x=r.priceEma200*100;
+
+  if(x<0){
+    return "Ниже EMA200";
+  }
+
+  if(x<3){
+    return "0–3% выше EMA200";
+  }
+
+  if(x<7){
+    return "3–7% выше EMA200";
+  }
+
+  return ">7% выше EMA200";
+}
+
+/* =========================
+   ТАБЛИЦА СТАТИСТИКИ
+========================= */
+
+function renderStats(title,list,baselineRows,horizons=[24,72]){
 
   let html=`
-
-  <table>
-
-  <tr>
-
-    <th>Горизонт</th>
-    <th>N</th>
-    <th>Signal</th>
-    <th>BTC</th>
-    <th>Edge</th>
-    <th>Median</th>
-    <th>Win</th>
-    <th>Loss</th>
-
-  </tr>
+    <h3>${title}</h3>
+    <table>
+      <tr>
+        <th>Период</th>
+        <th>N</th>
+        <th>Сигнал</th>
+        <th>BTC</th>
+        <th>Edge</th>
+        <th>Медиана</th>
+        <th>Win</th>
+        <th>LS</th>
+      </tr>
   `;
 
-  for(const h of hs){
+  for(const h of horizons){
 
-    const s=
-      calcStats(
-        active,
-        rows,
-        h[1]
-      );
+    const s=stats(list,h,baselineRows);
 
-    html+=
-      rowHTML(
-        h[0],
-        s
-      );
-  }
-
-  html+="</table>";
-
-  document.getElementById(
-    "horizon"
-  ).innerHTML=html;
-}
-
-
-/* =========================
-   HOLDOUT
-========================= */
-
-function renderHoldout(){
-
-  const split=
-    Math.floor(
-      rows.length*0.90
-    );
-
-  const finalRows=
-    rows.slice(split);
-
-  const finalSignals=
-    finalRows.filter(
-      x=>x.active
-    );
-
-  const hs=[
-
-    ["6h","ret6"],
-    ["12h","ret12"],
-    ["24h","ret24"],
-    ["48h","ret48"],
-    ["72h","ret72"]
-
-  ];
-
-  let html=`
-
-  <table>
-
-  <tr>
-
-    <th>Горизонт</th>
-    <th>N</th>
-    <th>Signal</th>
-    <th>BTC</th>
-    <th>Edge</th>
-    <th>Median</th>
-    <th>Win</th>
-    <th>Loss</th>
-
-  </tr>
-  `;
-
-  for(const h of hs){
-
-    const s=
-      calcStats(
-        finalSignals,
-        finalRows,
-        h[1]
-      );
-
-    html+=
-      rowHTML(
-        h[0],
-        s
-      );
-  }
-
-  html+="</table>";
-
-  html+=`
-
-  <p class="small">
-
-    Финальный участок:
-    ${finalRows.length} наблюдений.<br>
-
-    Сигналов:
-    ${finalSignals.length}.<br><br>
-
-    BTC baseline рассчитан по всем
-    доступным наблюдениям финального
-    участка.
-
-  </p>
-  `;
-
-  document.getElementById(
-    "holdout"
-  ).innerHTML=html;
-}
-
-
-/* =========================
-   ПОСЛЕДОВАТЕЛЬНОСТЬ СИГНАЛОВ
-========================= */
-
-function renderSequence(){
-
-  const signals=
-    rows.filter(x=>x.active);
-
-  if(!signals.length){
-
-    document.getElementById(
-      "sequence"
-    ).innerHTML=
-      "Сигналов нет.";
-
-    return;
-  }
-
-  const hs=[
-    ["24h","ret24"],
-    ["48h","ret48"],
-    ["72h","ret72"]
-  ];
-
-  let html="";
-
-  for(const h of hs){
-
-    const vals=
-      signals.map(x=>x[h[1]]);
-
-    let equity=1;
-
-    let maxEquity=1;
-    let maxDD=0;
-
-    /*
-      Условная стратегия:
-
-      каждый сигнал =
-      отдельная последовательная
-      сделка одинакового размера.
-
-      Это НЕ торговый бэктест с комиссиями.
-      Это диагностический показатель.
-    */
-
-    for(const r of vals){
-
-      equity*=
-        1+r/100;
-
-      if(equity>maxEquity)
-        maxEquity=equity;
-
-      const dd=
-        (equity/maxEquity-1)*100;
-
-      if(dd<maxDD)
-        maxDD=dd;
-    }
-
-    const total=
-      (equity-1)*100;
+    if(!s)continue;
 
     html+=`
-
-    <p>
-
-      <b>${h[0]}</b>:
-      условный накопленный результат
-      <span class="${
-        total>=0
-        ?"good"
-        :"bad"
-      }">
-        ${fmt(total)}
-      </span>
-
-      · Max DD:
-      ${fmt(maxDD)}
-
-    </p>
+      <tr>
+        <td>${h}ч</td>
+        <td>${s.n}</td>
+        <td>${cellPct(s.signal)}</td>
+        <td>${cellPct(s.btc)}</td>
+        <td>${cellPct(s.edge)}</td>
+        <td>${cellPct(s.median)}</td>
+        <td>${(s.win*100).toFixed(1)}%</td>
+        <td>${s.lossStreak}</td>
+      </tr>
     `;
   }
 
-  html+=`
+  html+=`</table>`;
 
-  <div class="small">
-
-    Показатель является диагностикой
-    последовательности сигналов.
-    Комиссии, проскальзывание,
-    размер позиции и перекрытие сделок
-    не учитываются.
-
-  </div>
-  `;
-
-  document.getElementById(
-    "sequence"
-  ).innerHTML=html;
+  return html;
 }
 
+/* =========================
+   ГРУППИРОВКА
+========================= */
+
+function renderGroupTable(title,groups,baselineRows){
+
+  let html=`
+    <h3>${title}</h3>
+    <table>
+      <tr>
+        <th>Режим</th>
+        <th>N</th>
+        <th>24h Edge</th>
+        <th>24h Win</th>
+        <th>72h Edge</th>
+        <th>72h Win</th>
+      </tr>
+  `;
+
+  for(const g of groups){
+
+    const s24=stats(g.list,24,baselineRows);
+    const s72=stats(g.list,72,baselineRows);
+
+    if(!s24 || !s72)continue;
+
+    html+=`
+      <tr>
+        <td>${g.name}</td>
+        <td>${s24.n}</td>
+        <td>${cellPct(s24.edge)}</td>
+        <td>${(s24.win*100).toFixed(1)}%</td>
+        <td>${cellPct(s72.edge)}</td>
+        <td>${(s72.win*100).toFixed(1)}%</td>
+      </tr>
+    `;
+  }
+
+  html+=`</table>`;
+
+  return html;
+}
 
 /* =========================
-   ТЕКУЩИЙ СИГНАЛ
+   FINAL HOLDOUT
+========================= */
+
+function renderFinalHoldout(){
+
+  const split=Math.floor(rows.length*0.90);
+
+  const finalRows=rows.slice(split);
+  const finalSignals=finalRows.filter(x=>x.signal);
+
+  let html=`
+    <div class="card">
+      <h2>🔒 Независимый Final Holdout 10%</h2>
+
+      <div class="small">
+        Последние 10% данных не используются для выбора режима.
+      </div>
+
+      <p>
+        Всего наблюдений: <b>${finalRows.length}</b><br>
+        Сигналов: <b>${finalSignals.length}</b>
+      </p>
+  `;
+
+  html+=renderStats(
+    "Результат финального теста",
+    finalSignals,
+    finalRows,
+    [6,12,24,48,72]
+  );
+
+  html+=`</div>`;
+
+  return html;
+}
+
+/* =========================
+   РЕЖИМЫ НА ВСЁМ И DEVELOPMENT
+========================= */
+
+function renderRegimes(){
+
+  /*
+     Для анализа режимов используем
+     первые 90% данных.
+
+     Последние 10% оставляем полностью
+     нетронутыми.
+  */
+
+  const split=Math.floor(rows.length*0.90);
+
+  const devRows=rows.slice(0,split);
+  const devSignals=devRows.filter(x=>x.signal);
+
+  let html=`
+    <div class="card">
+      <h2>🔬 Анализ рыночных режимов</h2>
+
+      <div class="small">
+        Режимы исследуются только на первых 90%.
+        Последние 10% используются отдельно для проверки.
+      </div>
+  `;
+
+  /* -------------------------
+     Цена относительно EMA200
+  ------------------------- */
+
+  let groups=[
+    {
+      name:"Цена ниже EMA200",
+      list:devSignals.filter(x=>x.priceEma200<=0)
+    },
+    {
+      name:"0–3% выше EMA200",
+      list:devSignals.filter(x=>x.priceEma200>0 && x.priceEma200<0.03)
+    },
+    {
+      name:"3–7% выше EMA200",
+      list:devSignals.filter(x=>x.priceEma200>=0.03 && x.priceEma200<0.07)
+    },
+    {
+      name:">7% выше EMA200",
+      list:devSignals.filter(x=>x.priceEma200>=0.07)
+    }
+  ];
+
+  html+=renderGroupTable(
+    "1. Положение цены относительно EMA200",
+    groups,
+    devRows
+  );
+
+  /* -------------------------
+     ADX
+  ------------------------- */
+
+  groups=[
+    {
+      name:"ADX 25–30",
+      list:devSignals.filter(x=>x.adx>=25 && x.adx<30)
+    },
+    {
+      name:"ADX >30",
+      list:devSignals.filter(x=>x.adx>=30)
+    }
+  ];
+
+  html+=renderGroupTable(
+    "2. Сила тренда",
+    groups,
+    devRows
+  );
+
+  /* -------------------------
+     Volume
+  ------------------------- */
+
+  groups=[
+    {
+      name:"Volume 1.0–1.2x",
+      list:devSignals.filter(x=>x.volRatio>=1 && x.volRatio<1.2)
+    },
+    {
+      name:"Volume >1.2x",
+      list:devSignals.filter(x=>x.volRatio>=1.2)
+    }
+  ];
+
+  html+=renderGroupTable(
+    "3. Сила объёма",
+    groups,
+    devRows
+  );
+
+  /* -------------------------
+     EMA spread
+  ------------------------- */
+
+  groups=[
+    {
+      name:"EMA-spread 0–0.5%",
+      list:devSignals.filter(x=>x.emaSpread>=0 && x.emaSpread<0.005)
+    },
+    {
+      name:"EMA-spread 0.5–1.5%",
+      list:devSignals.filter(x=>x.emaSpread>=0.005 && x.emaSpread<0.015)
+    },
+    {
+      name:"EMA-spread >1.5%",
+      list:devSignals.filter(x=>x.emaSpread>=0.015)
+    }
+  ];
+
+  html+=renderGroupTable(
+    "4. Расхождение EMA20 и EMA50",
+    groups,
+    devRows
+  );
+
+  html+=`
+    <div class="small" style="margin-top:12px">
+      Edge = средняя доходность после сигнала минус средняя
+      доходность BTC за тот же период.
+      LS = максимальная серия отрицательных результатов.
+    </div>
+  `;
+
+  html+=`</div>`;
+
+  return html;
+}
+
+/* =========================
+   КОМБИНИРОВАННЫЕ РЕЖИМЫ
+========================= */
+
+function renderCombined(){
+
+  const split=Math.floor(rows.length*0.90);
+
+  const devRows=rows.slice(0,split);
+  const sig=devRows.filter(x=>x.signal);
+
+  /*
+     Здесь НЕ ищем десятки комбинаций.
+
+     Проверяем только логически понятные
+     состояния рынка.
+  */
+
+  const groups=[
+
+    {
+      name:"Цена > EMA200 + ADX >30",
+      list:sig.filter(x=>
+        x.priceEma200>0 &&
+        x.adx>30
+      )
+    },
+
+    {
+      name:"Цена > EMA200 + Volume >1.2x",
+      list:sig.filter(x=>
+        x.priceEma200>0 &&
+        x.volRatio>1.2
+      )
+    },
+
+    {
+      name:"Цена > EMA200 + ADX >30 + Volume >1.2x",
+      list:sig.filter(x=>
+        x.priceEma200>0 &&
+        x.adx>30 &&
+        x.volRatio>1.2
+      )
+    },
+
+    {
+      name:"0–3% выше EMA200 + ADX >30",
+      list:sig.filter(x=>
+        x.priceEma200>=0 &&
+        x.priceEma200<0.03 &&
+        x.adx>30
+      )
+    },
+
+    {
+      name:"3–7% выше EMA200 + ADX >30",
+      list:sig.filter(x=>
+        x.priceEma200>=0.03 &&
+        x.priceEma200<0.07 &&
+        x.adx>30
+      )
+    },
+
+    {
+      name:">7% выше EMA200 + ADX >30",
+      list:sig.filter(x=>
+        x.priceEma200>=0.07 &&
+        x.adx>30
+      )
+    }
+
+  ];
+
+  let html=`
+    <div class="card">
+      <h2>🧩 Комбинированные режимы</h2>
+
+      <div class="small">
+        Это НЕ новые сигналы. Это проверка того,
+        как уже существующий сигнал ведёт себя
+        в разных состояниях рынка.
+      </div>
+  `;
+
+  html+=renderGroupTable(
+    "Разбор режимов",
+    groups,
+    devRows
+  );
+
+  html+=`</div>`;
+
+  return html;
+}
+
+/* =========================
+   ОСНОВНАЯ СТАТИСТИКА
+========================= */
+
+function renderOverall(){
+
+  const split=Math.floor(rows.length*0.90);
+
+  const devRows=rows.slice(0,split);
+  const devSignals=devRows.filter(x=>x.signal);
+
+  let html=`
+    <div class="card">
+      <h2>📊 Основная статистика</h2>
+
+      <div class="small">
+        Фиксированный сигнал:
+        EMA20 &gt; EMA50 + ADX &gt;25 + Volume &gt; среднего
+      </div>
+  `;
+
+  html+=renderStats(
+    "Первые 90% данных",
+    devSignals,
+    devRows,
+    [6,12,24,48,72]
+  );
+
+  html+=`
+    <hr>
+    <div class="small">
+      N — количество сигналов.
+      BTC — средний результат обычного BTC за тот же период.
+      Edge — преимущество сигнала над BTC.
+    </div>
+  `;
+
+  html+=`</div>`;
+
+  return html;
+}
+
+/* =========================
+   ТЕКУЩЕЕ СОСТОЯНИЕ
 ========================= */
 
 function renderCurrent(){
 
-  const close=
-    +candles.at(-1)[4];
+  const r=rows[rows.length-1];
 
-  const closeArr=
-    candles.map(x=>+x[4]);
+  const signal=r.signal;
 
-  const highArr=
-    candles.map(x=>+x[2]);
+  let signalText=signal
+    ?"🟢 SIGNAL"
+    :"⚪ NO SIGNAL";
 
-  const lowArr=
-    candles.map(x=>+x[3]);
-
-  const volArr=
-    candles.map(x=>+x[5]);
-
-  const e20=
-    ema(closeArr,20);
-
-  const e50=
-    ema(closeArr,50);
-
-  const adx=
-    calcADX(
-      highArr,
-      lowArr,
-      closeArr,
-      14
-    );
-
-  let sum=0;
-
-  for(
-    let i=volArr.length-20;
-    i<volArr.length;
-    i++
-  ){
-    sum+=volArr[i];
-  }
-
-  const avgVol=sum/20;
-
-  const trend=
-    e20.at(-1)>e50.at(-1);
-
-  const strong=
-    adx.at(-1)>25;
-
-  const volume=
-    volArr.at(-1)>avgVol;
-
-  const active=
-    trend &&
-    strong &&
-    volume;
-
-  document.getElementById(
-    "current"
-  ).innerHTML=`
-
-  <h2>📡 Текущий сигнал</h2>
-
-  <b class="${
-    active
+  let signalClass=signal
     ?"good"
-    :"warn"
-  }">
+    :"neutral";
 
-    ${
-      active
-      ?"🟢 SIGNAL LONG"
-      :"⚪ NO SIGNAL"
-    }
+  const priceVs200=r.priceEma200*100;
+  const spread=r.emaSpread*100;
 
-  </b>
+  return `
+    <div class="card">
 
-  <p>
-    BTC:
-    $${close.toLocaleString(
-      "en-US",
-      {maximumFractionDigits:0}
-    )}
-  </p>
+      <div class="big ${signalClass}">
+        ${signalText}
+      </div>
 
-  <p>
+      <p>
+        BTC: <b>$${r.close.toLocaleString(
+          "en-US",
+          {maximumFractionDigits:0}
+        )}</b>
+      </p>
 
-    EMA20
-    ${trend?"✓":"✗"}
+      <hr>
 
-    · ADX
-    ${adx.at(-1).toFixed(1)}
-    ${strong?"✓":"✗"}
+      <p>
+        EMA20 &gt; EMA50:
+        <b class="${r.ema20>r.ema50?'good':'bad'}">
+          ${r.ema20>r.ema50?'✓':'✗'}
+        </b>
+      </p>
 
-    · Volume
-    ${(volArr.at(-1)/avgVol).toFixed(2)}x
-    ${volume?"✓":"✗"}
+      <p>
+        ADX:
+        <b class="${r.adx>25?'good':'bad'}">
+          ${r.adx.toFixed(1)}
+        </b>
+      </p>
 
-  </p>
+      <p>
+        Volume:
+        <b class="${r.volRatio>1?'good':'bad'}">
+          ${r.volRatio.toFixed(2)}x
+        </b>
+      </p>
+
+      <p>
+        Цена / EMA200:
+        <b class="${priceVs200>0?'good':'bad'}">
+          ${priceVs200>=0?'+':''}${priceVs200.toFixed(2)}%
+        </b>
+      </p>
+
+      <p>
+        EMA20–EMA50:
+        <b>${spread.toFixed(2)}%</b>
+      </p>
+
+    </div>
   `;
 }
 
-
 /* =========================
-   BINANCE
+   КЛАСТЕРЫ СИГНАЛОВ
 ========================= */
 
-async function fetchBatch(
-  endTime
-){
+function renderClusters(){
 
-  let url=
-    API+
-    "?symbol=BTCUSDT"+
-    "&interval="+INTERVAL+
-    "&limit="+LIMIT;
+  const split=Math.floor(rows.length*0.90);
+  const sig=rows.slice(0,split).filter(x=>x.signal);
 
-  if(endTime)
-    url+="&endTime="+endTime;
+  if(!sig.length)return "";
 
-  const controller=
-    new AbortController();
+  let clusters=[];
+  let current=[];
 
-  const timer=
-    setTimeout(
-      ()=>controller.abort(),
-      15000
-    );
+  for(let i=0;i<sig.length;i++){
+
+    if(!current.length){
+      current=[sig[i]];
+      continue;
+    }
+
+    const diff=
+      (sig[i].i-current[current.length-1].i);
+
+    if(diff<=24){
+      current.push(sig[i]);
+    }else{
+      clusters.push(current);
+      current=[sig[i]];
+    }
+  }
+
+  if(current.length)clusters.push(current);
+
+  const lengths=clusters.map(x=>x.length);
+
+  return `
+    <div class="card">
+      <h2>🔗 Кластеры сигналов</h2>
+
+      <p>
+        Сигналов: <b>${sig.length}</b><br>
+        Кластеров: <b>${clusters.length}</b><br>
+        Средний размер кластера:
+        <b>${avg(lengths).toFixed(1)}</b><br>
+        Максимальный кластер:
+        <b>${Math.max(...lengths)}</b>
+      </p>
+
+      <div class="small">
+        Сигналы могут возникать несколько часов подряд.
+        Поэтому их нельзя автоматически считать
+        независимыми сделками.
+      </div>
+    </div>
+  `;
+}
+
+/* =========================
+   ЗАПУСК
+========================= */
+
+async function main(){
 
   try{
 
-    const response=
-      await fetch(
-        url,
-        {
-          signal:
-            controller.signal
-        }
-      );
+    await loadData();
 
-    if(!response.ok)
-      throw new Error(
-        "HTTP "+response.status
-      );
+    document.getElementById("status").innerHTML=
+      `Загружено ${candles.length.toLocaleString()} часовых свечей.`;
 
-    return await response.json();
+    buildRows();
 
-  }finally{
+    const app=document.getElementById("app");
 
-    clearTimeout(timer);
+    app.innerHTML=
+      renderCurrent()+
+      renderOverall()+
+      renderRegimes()+
+      renderCombined()+
+      renderClusters()+
+      renderFinalHoldout();
+
+  }catch(e){
+
+    console.error(e);
+
+    document.getElementById("status").innerHTML=
+      `<span class="bad">
+        Ошибка загрузки: ${e.message}
+      </span>`;
   }
 }
 
-
-/* =========================
-   ЗАГРУЗКА
-========================= */
-
-async function loadHistory(){
-
-  let all=[];
-  let endTime=null;
-
-  for(
-    let n=1;
-    n<=BATCHES;
-    n++
-  ){
-
-    document.getElementById(
-      "status"
-    ).innerHTML=`
-
-      Загрузка BTC 1H…<br>
-      запрос ${n}/${BATCHES}
-
-    `;
-
-    const batch=
-      await fetchBatch(
-        endTime
-      );
-
-    if(!batch.length)
-      break;
-
-    all=
-      all.concat(batch);
-
-    endTime=
-      batch[0][0]-1;
-
-    if(batch.length<LIMIT)
-      break;
-  }
-
-
-  /*
-    Удаляем дубли.
-  */
-
-  const map=new Map();
-
-  for(const c of all)
-    map.set(c[0],c);
-
-
-  candles=
-    [...map.values()]
-    .sort(
-      (a,b)=>a[0]-b[0]
-    );
-
-
-  buildRows();
-
-
-  document.getElementById(
-    "status"
-  ).innerHTML=`
-
-    <b class="good">
-      Данные обновлены
-    </b>
-    <br>
-
-    ${candles.length}
-    часовых свечей ·
-    ${rows.length}
-    строк для статистики
-
-  `;
-
-
-  renderCurrent();
-  renderHorizons();
-  renderHoldout();
-  renderSequence();
-}
-
-
-/* =========================
-   START
-========================= */
-
-loadHistory().catch(e=>{
-
-  document.getElementById(
-    "status"
-  ).innerHTML=
-
-    `<span class="bad">
-      Ошибка загрузки:
-      ${e.message}
-    </span>`;
-});
+main();
 
 </script>
 
