@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -9,54 +8,176 @@
 
 <style>
 *{box-sizing:border-box}
+
 body{
- margin:0;background:#0b0f14;color:#e8edf3;
+ margin:0;
+ background:#0b0f14;
+ color:#e8edf3;
  font-family:Arial,sans-serif
 }
-.container{max-width:950px;margin:auto;padding:15px}
-h1{text-align:center;margin:8px 0 3px}
-.version{text-align:center;color:#7f8b99;font-size:13px;margin-bottom:15px}
+
+.container{
+ max-width:950px;
+ margin:auto;
+ padding:15px
+}
+
+h1{
+ text-align:center;
+ margin:8px 0 3px
+}
+
+.version{
+ text-align:center;
+ color:#7f8b99;
+ font-size:13px;
+ margin-bottom:15px
+}
+
 .card{
- background:#121821;border:1px solid #202b38;border-radius:14px;
- padding:15px;margin-bottom:14px
+ background:#121821;
+ border:1px solid #202b38;
+ border-radius:14px;
+ padding:15px;
+ margin-bottom:14px
 }
-.row{display:flex;gap:8px;flex-wrap:wrap}
+
+.row{
+ display:flex;
+ gap:8px;
+ flex-wrap:wrap
+}
+
 button,select{
- background:#1a2430;color:#fff;border:1px solid #344353;
- border-radius:9px;padding:10px 12px;font-size:14px
+ background:#1a2430;
+ color:#fff;
+ border:1px solid #344353;
+ border-radius:9px;
+ padding:10px 12px;
+ font-size:14px
 }
-button{cursor:pointer}
-button:disabled{opacity:.5}
-.price{text-align:center;font-size:30px;font-weight:bold;margin:10px}
+
+button{
+ cursor:pointer
+}
+
+button:disabled{
+ opacity:.5
+}
+
+.price{
+ text-align:center;
+ font-size:30px;
+ font-weight:bold;
+ margin:10px
+}
+
 .signal{
- text-align:center;font-size:30px;font-weight:bold;
- padding:15px;border-radius:12px;margin:10px 0
+ text-align:center;
+ font-size:30px;
+ font-weight:bold;
+ padding:15px;
+ border-radius:12px;
+ margin:10px 0
 }
-.buy{background:#123c2a;color:#51e39b}
-.sell{background:#451c25;color:#ff7182}
-.hold{background:#403515;color:#ffd45a}
-.score{text-align:center;font-size:42px;font-weight:bold}
+
+.buy{
+ background:#123c2a;
+ color:#51e39b
+}
+
+.sell{
+ background:#451c25;
+ color:#ff7182
+}
+
+.hold{
+ background:#403515;
+ color:#ffd45a
+}
+
+.score{
+ text-align:center;
+ font-size:42px;
+ font-weight:bold
+}
+
 .meter{
- height:12px;background:#222c37;border-radius:10px;
- overflow:hidden;margin:10px 0
+ height:12px;
+ background:#222c37;
+ border-radius:10px;
+ overflow:hidden;
+ margin:10px 0
 }
-.meterFill{height:100%;background:#4e9cff}
-.small{color:#8d99a7;font-size:13px}
-.reason{padding:7px 0;border-bottom:1px solid #202b38}
-.sectionTitle{font-size:18px;font-weight:bold;margin-bottom:10px}
-.center{text-align:center}
-.loader{text-align:center;padding:20px;color:#9aa7b5}
-table{width:100%;border-collapse:collapse;font-size:13px}
+
+.meterFill{
+ height:100%;
+ background:#4e9cff
+}
+
+.small{
+ color:#8d99a7;
+ font-size:13px
+}
+
+.reason{
+ padding:7px 0;
+ border-bottom:1px solid #202b38
+}
+
+.sectionTitle{
+ font-size:18px;
+ font-weight:bold;
+ margin-bottom:10px
+}
+
+.center{
+ text-align:center
+}
+
+.loader{
+ text-align:center;
+ padding:20px;
+ color:#9aa7b5
+}
+
+table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:13px
+}
+
 th,td{
- padding:7px 5px;border-bottom:1px solid #25303b;
+ padding:7px 5px;
+ border-bottom:1px solid #25303b;
  text-align:right
 }
-th:first-child,td:first-child{text-align:left}
-details{margin-top:10px}
-summary{cursor:pointer;color:#75b7ff;padding:7px}
-hr{border:0;border-top:1px solid #26313d;margin:14px 0}
+
+th:first-child,
+td:first-child{
+ text-align:left
+}
+
+details{
+ margin-top:10px
+}
+
+summary{
+ cursor:pointer;
+ color:#75b7ff;
+ padding:7px
+}
+
+hr{
+ border:0;
+ border-top:1px solid #26313d;
+ margin:14px 0
+}
+
 .regime{
- padding:9px;border-radius:8px;margin:5px 0;
+ padding:9px;
+ border-radius:8px;
+ margin:5px 0;
  background:#19222d
 }
 </style>
@@ -67,6 +188,7 @@ hr{border:0;border-top:1px solid #26313d;margin:14px 0}
 <div class="container">
 
 <h1>₿ BTC Signal</h1>
+
 <div class="version">
 v2.4 — Market Regime + ADX Diagnostics
 </div>
@@ -127,20 +249,34 @@ function sleep(ms){
  return new Promise(r=>setTimeout(r,ms));
 }
 
+
 function pct(x){
- if(!isFinite(x))return "—";
+
+ if(!isFinite(x))
+  return "—";
+
  return (x>=0?"+":"")+x.toFixed(2)+"%";
 }
 
+
 function num(x){
- return x==null||!isFinite(x)?"—":Number(x).toFixed(2);
+
+ return x==null||!isFinite(x)
+  ?"—"
+  :Number(x).toFixed(2);
 }
 
+
 function fmtPrice(x){
- return Number(x).toLocaleString("en-US",{
-  maximumFractionDigits:2
- });
+
+ return Number(x).toLocaleString(
+  "en-US",
+  {
+   maximumFractionDigits:2
+  }
+ );
 }
+
 
 function formatHorizon(h,tf){
 
@@ -150,8 +286,11 @@ function formatHorizon(h,tf){
   tf==="4h"?240:1440
  );
 
- if(minutes<60)return minutes+" мин";
- if(minutes%1440===0)return minutes/1440+" дн";
+ if(minutes<60)
+  return minutes+" мин";
+
+ if(minutes%1440===0)
+  return minutes/1440+" дн";
 
  return minutes/60+" ч";
 }
@@ -163,13 +302,16 @@ function formatHorizon(h,tf){
 
 function calcEMA(values,period){
 
- const out=new Array(values.length).fill(null);
+ const out=
+  new Array(values.length).fill(null);
 
- if(values.length<period)return out;
+ if(values.length<period)
+  return out;
 
  let sum=0;
 
- for(let i=0;i<period;i++)sum+=values[i];
+ for(let i=0;i<period;i++)
+  sum+=values[i];
 
  let ema=sum/period;
 
@@ -178,7 +320,11 @@ function calcEMA(values,period){
  const k=2/(period+1);
 
  for(let i=period;i<values.length;i++){
-  ema=values[i]*k+ema*(1-k);
+
+  ema=
+   values[i]*k+
+   ema*(1-k);
+
   out[i]=ema;
  }
 
@@ -192,40 +338,52 @@ function calcEMA(values,period){
 
 function calcRSI(values,period=14){
 
- const out=new Array(values.length).fill(null);
+ const out=
+  new Array(values.length).fill(null);
 
- if(values.length<=period)return out;
+ if(values.length<=period)
+  return out;
 
- let gain=0,loss=0;
+ let gain=0;
+ let loss=0;
 
  for(let i=1;i<=period;i++){
 
-  const d=values[i]-values[i-1];
+  const d=
+   values[i]-values[i-1];
 
-  if(d>=0)gain+=d;
-  else loss-=d;
+  if(d>=0)
+   gain+=d;
+  else
+   loss-=d;
  }
 
  let avgGain=gain/period;
  let avgLoss=loss/period;
 
  out[period]=
-  avgLoss===0?100:
-  100-(100/(1+avgGain/avgLoss));
+  avgLoss===0
+   ?100
+   :100-(100/(1+avgGain/avgLoss));
 
  for(let i=period+1;i<values.length;i++){
 
-  const d=values[i]-values[i-1];
+  const d=
+   values[i]-values[i-1];
 
   const g=Math.max(d,0);
   const l=Math.max(-d,0);
 
-  avgGain=(avgGain*(period-1)+g)/period;
-  avgLoss=(avgLoss*(period-1)+l)/period;
+  avgGain=
+   (avgGain*(period-1)+g)/period;
+
+  avgLoss=
+   (avgLoss*(period-1)+l)/period;
 
   out[i]=
-   avgLoss===0?100:
-   100-(100/(1+avgGain/avgLoss));
+   avgLoss===0
+    ?100
+    :100-(100/(1+avgGain/avgLoss));
  }
 
  return out;
@@ -238,15 +396,24 @@ function calcRSI(values,period=14){
 
 function calcMACD(values){
 
- const ema12=calcEMA(values,12);
- const ema26=calcEMA(values,26);
+ const ema12=
+  calcEMA(values,12);
 
- const macd=new Array(values.length).fill(null);
+ const ema26=
+  calcEMA(values,26);
+
+ const macd=
+  new Array(values.length).fill(null);
 
  for(let i=0;i<values.length;i++){
 
-  if(ema12[i]!=null&&ema26[i]!=null){
-   macd[i]=ema12[i]-ema26[i];
+  if(
+   ema12[i]!=null &&
+   ema26[i]!=null
+  ){
+
+   macd[i]=
+    ema12[i]-ema26[i];
   }
  }
 
@@ -256,15 +423,20 @@ function calcMACD(values){
  for(let i=0;i<macd.length;i++){
 
   if(macd[i]!=null){
+
    temp.push(macd[i]);
    indexes.push(i);
   }
  }
 
- const sigTemp=calcEMA(temp,9);
+ const sigTemp=
+  calcEMA(temp,9);
 
- const signal=new Array(values.length).fill(null);
- const histogram=new Array(values.length).fill(null);
+ const signal=
+  new Array(values.length).fill(null);
+
+ const histogram=
+  new Array(values.length).fill(null);
 
  for(let j=0;j<sigTemp.length;j++){
 
@@ -273,7 +445,9 @@ function calcMACD(values){
    const i=indexes[j];
 
    signal[i]=sigTemp[j];
-   histogram[i]=macd[i]-signal[i];
+
+   histogram[i]=
+    macd[i]-signal[i];
   }
  }
 
@@ -293,18 +467,28 @@ function calcADX(data,period=14){
 
  const n=data.length;
 
- const tr=new Array(n).fill(null);
- const plusDM=new Array(n).fill(null);
- const minusDM=new Array(n).fill(null);
+ const tr=
+  new Array(n).fill(null);
+
+ const plusDM=
+  new Array(n).fill(null);
+
+ const minusDM=
+  new Array(n).fill(null);
 
  for(let i=1;i<n;i++){
 
   const high=data[i].high;
   const low=data[i].low;
 
-  const prevHigh=data[i-1].high;
-  const prevLow=data[i-1].low;
-  const prevClose=data[i-1].close;
+  const prevHigh=
+   data[i-1].high;
+
+  const prevLow=
+   data[i-1].low;
+
+  const prevClose=
+   data[i-1].close;
 
   tr[i]=Math.max(
    high-low,
@@ -312,17 +496,41 @@ function calcADX(data,period=14){
    Math.abs(low-prevClose)
   );
 
-  const up=high-prevHigh;
-  const down=prevLow-low;
+  const up=
+   high-prevHigh;
 
-  plusDM[i]=(up>down&&up>0)?up:0;
-  minusDM[i]=(down>up&&down>0)?down:0;
+  const down=
+   prevLow-low;
+
+  plusDM[i]=
+   (up>down&&up>0)
+    ?up
+    :0;
+
+  minusDM[i]=
+   (down>up&&down>0)
+    ?down
+    :0;
  }
 
- const adx=new Array(n).fill(null);
- const plusDI=new Array(n).fill(null);
- const minusDI=new Array(n).fill(null);
- const dx=new Array(n).fill(null);
+ const adx=
+  new Array(n).fill(null);
+
+ const plusDI=
+  new Array(n).fill(null);
+
+ const minusDI=
+  new Array(n).fill(null);
+
+ const dx=
+  new Array(n).fill(null);
+
+ if(n<=period)
+  return{
+   adx,
+   plusDI,
+   minusDI
+  };
 
  let atr=0;
  let pDM=0;
@@ -339,76 +547,91 @@ function calcADX(data,period=14){
  pDM/=period;
  mDM/=period;
 
- let firstDX=null;
-
  for(let i=period;i<n;i++){
 
   if(i>period){
 
-   atr=((atr*(period-1))+tr[i])/period;
-   pDM=((pDM*(period-1))+plusDM[i])/period;
-   mDM=((mDM*(period-1))+minusDM[i])/period;
+   atr=
+    ((atr*(period-1))+tr[i])/period;
+
+   pDM=
+    ((pDM*(period-1))+plusDM[i])/period;
+
+   mDM=
+    ((mDM*(period-1))+minusDM[i])/period;
   }
 
-  if(atr===0)continue;
+  if(atr===0)
+   continue;
 
-  plusDI[i]=100*(pDM/atr);
-  minusDI[i]=100*(mDM/atr);
+  plusDI[i]=
+   100*(pDM/atr);
 
-  const sum=plusDI[i]+minusDI[i];
+  minusDI[i]=
+   100*(mDM/atr);
+
+  const sum=
+   plusDI[i]+minusDI[i];
 
   if(sum>0){
 
-   dx[i]=100*
-    Math.abs(plusDI[i]-minusDI[i])/sum;
-
-   if(firstDX===null){
-
-    firstDX=i;
-    adx[i]=dx[i];
-
-   }else{
-
-    adx[i]=
-     ((adx[i-1]??dx[i])* (period-1)+dx[i])/period;
-   }
+   dx[i]=
+    100*
+    Math.abs(
+     plusDI[i]-minusDI[i]
+    )/sum;
   }
  }
 
  /*
-  Более стабильная и простая повторная
-  инициализация ADX через DX.
+  Инициализация ADX через
+  среднее первых 14 значений DX.
  */
 
  const cleanDX=[];
 
  for(let i=period;i<n;i++){
 
-  if(dx[i]!=null)cleanDX.push({
-   i,
-   v:dx[i]
-  });
+  if(dx[i]!=null){
+
+   cleanDX.push({
+    i,
+    v:dx[i]
+   });
+  }
  }
 
- for(let j=period-1;j<cleanDX.length;j++){
+ if(cleanDX.length>=period){
 
-  const idx=cleanDX[j].i;
+  const firstIndex=
+   cleanDX[period-1].i;
 
-  if(j===period-1){
+  let sum=0;
 
-   let sum=0;
+  for(let k=0;k<period;k++)
+   sum+=cleanDX[k].v;
 
-   for(let k=0;k<period;k++){
-    sum+=cleanDX[k].v;
-   }
+  adx[firstIndex]=
+   sum/period;
 
-   adx[idx]=sum/period;
+  for(
+   let j=period;
+   j<cleanDX.length;
+   j++
+  ){
 
-  }else{
+   const idx=
+    cleanDX[j].i;
+
+   const prevIdx=
+    cleanDX[j-1].i;
 
    adx[idx]=
-    ((adx[cleanDX[j-1].i]??cleanDX[j].v)*
-     (period-1)+cleanDX[j].v)/period;
+    (
+     (adx[prevIdx]??cleanDX[j].v)*
+     (period-1)+
+     cleanDX[j].v
+    )/period;
   }
  }
 
@@ -426,31 +649,56 @@ function calcADX(data,period=14){
 
 function buildIndicators(data){
 
- const close=data.map(x=>x.close);
- const volume=data.map(x=>x.volume);
+ const close=
+  data.map(x=>x.close);
 
- const ema20=calcEMA(close,20);
- const ema50=calcEMA(close,50);
- const ema200=calcEMA(close,200);
- const rsi=calcRSI(close,14);
- const macd=calcMACD(close);
- const adx=calcADX(data,14);
+ const volume=
+  data.map(x=>x.volume);
+
+ const ema20=
+  calcEMA(close,20);
+
+ const ema50=
+  calcEMA(close,50);
+
+ const ema200=
+  calcEMA(close,200);
+
+ const rsi=
+  calcRSI(close,14);
+
+ const macd=
+  calcMACD(close);
+
+ const adx=
+  calcADX(data,14);
 
  const volumeRatio=
-  new Array(close.length).fill(null);
+  new Array(close.length)
+   .fill(null);
 
- for(let i=20;i<close.length;i++){
+ for(
+  let i=20;
+  i<close.length;
+  i++
+ ){
 
   let sum=0;
 
-  for(let j=i-20;j<i;j++){
+  for(
+   let j=i-20;
+   j<i;
+   j++
+  ){
+
    sum+=volume[j];
   }
 
   const avg=sum/20;
 
   if(avg>0)
-   volumeRatio[i]=volume[i]/avg;
+   volumeRatio[i]=
+    volume[i]/avg;
  }
 
  return{
@@ -473,19 +721,21 @@ function buildIndicators(data){
 
 function getRegime(ind,i){
 
- const adx=ind.adx.adx[i];
- const plus=ind.adx.plusDI[i];
- const minus=ind.adx.minusDI[i];
+ const adx=
+  ind.adx.adx[i];
 
- if(adx==null||plus==null||minus==null)
+ const plus=
+  ind.adx.plusDI[i];
+
+ const minus=
+  ind.adx.minusDI[i];
+
+ if(
+  adx==null||
+  plus==null||
+  minus==null
+ )
   return "UNKNOWN";
-
- /*
-  ADX:
-  <20 = слабый тренд / флэт
-  20–25 = переход
-  >=25 = выраженный тренд
- */
 
  if(adx<20)
   return "FLAT";
@@ -502,10 +752,17 @@ function getRegime(ind,i){
 
 function regimeName(r){
 
- if(r==="BULL")return "🟢 Сильный бычий тренд";
- if(r==="BEAR")return "🔴 Сильный медвежий тренд";
- if(r==="FLAT")return "🟡 Флэт / слабый тренд";
- if(r==="TRANSITION")return "⚪ Переходный рынок";
+ if(r==="BULL")
+  return "🟢 Сильный бычий тренд";
+
+ if(r==="BEAR")
+  return "🔴 Сильный медвежий тренд";
+
+ if(r==="FLAT")
+  return "🟡 Флэт / слабый тренд";
+
+ if(r==="TRANSITION")
+  return "⚪ Переходный рынок";
 
  return "—";
 }
@@ -519,57 +776,112 @@ function getSignal(ind,i){
 
  let bull=0;
  let bear=0;
+
  const reasons=[];
 
- const price=ind.close[i];
- const e20=ind.ema20[i];
- const e50=ind.ema50[i];
- const e200=ind.ema200[i];
- const rsi=ind.rsi[i];
- const macd=ind.macd.macd[i];
- const vr=ind.volumeRatio[i];
+ const price=
+  ind.close[i];
 
- if(e20!=null&&e50!=null){
+ const e20=
+  ind.ema20[i];
+
+ const e50=
+  ind.ema50[i];
+
+ const e200=
+  ind.ema200[i];
+
+ const rsi=
+  ind.rsi[i];
+
+ const macd=
+  ind.macd.macd[i];
+
+ const vr=
+  ind.volumeRatio[i];
+
+ if(
+  e20!=null &&
+  e50!=null
+ ){
 
   if(e20>e50){
+
    bull+=20;
-   reasons.push("EMA20 > EMA50");
+   reasons.push(
+    "EMA20 > EMA50"
+   );
+
   }else{
+
    bear+=20;
-   reasons.push("EMA20 < EMA50");
+   reasons.push(
+    "EMA20 < EMA50"
+   );
   }
  }
 
  if(e200!=null){
 
   if(price>e200){
+
    bull+=20;
-   reasons.push("Цена выше EMA200");
+   reasons.push(
+    "Цена выше EMA200"
+   );
+
   }else{
+
    bear+=20;
-   reasons.push("Цена ниже EMA200");
+   reasons.push(
+    "Цена ниже EMA200"
+   );
   }
  }
 
  if(rsi!=null){
 
-  if(rsi>=52&&rsi<=68){
+  if(
+   rsi>=52 &&
+   rsi<=68
+  ){
+
    bull+=20;
-   reasons.push("RSI 52–68");
+
+   reasons.push(
+    "RSI 52–68"
+   );
+
   }
   else if(rsi>75){
+
    bear+=10;
-   reasons.push("RSI >75");
+
+   reasons.push(
+    "RSI >75"
+   );
+
   }
   else if(rsi<30){
+
    bull+=10;
-   reasons.push("RSI <30");
+
+   reasons.push(
+    "RSI <30"
+   );
+
   }
   else if(rsi<45){
+
    bear+=15;
-   reasons.push("RSI <45");
+
+   reasons.push(
+    "RSI <45"
+   );
+
   }
   else{
+
    bull+=10;
    bear+=10;
   }
@@ -578,11 +890,20 @@ function getSignal(ind,i){
  if(macd!=null){
 
   if(macd>0){
+
    bull+=20;
-   reasons.push("MACD >0");
+
+   reasons.push(
+    "MACD >0"
+   );
+
   }else{
+
    bear+=20;
-   reasons.push("MACD <0");
+
+   reasons.push(
+    "MACD <0"
+   );
   }
  }
 
@@ -591,11 +912,20 @@ function getSignal(ind,i){
   if(vr>=1.25){
 
    if(price>e20){
+
     bull+=20;
-    reasons.push("Высокий объём + цена выше EMA20");
+
+    reasons.push(
+     "Высокий объём + цена выше EMA20"
+    );
+
    }else{
+
     bear+=20;
-    reasons.push("Высокий объём + цена ниже EMA20");
+
+    reasons.push(
+     "Высокий объём + цена ниже EMA20"
+    );
    }
 
   }else{
@@ -605,18 +935,22 @@ function getSignal(ind,i){
   }
  }
 
- const score=Math.max(
-  0,
-  Math.min(
-   100,
-   50+(bull-bear)/2
-  )
- );
+ const score=
+  Math.max(
+   0,
+   Math.min(
+    100,
+    50+(bull-bear)/2
+   )
+  );
 
  let signal="HOLD";
 
- if(score>=70)signal="BUY";
- else if(score<=30)signal="SELL";
+ if(score>=70)
+  signal="BUY";
+
+ else if(score<=30)
+  signal="SELL";
 
  return{
   score,
@@ -634,12 +968,18 @@ function getSignal(ind,i){
 
 function renderLive(ind,i){
 
- const s=getSignal(ind,i);
- const regime=getRegime(ind,i);
+ const s=
+  getSignal(ind,i);
+
+ const regime=
+  getRegime(ind,i);
 
  const cls=
-  s.signal==="BUY"?"buy":
-  s.signal==="SELL"?"sell":"hold";
+  s.signal==="BUY"
+   ?"buy"
+   :s.signal==="SELL"
+    ?"sell"
+    :"hold";
 
  let html=`
 
@@ -666,20 +1006,27 @@ function renderLive(ind,i){
   </div>
 
   <div class="meter">
-   <div class="meterFill"
+
+   <div
+    class="meterFill"
     style="width:${s.score}%">
    </div>
+
   </div>
 
   <div class="regime">
+
    <b>Режим рынка:</b>
    ${regimeName(regime)}
+
   </div>
 
   <div class="small">
+
    ADX: ${num(ind.adx.adx[i])}<br>
    +DI: ${num(ind.adx.plusDI[i])}<br>
    -DI: ${num(ind.adx.minusDI[i])}
+
   </div>
 
   <hr>
@@ -690,7 +1037,12 @@ function renderLive(ind,i){
  `;
 
  for(const r of s.reasons){
-  html+=`<div class="reason">${r}</div>`;
+
+  html+=`
+   <div class="reason">
+    ${r}
+   </div>
+  `;
  }
 
  html+=`
@@ -698,6 +1050,7 @@ function renderLive(ind,i){
  <hr>
 
  <div class="small">
+
  EMA20: ${num(ind.ema20[i])}<br>
  EMA50: ${num(ind.ema50[i])}<br>
  EMA200: ${num(ind.ema200[i])}<br>
@@ -706,12 +1059,15 @@ function renderLive(ind,i){
  MACD Signal: ${num(ind.macd.signal[i])}<br>
  MACD Histogram: ${num(ind.macd.histogram[i])}<br>
  Volume ratio: ${num(ind.volumeRatio[i])}
+
  </div>
 
  </div>
  `;
 
- document.getElementById("live").innerHTML=html;
+ document.getElementById(
+  "live"
+ ).innerHTML=html;
 }
 
 
@@ -720,7 +1076,10 @@ function renderLive(ind,i){
 ========================= */
 
 function directionalReturn(
- data,i,horizon,direction
+ data,
+ i,
+ horizon,
+ direction
 ){
 
  const entry=i+1;
@@ -729,16 +1088,24 @@ function directionalReturn(
  if(
   entry>=data.length||
   exit>=data.length
- )return null;
+ )
+  return null;
 
- const p1=data[entry].open;
- const p2=data[exit].open;
+ const p1=
+  data[entry].open;
 
- if(!p1||!p2)return null;
+ const p2=
+  data[exit].open;
 
- const raw=(p2-p1)/p1*100;
+ if(!p1||!p2)
+  return null;
 
- return direction==="BUY"?raw:-raw;
+ const raw=
+  (p2-p1)/p1*100;
+
+ return direction==="BUY"
+  ?raw
+  :-raw;
 }
 
 
@@ -756,6 +1123,7 @@ function signalStats(
  let n=0;
  let wins=0;
  let sum=0;
+
  let best=-Infinity;
  let worst=Infinity;
 
@@ -765,32 +1133,47 @@ function signalStats(
   i++
  ){
 
-  const s=getSignal(ind,i);
+  const s=
+   getSignal(ind,i);
 
-  if(s.signal!==signal)continue;
+  if(s.signal!==signal)
+   continue;
 
   const r=
    directionalReturn(
-    data,i,horizon,signal
+    data,
+    i,
+    horizon,
+    signal
    );
 
-  if(r==null)continue;
+  if(r==null)
+   continue;
 
   n++;
 
-  if(r>0)wins++;
+  if(r>0)
+   wins++;
 
   sum+=r;
-  best=Math.max(best,r);
-  worst=Math.min(worst,r);
+
+  best=
+   Math.max(best,r);
+
+  worst=
+   Math.min(worst,r);
  }
 
  return{
   n,
-  accuracy:n?wins/n*100:null,
-  avg:n?sum/n:null,
-  best:n?best:null,
-  worst:n?worst:null
+  accuracy:
+   n?wins/n*100:null,
+  avg:
+   n?sum/n:null,
+  best:
+   n?best:null,
+  worst:
+   n?worst:null
  };
 }
 
@@ -799,9 +1182,15 @@ function signalStats(
    BACKTEST
 ========================= */
 
-function renderBacktest(data,ind){
+function renderBacktest(
+ data,
+ ind
+){
 
- const tf=document.getElementById("timeframe").value;
+ const tf=
+  document.getElementById(
+   "timeframe"
+  ).value;
 
  let html=`
 
@@ -816,15 +1205,25 @@ function renderBacktest(data,ind){
  </div>
  `;
 
- for(const h of HORIZONS[tf]){
+ for(
+  const h of HORIZONS[tf]
+ ){
 
-  const buy=signalStats(
-   data,ind,"BUY",h
-  );
+  const buy=
+   signalStats(
+    data,
+    ind,
+    "BUY",
+    h
+   );
 
-  const sell=signalStats(
-   data,ind,"SELL",h
-  );
+  const sell=
+   signalStats(
+    data,
+    ind,
+    "SELL",
+    h
+   );
 
   html+=`
 
@@ -848,7 +1247,9 @@ function renderBacktest(data,ind){
   <tr>
    <td>BUY</td>
    <td>${buy.n}</td>
-   <td>${buy.accuracy?.toFixed(1)??"—"}%</td>
+   <td>
+    ${buy.accuracy?.toFixed(1)??"—"}%
+   </td>
    <td>${pct(buy.avg)}</td>
    <td>${pct(buy.best)}</td>
    <td>${pct(buy.worst)}</td>
@@ -857,7 +1258,9 @@ function renderBacktest(data,ind){
   <tr>
    <td>SELL</td>
    <td>${sell.n}</td>
-   <td>${sell.accuracy?.toFixed(1)??"—"}%</td>
+   <td>
+    ${sell.accuracy?.toFixed(1)??"—"}%
+   </td>
    <td>${pct(sell.avg)}</td>
    <td>${pct(sell.best)}</td>
    <td>${pct(sell.worst)}</td>
@@ -870,13 +1273,26 @@ function renderBacktest(data,ind){
  html+=`
 
  <details>
- <summary>О методике</summary>
 
- <div class="small" style="padding:10px">
- Сигнал формируется на закрытии свечи.
- Вход происходит на открытии следующей свечи.
- Будущие данные при формировании сигнала
+ <summary>
+  О методике
+ </summary>
+
+ <div
+  class="small"
+  style="padding:10px"
+ >
+
+ Сигнал формируется
+ на закрытии свечи.
+
+ Вход происходит
+ на открытии следующей свечи.
+
+ Будущие данные при
+ формировании сигнала
  не используются.
+
  </div>
 
  </details>
@@ -884,7 +1300,9 @@ function renderBacktest(data,ind){
  </div>
  `;
 
- document.getElementById("backtest").innerHTML=html;
+ document.getElementById(
+  "backtest"
+ ).innerHTML=html;
 }
 
 
@@ -892,11 +1310,22 @@ function renderBacktest(data,ind){
    REGIME TEST
 ========================= */
 
+/*
+ ВАЖНО:
+ factorFn — это функция.
+ Раньше сюда передавалось factor.name,
+ то есть строка. Именно это вызывало:
+
+ "factor is not a function"
+
+ Теперь передаётся factor.fn.
+*/
+
 function regimeFactorStats(
  data,
  ind,
  regime,
- factor,
+ factorFn,
  direction,
  horizon
 ){
@@ -911,37 +1340,48 @@ function regimeFactorStats(
   i++
  ){
 
-  if(getRegime(ind,i)!==regime)
+  if(
+   getRegime(ind,i)!==regime
+  )
    continue;
 
-  const f=factor(i);
+  const factorResult=
+   factorFn(i);
 
-  if(!f)continue;
+  if(!factorResult)
+   continue;
 
   const r=
    directionalReturn(
-    data,i,horizon,direction
+    data,
+    i,
+    horizon,
+    direction
    );
 
-  if(r==null)continue;
+  if(r==null)
+   continue;
 
   n++;
 
-  if(r>0)wins++;
+  if(r>0)
+   wins++;
 
   sum+=r;
  }
 
  return{
   n,
-  accuracy:n?wins/n*100:null,
-  avg:n?sum/n:null
+  accuracy:
+   n?wins/n*100:null,
+  avg:
+   n?sum/n:null
  };
 }
 
 
 /* =========================
-   REGIME COMBINATIONS
+   REGIME DIAGNOSTICS
 ========================= */
 
 function renderRegimeDiagnostics(
@@ -949,7 +1389,10 @@ function renderRegimeDiagnostics(
  ind
 ){
 
- const tf=document.getElementById("timeframe").value;
+ const tf=
+  document.getElementById(
+   "timeframe"
+  ).value;
 
  const regimes=[
   "BULL",
@@ -958,51 +1401,72 @@ function renderRegimeDiagnostics(
   "TRANSITION"
  ];
 
+ /*
+  ВАЖНО:
+  У каждого фактора есть fn —
+  настоящая функция проверки.
+ */
+
  const factors=[
+
   {
    name:"EMA20 > EMA50",
    direction:"BUY",
+
    fn:i=>
     ind.ema20[i]!=null&&
     ind.ema50[i]!=null&&
-    ind.ema20[i]>ind.ema50[i]
+    ind.ema20[i]>
+    ind.ema50[i]
   },
+
   {
    name:"Цена > EMA200",
    direction:"BUY",
+
    fn:i=>
     ind.ema200[i]!=null&&
-    ind.close[i]>ind.ema200[i]
+    ind.close[i]>
+    ind.ema200[i]
   },
+
   {
    name:"MACD > 0",
    direction:"BUY",
+
    fn:i=>
     ind.macd.macd[i]!=null&&
     ind.macd.macd[i]>0
   },
+
   {
    name:"MACD Histogram > 0",
    direction:"BUY",
+
    fn:i=>
     ind.macd.histogram[i]!=null&&
     ind.macd.histogram[i]>0
   },
+
   {
    name:"RSI 52–68",
    direction:"BUY",
+
    fn:i=>
     ind.rsi[i]!=null&&
     ind.rsi[i]>=52&&
     ind.rsi[i]<=68
   },
+
   {
    name:"Объём ≥1.25",
    direction:"BUY",
+
    fn:i=>
     ind.volumeRatio[i]!=null&&
     ind.volumeRatio[i]>=1.25
   }
+
  ];
 
  let html=`
@@ -1014,13 +1478,22 @@ function renderRegimeDiagnostics(
  </div>
 
  <div class="small">
-  Здесь ADX пока НЕ влияет на сигнал.
-  Мы только проверяем, меняется ли качество
-  существующих факторов в разных состояниях рынка.
+
+ Здесь ADX пока НЕ влияет
+ на сигнал.
+
+ Мы только проверяем,
+ меняется ли качество
+ существующих факторов
+ в разных состояниях рынка.
+
  </div>
  `;
 
- for(const h of HORIZONS[tf]){
+
+ for(
+  const h of HORIZONS[tf]
+ ){
 
   html+=`
 
@@ -1031,11 +1504,15 @@ function renderRegimeDiagnostics(
   </div>
   `;
 
-  for(const regime of regimes){
+
+  for(
+   const regime of regimes
+  ){
 
    html+=`
 
    <details>
+
    <summary>
     ${regimeName(regime)}
    </summary>
@@ -1050,32 +1527,56 @@ function renderRegimeDiagnostics(
    </tr>
    `;
 
-   for(const factor of factors){
+
+   /*
+    ГЛАВНОЕ ИСПРАВЛЕНИЕ:
+    передаём factor.fn,
+    а не factor.name.
+   */
+
+   for(
+    const factor of factors
+   ){
 
     const r=
      regimeFactorStats(
       data,
       ind,
       regime,
-      factor.name,
+      factor.fn,
       factor.direction,
       h
      );
 
+
     html+=`
 
     <tr>
-     <td>${factor.name}</td>
-     <td>${r.n}</td>
+
      <td>
-      ${r.accuracy==null?
-       "—":
-       r.accuracy.toFixed(1)+"%"}
+      ${factor.name}
      </td>
-     <td>${pct(r.avg)}</td>
+
+     <td>
+      ${r.n}
+     </td>
+
+     <td>
+      ${
+       r.accuracy==null
+        ?"—"
+        :r.accuracy.toFixed(1)+"%"
+      }
+     </td>
+
+     <td>
+      ${pct(r.avg)}
+     </td>
+
     </tr>
     `;
    }
+
 
    html+=`
 
@@ -1085,6 +1586,7 @@ function renderRegimeDiagnostics(
    `;
   }
  }
+
 
  html+=`
 
@@ -1123,16 +1625,24 @@ function renderRegimeDiagnostics(
 
  </table>
 
- <details>
- <summary>Что ищем?</summary>
 
- <div class="small" style="padding:10px">
+ <details>
+
+ <summary>
+  Что ищем?
+ </summary>
+
+ <div
+  class="small"
+  style="padding:10px"
+ >
 
  Если, например, EMA показывает:
 
  <br><br>
 
- 49–50% во всём рынке,<br>
+ 49–50% во всём рынке,
+ <br>
  но 56–58% при ADX >25,
 
  то EMA может быть полезным
@@ -1140,8 +1650,8 @@ function renderRegimeDiagnostics(
 
  <br><br>
 
- Если RSI показывает 53–55%
- именно во флэте,
+ Если RSI показывает
+ 53–55% именно во флэте,
  возможно, RSI лучше использовать
  для торговли отскоков.
 
@@ -1149,8 +1659,9 @@ function renderRegimeDiagnostics(
 
  Наша цель — не найти красивый
  показатель на небольшом количестве
- сделок, а найти устойчивое преимущество
- на большом количестве наблюдений.
+ сделок, а найти устойчивое
+ преимущество на большом количестве
+ наблюдений.
 
  </div>
 
@@ -1158,6 +1669,7 @@ function renderRegimeDiagnostics(
 
  </div>
  `;
+
 
  document.getElementById(
   "regimeDiagnostics"
@@ -1183,47 +1695,66 @@ async function fetchBatch(
   "&startTime="+start+
   "&endTime="+end;
 
- const response=await fetch(url);
+ const response=
+  await fetch(url);
 
- if(!response.ok)
+ if(!response.ok){
+
   throw new Error(
-   "Binance HTTP "+response.status
+   "Binance HTTP "+
+   response.status
   );
+ }
 
  return await response.json();
 }
 
 
-async function fetchHistory(interval){
+async function fetchHistory(
+ interval
+){
 
- const now=Date.now();
+ const now=
+  Date.now();
+
  const start=
-  now-365*24*60*60*1000;
+  now-
+  365*24*60*60*1000;
 
- const step=TF[interval];
+ const step=
+  TF[interval];
 
  let cursor=start;
+
  let all=[];
+
 
  while(cursor<now){
 
   let data=null;
 
-  for(let attempt=0;attempt<4;attempt++){
+
+  for(
+   let attempt=0;
+   attempt<4;
+   attempt++
+  ){
 
    try{
 
-    data=await fetchBatch(
-     cursor,
-     now,
-     interval
-    );
+    data=
+     await fetchBatch(
+      cursor,
+      now,
+      interval
+     );
 
     break;
 
    }catch(e){
 
-    if(attempt===3)throw e;
+    if(attempt===3)
+     throw e;
 
     await sleep(
      1000*(attempt+1)
@@ -1231,24 +1762,42 @@ async function fetchHistory(interval){
    }
   }
 
-  if(!data||!data.length)break;
 
-  for(const k of data){
+  if(
+   !data||
+   !data.length
+  )
+   break;
+
+
+  for(
+   const k of data
+  ){
 
    all.push({
+
     time:k[0],
+
     open:Number(k[1]),
+
     high:Number(k[2]),
+
     low:Number(k[3]),
+
     close:Number(k[4]),
+
     volume:Number(k[5])
+
    });
   }
+
 
   const last=
    data[data.length-1][0];
 
-  cursor=last+step;
+  cursor=
+   last+step;
+
 
   document.getElementById(
    "status"
@@ -1257,18 +1806,36 @@ async function fetchHistory(interval){
    all.length+
    " свечей";
 
+
   await sleep(120);
 
-  if(data.length<1000)break;
+
+  if(data.length<1000)
+   break;
  }
 
- const unique=new Map();
 
- for(const c of all)
-  unique.set(c.time,c);
+ const unique=
+  new Map();
 
- return [...unique.values()]
-  .sort((a,b)=>a.time-b.time);
+
+ for(
+  const c of all
+ ){
+
+  unique.set(
+   c.time,
+   c
+  );
+ }
+
+
+ return[
+  ...unique.values()
+ ]
+ .sort(
+  (a,b)=>a.time-b.time
+ );
 }
 
 
@@ -1279,18 +1846,32 @@ async function fetchHistory(interval){
 async function runAnalysis(){
 
  const btn=
-  document.getElementById("runBtn");
+  document.getElementById(
+   "runBtn"
+  );
 
  const status=
-  document.getElementById("status");
+  document.getElementById(
+   "status"
+  );
 
  btn.disabled=true;
 
- document.getElementById("live").innerHTML="";
- document.getElementById("backtest").innerHTML="";
+
+ document.getElementById(
+  "live"
+ ).innerHTML="";
+
+
+ document.getElementById(
+  "backtest"
+ ).innerHTML="";
+
+
  document.getElementById(
   "regimeDiagnostics"
  ).innerHTML="";
+
 
  try{
 
@@ -1299,56 +1880,80 @@ async function runAnalysis(){
     "timeframe"
    ).value;
 
+
   status.innerText=
    "Загружаем историю Binance...";
+
 
   const data=
    await fetchHistory(tf);
 
-  if(data.length<300)
+
+  if(data.length<300){
+
    throw new Error(
     "Недостаточно данных"
    );
+  }
+
 
   status.innerText=
    "Рассчитываем индикаторы...";
 
+
   const ind=
    buildIndicators(data);
 
-  const last=data.length-1;
 
-  renderLive(ind,last);
+  const last=
+   data.length-1;
+
+
+  renderLive(
+   ind,
+   last
+  );
+
 
   status.innerText=
    "Бэктест...";
 
+
   await sleep(50);
+
 
   renderBacktest(
    data,
    ind
   );
 
+
   status.innerText=
    "Анализ режимов рынка...";
 
+
   await sleep(50);
+
 
   renderRegimeDiagnostics(
    data,
    ind
   );
 
+
   status.innerText=
    "Готово • BTC Signal v2.4";
+
 
  }catch(e){
 
   console.error(e);
 
+
   status.innerText=
-   "Ошибка: "+e.message;
+   "Ошибка: "+
+   e.message;
+
 
  }finally{
 
@@ -1361,14 +1966,18 @@ async function runAnalysis(){
    SERVICE WORKER
 ========================= */
 
-if("serviceWorker" in navigator){
+if(
+ "serviceWorker" in navigator
+){
 
  window.addEventListener(
   "load",
   ()=>{
-   navigator.serviceWorker.register(
-    "./sw.js"
-   ).catch(console.error);
+
+   navigator.serviceWorker
+    .register("./sw.js")
+    .catch(console.error);
+
   }
  );
 }
