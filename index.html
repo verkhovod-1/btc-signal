@@ -5,77 +5,56 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.webmanifest">
-<title>₿ BTC Signal v2.7</title>
+<title>₿ BTC Signal v2.8</title>
 
 <style>
 *{box-sizing:border-box}
 body{
   margin:0;
-  background:#0b1020;
+  padding:14px;
+  background:#0b1120;
   color:#e5e7eb;
   font-family:Arial,sans-serif;
   line-height:1.4
 }
-.container{
-  max-width:1000px;
-  margin:auto;
-  padding:14px
-}
-h1{font-size:25px;margin:4px 0}
-h2{font-size:19px;margin:22px 0 10px}
-h3{font-size:16px;margin:14px 0 8px}
+h1{font-size:24px;margin:0 0 5px}
+h2{font-size:18px;margin:0 0 12px}
+h3{font-size:15px;margin:16px 0 8px}
+.small{font-size:12px;color:#9ca3af}
 .card{
-  background:#151c30;
-  border:1px solid #26304a;
+  background:#111827;
+  border:1px solid #263244;
   border-radius:14px;
   padding:14px;
-  margin:10px 0
+  margin-bottom:12px
 }
+.price{
+  font-size:29px;
+  font-weight:bold;
+  margin:4px 0
+}
+.signal{
+  font-size:25px;
+  font-weight:bold;
+  margin:6px 0
+}
+.buy{color:#4ade80}
+.sell{color:#f87171}
+.neutral{color:#facc15}
+.good{color:#4ade80}
+.warn{color:#facc15}
+.bad{color:#f87171}
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+  grid-template-columns:repeat(2,1fr);
   gap:8px
 }
-.metric{
-  background:#0f1628;
+.stat{
+  background:#0b1220;
   border-radius:10px;
-  padding:10px
+  padding:9px
 }
-.label{
-  color:#8f9bb3;
-  font-size:12px
-}
-.value{
-  font-size:18px;
-  font-weight:bold;
-  margin-top:3px
-}
-.good{color:#55d68a}
-.bad{color:#ff6b6b}
-.warn{color:#ffd166}
-.neutral{color:#b8c1d9}
-button{
-  width:100%;
-  border:0;
-  border-radius:10px;
-  padding:13px;
-  background:#2563eb;
-  color:white;
-  font-size:16px;
-  font-weight:bold;
-  margin-top:8px
-}
-button:disabled{opacity:.5}
-.small{
-  font-size:12px;
-  color:#8994ab
-}
-.status{
-  padding:9px;
-  border-radius:9px;
-  background:#0f1628;
-  margin-top:8px
-}
+.stat b{display:block;font-size:16px}
 table{
   width:100%;
   border-collapse:collapse;
@@ -83,1391 +62,1728 @@ table{
 }
 th,td{
   padding:7px 5px;
-  border-bottom:1px solid #273149;
+  border-bottom:1px solid #273244;
   text-align:left;
   vertical-align:top
 }
-th{color:#9aa7c0}
+th{color:#9ca3af}
 .factor{
   display:inline-block;
-  background:#202b46;
-  border-radius:7px;
+  background:#1e293b;
+  border-radius:6px;
   padding:3px 6px;
   margin:2px;
   font-size:11px
 }
-.big{
-  font-size:30px;
-  font-weight:bold
-}
-.progress{
+.factor.on{background:#173b2b;color:#86efac}
+.factor.off{background:#3b2020;color:#fca5a5}
+.bar{
   height:8px;
-  background:#273149;
+  background:#263244;
   border-radius:10px;
   overflow:hidden;
-  margin-top:7px
+  margin:8px 0
 }
-.progress div{
+.bar>div{
   height:100%;
-  background:#3b82f6
+  background:#60a5fa
 }
-hr{
+button{
   border:0;
-  border-top:1px solid #273149;
-  margin:14px 0
+  border-radius:9px;
+  padding:10px 14px;
+  background:#2563eb;
+  color:white;
+  font-size:14px
 }
+button:active{opacity:.7}
+.notice{
+  background:#172033;
+  border-left:4px solid #60a5fa;
+  padding:10px;
+  border-radius:7px;
+  font-size:12px
+}
+.loading{
+  text-align:center;
+  padding:25px;
+  color:#9ca3af
+}
+.goodrow{background:rgba(34,197,94,.06)}
+.badrow{background:rgba(239,68,68,.06)}
+.mono{font-family:monospace}
 </style>
 </head>
 
 <body>
-<div class="container">
 
-<h1>₿ BTC Signal <span class="small">v2.7</span></h1>
-<div class="small">
-Статистический анализ Bitcoin • главный горизонт: 24 часа
-</div>
+<h1>₿ BTC Signal</h1>
+<div class="small">v2.8 · статистический анализ 24h</div>
 
-<button id="runBtn" onclick="run()">Обновить анализ</button>
-
-<div id="status" class="status">Готов к запуску.</div>
-
-<div class="card">
-<h2>BTC сейчас</h2>
-<div class="grid">
-  <div class="metric">
-    <div class="label">Цена</div>
-    <div class="value" id="price">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">RSI 14</div>
-    <div class="value" id="rsi">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">ADX 14</div>
-    <div class="value" id="adx">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">EMA20</div>
-    <div class="value" id="ema20">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">EMA50</div>
-    <div class="value" id="ema50">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">EMA200</div>
-    <div class="value" id="ema200">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">MACD</div>
-    <div class="value" id="macd">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">MACD Histogram</div>
-    <div class="value" id="hist">—</div>
-  </div>
-</div>
-</div>
-
-<div class="card">
-<h2>📊 Статистический сигнал — 24 часа</h2>
-
-<div class="grid">
-  <div class="metric">
-    <div class="label">Оценка</div>
-    <div class="big" id="score">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">Базовый сигнал</div>
-    <div class="value" id="basic">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">Режим</div>
-    <div class="value" id="regime">—</div>
-  </div>
-</div>
-
-<div class="progress">
-  <div id="scorebar" style="width:0%"></div>
-</div>
-
-<div class="grid" style="margin-top:10px">
-  <div class="metric">
-    <div class="label">Исторический N</div>
-    <div class="value" id="histN">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">Средняя доходность</div>
-    <div class="value" id="avg">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">Медиана</div>
-    <div class="value" id="median">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">&gt; +1%</div>
-    <div class="value" id="up1">—</div>
-  </div>
-  <div class="metric">
-    <div class="label">&lt; −1%</div>
-    <div class="value" id="down1">—</div>
-  </div>
-</div>
-
-<div class="status" id="signalText">—</div>
-</div>
-
-<div class="card">
-<h2>🏆 Самая устойчивая комбинация</h2>
-<div id="robustBox">Расчёт...</div>
-</div>
-
-<div class="card">
-<h2>🔬 Walk-forward проверка</h2>
-<div class="small">
-История последовательно разбивается на несколько периодов.
-Комбинация обучается только на прошлом и проверяется на будущем.
-Это снижает риск переобучения.
-</div>
-<div id="walkBox">Расчёт...</div>
-</div>
-
-<div class="card">
-<h2>🔎 Лучшие комбинации</h2>
-<div id="comboBox">Расчёт...</div>
-</div>
-
-<div class="card">
-<h2>🎯 Текущая комбинация факторов</h2>
-<div id="currentComboBox">Расчёт...</div>
-</div>
-
-<div class="card">
-<h2>📈 Отдельные факторы</h2>
-<div id="factorBox">Расчёт...</div>
-</div>
-
-<div class="card">
-<h2>🌐 Статистика по режимам</h2>
-<div id="regimeBox">Расчёт...</div>
-</div>
-
-<div class="card">
-<h2>ℹ️ Методика</h2>
-<div class="small">
-Главный прогноз — изменение BTC через 24 часа.<br><br>
-Для входа используется открытие следующей свечи, а для выхода —
-закрытие через 24 часа. Текущая незакрытая свеча не используется
-в исторической статистике.<br><br>
-Комбинации из 2–4 факторов сначала проверяются на прошлом,
-затем проходят несколько последовательных walk-forward тестов.
-Комбинация считается устойчивой только при повторяемом преимуществе
-над обычным движением BTC.<br><br>
-<strong>Score — не вероятность.</strong> Это статистическая оценка
-силы текущего сигнала.
-</div>
-</div>
-
-</div>
+<div id="app" class="loading">Загрузка BTC...</div>
 
 <script>
-const TF={
-  "15m":{interval:"15m",limit:12960},
-  "30m":{interval:"30m",limit:12960},
-  "1h":{interval:"1h",limit:8760},
-  "2h":{interval:"2h",limit:8760},
-  "4h":{interval:"4h",limit:4380},
-  "6h":{interval:"6h",limit:4380},
-  "8h":{interval:"8h",limit:4380},
-  "12h":{interval:"12h",limit:4380},
-  "1d":{interval:"1d",limit:1825}
+const VERSION="2.8";
+const SYMBOL="BTCUSDT";
+const API="https://api.binance.com/api/v3/klines";
+
+const FACTORS={
+  emaTrend:{
+    name:"EMA20 > EMA50",
+    short:"EMA20>EMA50"
+  },
+  price200:{
+    name:"Цена > EMA200",
+    short:"Цена>EMA200"
+  },
+  macd:{
+    name:"MACD > 0",
+    short:"MACD>0"
+  },
+  macdHist:{
+    name:"MACD Histogram > 0",
+    short:"MACD-Hist>0"
+  },
+  rsi52:{
+    name:"RSI > 52",
+    short:"RSI>52"
+  },
+  rsiRange:{
+    name:"RSI 52–65",
+    short:"RSI 52–65"
+  },
+  adx:{
+    name:"ADX > 25",
+    short:"ADX>25"
+  },
+  volume:{
+    name:"Volume > average",
+    short:"Volume>Avg"
+  }
 };
 
-/*
-  24 таймфрейма.
-  Часть Binance-интервалов агрегируется из более мелких свечей.
-  Для основного 24h анализа используется 1D история.
-*/
-const TIMEFRAMES=[
- "1m","3m","5m","15m","30m","1h",
- "2h","4h","6h","8h","12h","1d",
- "2d","3d","1w","2w","1M",
- "1h-R","4h-R","6h-R","12h-R","1d-R",
- "2d-R","1w-R"
-];
+const FACTOR_KEYS=Object.keys(FACTORS);
 
-let dataGlobal=[];
-let currentIndicators=null;
+/* ---------------------------------------------------------
+   ЗАГРУЗКА ДАННЫХ
+--------------------------------------------------------- */
 
-const FACTORS=[
- {id:"ema",name:"EMA20 > EMA50"},
- {id:"price200",name:"Цена > EMA200"},
- {id:"macd",name:"MACD > 0"},
- {id:"hist",name:"MACD Histogram > 0"},
- {id:"rsi52",name:"RSI > 52"},
- {id:"rsi5265",name:"RSI 52–65"},
- {id:"adx",name:"ADX > 25"},
- {id:"volume",name:"Объём > среднего"}
-];
+async function fetchKlines(){
+  const url=API+
+    "?symbol="+SYMBOL+
+    "&interval=1d"+
+    "&limit=1500";
 
-function finite(x){
- return Number.isFinite(x);
+  const r=await fetch(url);
+  if(!r.ok) throw new Error("Binance HTTP "+r.status);
+
+  const raw=await r.json();
+
+  return raw.map(x=>({
+    time:x[0],
+    open:+x[1],
+    high:+x[2],
+    low:+x[3],
+    close:+x[4],
+    volume:+x[5]
+  }));
 }
 
-function fmt(x,d=2){
- return finite(x)?x.toFixed(d):"—";
+/* ---------------------------------------------------------
+   ИНДИКАТОРЫ
+--------------------------------------------------------- */
+
+function ema(values,p){
+  const out=new Array(values.length).fill(null);
+  if(values.length<p)return out;
+
+  let sum=0;
+  for(let i=0;i<p;i++)sum+=values[i];
+
+  let prev=sum/p;
+  out[p-1]=prev;
+
+  const k=2/(p+1);
+
+  for(let i=p;i<values.length;i++){
+    prev=values[i]*k+prev*(1-k);
+    out[i]=prev;
+  }
+  return out;
 }
 
-function pct(x){
- return finite(x)?(x>=0?"+":"")+x.toFixed(2)+"%":"—";
-}
+function rsi(values,p=14){
+  const out=new Array(values.length).fill(null);
+  if(values.length<=p)return out;
 
-function median(a){
- if(!a.length)return NaN;
- const b=[...a].sort((x,y)=>x-y);
- const m=Math.floor(b.length/2);
- return b.length%2?b[m]:(b[m-1]+b[m])/2;
-}
+  let gain=0,loss=0;
 
-function avg(a){
- return a.length?a.reduce((s,x)=>s+x,0)/a.length:NaN;
-}
+  for(let i=1;i<=p;i++){
+    const d=values[i]-values[i-1];
+    if(d>=0)gain+=d;
+    else loss-=d;
+  }
 
-function ema(values,n){
- if(values.length<n)return Array(values.length).fill(NaN);
+  let avgGain=gain/p;
+  let avgLoss=loss/p;
 
- const out=Array(values.length).fill(NaN);
- const k=2/(n+1);
- let s=0;
+  out[p]=avgLoss===0?100:100-100/(1+avgGain/avgLoss);
 
- for(let i=0;i<n;i++)s+=values[i];
- out[n-1]=s/n;
+  for(let i=p+1;i<values.length;i++){
+    const d=values[i]-values[i-1];
+    const g=d>0?d:0;
+    const l=d<0?-d:0;
 
- for(let i=n;i<values.length;i++){
-   out[i]=values[i]*k+out[i-1]*(1-k);
- }
- return out;
-}
+    avgGain=(avgGain*(p-1)+g)/p;
+    avgLoss=(avgLoss*(p-1)+l)/p;
 
-function rsi(values,n=14){
- const out=Array(values.length).fill(NaN);
- if(values.length<=n)return out;
+    out[i]=avgLoss===0
+      ?100
+      :100-100/(1+avgGain/avgLoss);
+  }
 
- let gain=0,loss=0;
-
- for(let i=1;i<=n;i++){
-   const d=values[i]-values[i-1];
-   if(d>=0)gain+=d;
-   else loss-=d;
- }
-
- gain/=n;
- loss/=n;
-
- out[n]=loss===0?100:100-(100/(1+gain/loss));
-
- for(let i=n+1;i<values.length;i++){
-   const d=values[i]-values[i-1];
-   const g=Math.max(d,0);
-   const l=Math.max(-d,0);
-
-   gain=(gain*(n-1)+g)/n;
-   loss=(loss*(n-1)+l)/n;
-
-   out[i]=loss===0?100:100-(100/(1+gain/loss));
- }
-
- return out;
+  return out;
 }
 
 function macd(values){
- const e12=ema(values,12);
- const e26=ema(values,26);
+  const e12=ema(values,12);
+  const e26=ema(values,26);
 
- const line=Array(values.length).fill(NaN);
+  const line=new Array(values.length).fill(null);
 
- for(let i=0;i<values.length;i++){
-   if(finite(e12[i])&&finite(e26[i]))
-     line[i]=e12[i]-e26[i];
- }
+  for(let i=0;i<values.length;i++){
+    if(e12[i]!=null && e26[i]!=null)
+      line[i]=e12[i]-e26[i];
+  }
 
- const signal=ema(
-   line.map(x=>finite(x)?x:0),
-   9
- );
+  const valid=[];
+  const indexes=[];
 
- const hist=Array(values.length).fill(NaN);
+  for(let i=0;i<line.length;i++){
+    if(line[i]!=null){
+      valid.push(line[i]);
+      indexes.push(i);
+    }
+  }
 
- for(let i=0;i<values.length;i++){
-   if(finite(line[i])&&finite(signal[i]))
-     hist[i]=line[i]-signal[i];
- }
+  const sigValid=ema(valid,9);
+  const signal=new Array(values.length).fill(null);
+  const hist=new Array(values.length).fill(null);
 
- return {line,signal,hist};
+  for(let j=0;j<indexes.length;j++){
+    const i=indexes[j];
+    if(sigValid[j]!=null){
+      signal[i]=sigValid[j];
+      hist[i]=line[i]-signal[i];
+    }
+  }
+
+  return {line,signal,hist};
 }
 
-/* Wilder ADX */
-function adxCalc(data,n=14){
- const len=data.length;
- const out=Array(len).fill(NaN);
+/* ADX */
+function adx(high,low,close,p=14){
+  const n=close.length;
+  const out=new Array(n).fill(null);
 
- if(len<n*2+2)return out;
+  if(n<p*2+2)return out;
 
- const tr=Array(len).fill(0);
- const plus=Array(len).fill(0);
- const minus=Array(len).fill(0);
+  const tr=new Array(n).fill(0);
+  const plusDM=new Array(n).fill(0);
+  const minusDM=new Array(n).fill(0);
 
- for(let i=1;i<len;i++){
-   const h=data[i].high;
-   const l=data[i].low;
-   const ph=data[i-1].high;
-   const pl=data[i-1].low;
-   const pc=data[i-1].close;
+  for(let i=1;i<n;i++){
+    const up=high[i]-high[i-1];
+    const down=low[i-1]-low[i];
 
-   tr[i]=Math.max(
-     h-l,
-     Math.abs(h-pc),
-     Math.abs(l-pc)
-   );
+    plusDM[i]=(up>down && up>0)?up:0;
+    minusDM[i]=(down>up && down>0)?down:0;
 
-   const up=h-ph;
-   const down=pl-l;
+    tr[i]=Math.max(
+      high[i]-low[i],
+      Math.abs(high[i]-close[i-1]),
+      Math.abs(low[i]-close[i-1])
+    );
+  }
 
-   plus[i]=(up>down&&up>0)?up:0;
-   minus[i]=(down>up&&down>0)?down:0;
- }
+  let atr=0,pdm=0,mdm=0;
 
- let atr=0,pdm=0,mdm=0;
+  for(let i=1;i<=p;i++){
+    atr+=tr[i];
+    pdm+=plusDM[i];
+    mdm+=minusDM[i];
+  }
 
- for(let i=1;i<=n;i++){
-   atr+=tr[i];
-   pdm+=plus[i];
-   mdm+=minus[i];
- }
+  atr/=p;
+  pdm/=p;
+  mdm/=p;
 
- let dx=[];
+  const dx=[];
 
- for(let i=n;i<len;i++){
+  for(let i=p;i<n;i++){
 
-   if(i>n){
-     atr=atr-atr/n+tr[i];
-     pdm=pdm-pdm/n+plus[i];
-     mdm=mdm-mdm/n+minus[i];
-   }
+    if(i>p){
+      atr=(atr*(p-1)+tr[i])/p;
+      pdm=(pdm*(p-1)+plusDM[i])/p;
+      mdm=(mdm*(p-1)+minusDM[i])/p;
+    }
 
-   const pdi=atr?100*pdm/atr:0;
-   const mdi=atr?100*mdm/atr:0;
+    const plusDI=atr?100*pdm/atr:0;
+    const minusDI=atr?100*mdm/atr:0;
 
-   const denom=pdi+mdi;
-   const d=denom?100*Math.abs(pdi-mdi)/denom:0;
+    const sum=plusDI+minusDI;
+    const dxi=sum
+      ?100*Math.abs(plusDI-minusDI)/sum
+      :0;
 
-   dx.push(d);
+    dx.push({i,dx:dxi});
+  }
 
-   if(dx.length===n){
-     let ad=avg(dx);
+  if(dx.length<p)return out;
 
-     out[i]=ad;
+  let adxVal=0;
 
-     for(let j=i+1;j<len;j++){
-       atr=atr-atr/n+tr[j];
-       pdm=pdm-pdm/n+plus[j];
-       mdm=mdm-mdm/n+minus[j];
+  for(let j=0;j<p;j++)adxVal+=dx[j].dx;
+  adxVal/=p;
 
-       const pp=atr?100*pdm/atr:0;
-       const mm=atr?100*mdm/atr:0;
-       const dd=(pp+mm)?100*Math.abs(pp-mm)/(pp+mm):0;
+  out[dx[p-1].i]=adxVal;
 
-       ad=(ad*(n-1)+dd)/n;
-       out[j]=ad;
-     }
+  for(let j=p;j<dx.length;j++){
+    adxVal=(adxVal*(p-1)+dx[j].dx)/p;
+    out[dx[j].i]=adxVal;
+  }
 
-     break;
-   }
- }
-
- return out;
+  return out;
 }
 
-function addIndicators(data){
+/* ---------------------------------------------------------
+   ПОДГОТОВКА DATA
+--------------------------------------------------------- */
 
- const closes=data.map(x=>x.close);
+function prepare(raw){
 
- const e20=ema(closes,20);
- const e50=ema(closes,50);
- const e200=ema(closes,200);
- const rs=rsi(closes,14);
- const mc=macd(closes);
- const ad=adxCalc(data,14);
+  const close=raw.map(x=>x.close);
+  const high=raw.map(x=>x.high);
+  const low=raw.map(x=>x.low);
+  const volume=raw.map(x=>x.volume);
 
- const volAvg=Array(data.length).fill(NaN);
+  const e20=ema(close,20);
+  const e50=ema(close,50);
+  const e200=ema(close,200);
+  const rr=rsi(close,14);
+  const mm=macd(close);
+  const aa=adx(high,low,close,14);
 
- const n=20;
+  const volAvg=new Array(raw.length).fill(null);
 
- for(let i=n;i<data.length;i++){
-   let s=0;
-   for(let j=i-n;j<i;j++)s+=data[j].volume;
-   volAvg[i]=s/n;
- }
+  for(let i=19;i<raw.length;i++){
+    let s=0;
+    for(let j=i-19;j<=i;j++)s+=volume[j];
+    volAvg[i]=s/20;
+  }
 
- return data.map((x,i)=>({
-   ...x,
-   ema20:e20[i],
-   ema50:e50[i],
-   ema200:e200[i],
-   rsi:rs[i],
-   macd:mc.line[i],
-   macdSignal:mc.signal[i],
-   hist:mc.hist[i],
-   adx:ad[i],
-   volAvg:volAvg[i]
- }));
+  return raw.map((x,i)=>({
+    ...x,
+    ema20:e20[i],
+    ema50:e50[i],
+    ema200:e200[i],
+    rsi:rr[i],
+    macd:mm.line[i],
+    macdSignal:mm.signal[i],
+    macdHist:mm.hist[i],
+    adx:aa[i],
+    volAvg:volAvg[i]
+  }));
 }
 
-async function fetchJSON(url,timeout=20000){
+/* ---------------------------------------------------------
+   ФАКТОРЫ
+--------------------------------------------------------- */
 
- for(let attempt=0;attempt<3;attempt++){
+function factorValue(d,key){
 
-   try{
+  if(!d)return false;
 
-     const controller=new AbortController();
-     const timer=setTimeout(()=>controller.abort(),timeout);
+  switch(key){
 
-     const r=await fetch(url,{
-       cache:"no-store",
-       signal:controller.signal
-     });
+    case "emaTrend":
+      return d.ema20!=null &&
+             d.ema50!=null &&
+             d.ema20>d.ema50;
 
-     clearTimeout(timer);
+    case "price200":
+      return d.ema200!=null &&
+             d.close>d.ema200;
 
-     if(!r.ok)throw new Error("HTTP "+r.status);
+    case "macd":
+      return d.macd!=null &&
+             d.macd>0;
 
-     return await r.json();
+    case "macdHist":
+      return d.macdHist!=null &&
+             d.macdHist>0;
 
-   }catch(e){
+    case "rsi52":
+      return d.rsi!=null &&
+             d.rsi>52;
 
-     if(attempt===2)throw e;
+    case "rsiRange":
+      return d.rsi!=null &&
+             d.rsi>=52 &&
+             d.rsi<=65;
 
-     await new Promise(r=>setTimeout(r,1000));
-   }
- }
+    case "adx":
+      return d.adx!=null &&
+             d.adx>25;
 
- throw new Error("fetch error");
+    case "volume":
+      return d.volAvg!=null &&
+             d.volume>d.volAvg;
+
+    default:
+      return false;
+  }
 }
 
-async function loadDaily(){
-
- const url=
- "https://api.binance.com/api/v3/klines"+
- "?symbol=BTCUSDT&interval=1d&limit=1500";
-
- const raw=await fetchJSON(url);
-
- const now=Date.now();
-
- const data=raw
-   .map(k=>({
-     time:k[0],
-     open:+k[1],
-     high:+k[2],
-     low:+k[3],
-     close:+k[4],
-     volume:+k[5],
-     closeTime:k[6]
-   }))
-   .filter(x=>x.closeTime<now);
-
- return addIndicators(data);
+function activeFactors(d){
+  return FACTOR_KEYS.filter(k=>factorValue(d,k));
 }
 
-function futureReturn(data,i,h=1){
+/* ---------------------------------------------------------
+   ДОХОДНОСТЬ 24 ЧАСА
+--------------------------------------------------------- */
 
- if(i+1+h>=data.length)return NaN;
+function futureReturn(data,i){
 
- const entry=data[i+1].open;
- const exit=data[i+1+h].close;
+  /*
+    Сигнал формируется на закрытии текущей
+    дневной свечи.
 
- if(!finite(entry)||!finite(exit)||entry<=0)return NaN;
+    Вход:
+    open следующей дневной свечи.
 
- return (exit/entry-1)*100;
+    Выход:
+    close следующей дневной свечи.
+  */
+
+  if(i+1>=data.length)return null;
+
+  const entry=data[i+1].open;
+  const exit=data[i+1].close;
+
+  if(!entry || !exit)return null;
+
+  return exit/entry-1;
 }
 
-function regimeAt(x){
-
- if(!finite(x.ema20)||!finite(x.ema50)||
-    !finite(x.ema200)||!finite(x.adx))return "Нет данных";
-
- const bullish=
-   x.close>x.ema200 &&
-   x.ema20>x.ema50 &&
-   x.macd>0;
-
- const bearish=
-   x.close<x.ema200 &&
-   x.ema20<x.ema50 &&
-   x.macd<0;
-
- if(bullish && x.adx>=30)return "Сильный бычий";
- if(bullish)return "Бычий";
-
- if(bearish && x.adx>=30)return "Сильный медвежий";
- if(bearish)return "Медвежий";
-
- return "Боковик";
+function baselineReturn(data,i){
+  return futureReturn(data,i);
 }
 
-function factorTrue(x,id){
+/* ---------------------------------------------------------
+   СТАТИСТИКА
+--------------------------------------------------------- */
 
- switch(id){
-   case"ema":return x.ema20>x.ema50;
-   case"price200":return x.close>x.ema200;
-   case"macd":return x.macd>0;
-   case"hist":return x.hist>0;
-   case"rsi52":return x.rsi>52;
-   case"rsi5265":return x.rsi>=52&&x.rsi<=65;
-   case"adx":return x.adx>25;
-   case"volume":return x.volume>x.volAvg;
- }
- return false;
+function stats(values){
+
+  const a=values.filter(x=>Number.isFinite(x));
+
+  if(!a.length){
+    return {
+      n:0,
+      avg:0,
+      median:0,
+      win:0,
+      plus1:0,
+      minus1:0
+    };
+  }
+
+  const sorted=[...a].sort((x,y)=>x-y);
+
+  const avg=a.reduce((s,x)=>s+x,0)/a.length;
+
+  const mid=Math.floor(sorted.length/2);
+
+  const median=
+    sorted.length%2
+      ?sorted[mid]
+      :(sorted[mid-1]+sorted[mid])/2;
+
+  return {
+    n:a.length,
+    avg,
+    median,
+    win:a.filter(x=>x>0).length/a.length,
+    plus1:a.filter(x=>x>=0.01).length/a.length,
+    minus1:a.filter(x=>x<=-0.01).length/a.length
+  };
 }
 
-function validIndicators(x){
- return finite(x.ema200)&&
-        finite(x.rsi)&&
-        finite(x.macd)&&
-        finite(x.hist)&&
-        finite(x.adx)&&
-        finite(x.volAvg);
+function pct(x){
+  return (x*100).toFixed(2)+"%";
 }
 
-function statsFor(data,condition,start=200,end=data.length-2){
-
- const returns=[];
-
- for(let i=start;i<=end;i++){
-
-   if(!condition(data[i]))continue;
-
-   const r=futureReturn(data,i,1);
-
-   if(finite(r))returns.push(r);
- }
-
- if(!returns.length){
-   return {
-     n:0,
-     avg:NaN,
-     median:NaN,
-     win:NaN,
-     plus1:NaN,
-     minus1:NaN,
-     returns:[]
-   };
- }
-
- return {
-   n:returns.length,
-   avg:avg(returns),
-   median:median(returns),
-   win:100*returns.filter(x=>x>0).length/returns.length,
-   plus1:100*returns.filter(x=>x>1).length/returns.length,
-   minus1:100*returns.filter(x=>x<-1).length/returns.length,
-   returns
- };
+function pct1(x){
+  return (x*100).toFixed(1)+"%";
 }
 
-function baselineStats(data,start,end){
- return statsFor(data,()=>true,start,end);
+/* ---------------------------------------------------------
+   ПРЕДВЫЧИСЛЕНИЕ
+--------------------------------------------------------- */
+
+function buildReturns(data){
+
+  const r=new Array(data.length).fill(null);
+
+  for(let i=0;i<data.length;i++)
+    r[i]=futureReturn(data,i);
+
+  return r;
 }
 
-function combinationCondition(combo){
- return x=>combo.every(id=>factorTrue(x,id));
+function usableIndexes(data,returns){
+
+  const out=[];
+
+  for(let i=200;i<data.length-1;i++){
+    if(returns[i]!=null)out.push(i);
+  }
+
+  return out;
 }
 
-function comboStats(data,combo,start,end){
+/* ---------------------------------------------------------
+   УСЛОВИЕ КОМБИНАЦИИ
+--------------------------------------------------------- */
 
- return statsFor(
-   data,
-   combinationCondition(combo),
-   start,
-   end
- );
+function comboMatches(data,i,keys){
+  for(const k of keys){
+    if(!factorValue(data[i],k))return false;
+  }
+  return true;
 }
 
-function comboName(combo){
- return combo.map(id=>{
-   const f=FACTORS.find(x=>x.id===id);
-   return f?f.name:id;
- }).join(" + ");
+function comboStats(data,returns,keys,start=0,end=data.length){
+
+  const values=[];
+  const base=[];
+
+  for(let i=Math.max(200,start);i<Math.min(end,data.length-1);i++){
+
+    const r=returns[i];
+
+    if(r==null)continue;
+
+    if(comboMatches(data,i,keys)){
+      values.push(r);
+      base.push(baselineReturn(data,i));
+    }
+  }
+
+  const s=stats(values);
+  const b=stats(base);
+
+  return {
+    ...s,
+    baseline:b.avg,
+    edge:s.avg-b.avg,
+    medianEdge:s.median-b.median
+  };
 }
 
-function combinations(arr,k,start=0,prefix=[],out=[]){
+/* ---------------------------------------------------------
+   WALK FORWARD
+--------------------------------------------------------- */
 
- if(prefix.length===k){
-   out.push([...prefix]);
-   return out;
- }
+function makeFolds(n){
 
- for(let i=start;i<arr.length;i++){
-   prefix.push(arr[i]);
-   combinations(arr,k,i+1,prefix,out);
-   prefix.pop();
- }
+  /*
+    5 expanding folds.
 
- return out;
-}
+    Тестовые окна идут строго после train.
+  */
 
-function allCombos(){
+  const folds=[];
 
- let out=[];
+  const firstTrain=Math.max(350,Math.floor(n*0.35));
+  const remaining=n-firstTrain;
 
- for(let k=2;k<=4;k++){
-   out=out.concat(
-     combinations(
-       FACTORS.map(x=>x.id),
-       k
-     )
-   );
- }
+  if(remaining<200)return folds;
 
- return out;
+  const testSize=Math.max(30,Math.floor(remaining/5));
+
+  for(let f=0;f<5;f++){
+
+    const trainEnd=firstTrain+f*testSize;
+    const testStart=trainEnd;
+    const testEnd=
+      f===4
+        ?n
+        :Math.min(n,testStart+testSize);
+
+    if(testEnd-testStart<20)continue;
+
+    folds.push({
+      trainStart:0,
+      trainEnd,
+      testStart,
+      testEnd
+    });
+  }
+
+  return folds;
 }
 
 /*
-  Оценка комбинации внутри тренировочного периода.
-  Не ищем просто максимальную доходность.
-  Сравниваем комбинацию с baseline.
+  ВАЖНО:
+  комбинация не выбирается отдельно на каждом тесте.
+
+  Сначала оцениваем комбинацию на train,
+  затем только проверяем её на test.
 */
-function trainRank(data,combo,start,end){
 
- const s=comboStats(data,combo,start,end);
- const b=baselineStats(data,start,end);
+function walkForward(data,returns,keys){
 
- if(s.n<50 || !finite(s.avg)||!finite(b.avg))
-   return null;
+  const indexes=usableIndexes(data,returns);
 
- const edge=s.avg-b.avg;
- const medEdge=s.median-b.median;
- const winEdge=s.win-b.win;
+  if(indexes.length<250)return null;
 
- const reliability=Math.min(1,s.n/300);
+  const folds=makeFolds(indexes.length);
 
- const score=
-   edge*55+
-   medEdge*25+
-   winEdge/10+
-   reliability*5;
+  const tests=[];
 
- return {
-   combo,
-   n:s.n,
-   avg:s.avg,
-   median:s.median,
-   win:s.win,
-   baseline:b.avg,
-   edge,
-   medEdge,
-   winEdge,
-   score
- };
+  for(const f of folds){
+
+    const trainIndexes=indexes.slice(
+      f.trainStart,
+      f.trainEnd
+    );
+
+    const testIndexes=indexes.slice(
+      f.testStart,
+      f.testEnd
+    );
+
+    /*
+      Условия достаточности train.
+    */
+    let trainValues=[];
+
+    for(const pos of trainIndexes){
+
+      const i=pos;
+
+      if(comboMatches(data,i,keys))
+        trainValues.push(returns[i]);
+    }
+
+    /*
+      Редкие комбинации исключаем.
+    */
+    if(trainValues.length<20)continue;
+
+    const trainStats=stats(trainValues);
+
+    /*
+      Если комбинация на train уже отрицательная,
+      её не считаем хорошим кандидатом.
+      Но оставляем для диагностики.
+    */
+
+    const testValues=[];
+    const baseValues=[];
+
+    for(const pos of testIndexes){
+
+      const i=pos;
+
+      if(comboMatches(data,i,keys)){
+        testValues.push(returns[i]);
+        baseValues.push(baselineReturn(data,i));
+      }
+    }
+
+    if(testValues.length<10)continue;
+
+    const ts=stats(testValues);
+    const bs=stats(baseValues);
+
+    tests.push({
+      trainN:trainValues.length,
+      trainAvg:trainStats.avg,
+      testN:testValues.length,
+      testAvg:ts.avg,
+      testMedian:ts.median,
+      baseAvg:bs.avg,
+      edge:ts.avg-bs.avg,
+      medianEdge:ts.median-bs.median
+    });
+  }
+
+  if(!tests.length)return null;
+
+  const totalN=tests.reduce((s,x)=>s+x.testN,0);
+
+  const meanEdge=
+    tests.reduce((s,x)=>s+x.edge*x.testN,0)/
+    Math.max(1,totalN);
+
+  const meanReturn=
+    tests.reduce((s,x)=>s+x.testAvg*x.testN,0)/
+    Math.max(1,totalN);
+
+  const allReturns=[];
+  const allBase=[];
+
+  /*
+    Для общей медианы собираем тестовые результаты.
+  */
+  for(const t of tests){
+
+    /*
+      повторный проход не нужен для средних,
+      но медиану удобнее посчитать через fold-медианы
+      только как диагностическую оценку.
+    */
+
+    allReturns.push(t.testMedian);
+    allBase.push(t.baseAvg);
+  }
+
+  const positivePeriods=
+    tests.filter(x=>x.edge>0).length;
+
+  const positiveRatio=
+    positivePeriods/tests.length;
+
+  const worstEdge=
+    Math.min(...tests.map(x=>x.edge));
+
+  const medianEdge=
+    tests
+      .map(x=>x.medianEdge)
+      .sort((a,b)=>a-b);
+
+  const med=
+    medianEdge.length%2
+      ?medianEdge[Math.floor(medianEdge.length/2)]
+      :(medianEdge[medianEdge.length/2-1]+
+        medianEdge[medianEdge.length/2])/2;
+
+  /*
+    Строгая оценка.
+
+    100 = очень хороший кандидат,
+    но "confirmed" будет только при
+    выполнении жёстких условий.
+  */
+
+  let score=0;
+
+  if(tests.length>=4)score+=20;
+  else if(tests.length>=3)score+=10;
+
+  if(totalN>=150)score+=20;
+  else if(totalN>=100)score+=10;
+
+  if(meanEdge>0.001)score+=20;
+  if(meanEdge>0.0025)score+=10;
+
+  if(med>0)score+=10;
+
+  if(positiveRatio>=0.75)score+=15;
+  else if(positiveRatio>=0.60)score+=7;
+
+  if(worstEdge>-0.005)score+=5;
+
+  let status="НЕ ПОДТВЕРЖДАЕТСЯ";
+
+  if(
+    tests.length>=4 &&
+    totalN>=150 &&
+    meanEdge>0.001 &&
+    med>0 &&
+    positiveRatio>=0.75 &&
+    worstEdge>-0.005
+  ){
+    status="ПОДТВЕРЖДАЕТСЯ";
+  }
+  else if(
+    tests.length>=3 &&
+    totalN>=80 &&
+    meanEdge>0 &&
+    positiveRatio>=0.60
+  ){
+    status="ЧАСТИЧНО ПОДТВЕРЖДАЕТСЯ";
+  }
+
+  return {
+    keys,
+    tests,
+    totalN,
+    meanEdge,
+    meanReturn,
+    medianEdge:med,
+    positivePeriods,
+    positiveRatio,
+    worstEdge,
+    score,
+    status
+  };
+}
+
+/* ---------------------------------------------------------
+   ИНДИВИДУАЛЬНЫЕ ФАКТОРЫ
+--------------------------------------------------------- */
+
+function singleFactorStats(data,returns,key){
+
+  const s=comboStats(data,returns,[key]);
+
+  return {
+    key,
+    ...s
+  };
+}
+
+/* ---------------------------------------------------------
+   ИНКРЕМЕНТАЛЬНЫЙ АНАЛИЗ
+--------------------------------------------------------- */
+
+function incrementalStats(data,returns,baseKeys,addKey){
+
+  const before=comboStats(
+    data,
+    returns,
+    baseKeys
+  );
+
+  const afterKeys=[...baseKeys,addKey];
+
+  const after=comboStats(
+    data,
+    returns,
+    afterKeys
+  );
+
+  return {
+    baseKeys,
+    addKey,
+    before,
+    after,
+    incrementalAvg:after.avg-before.avg,
+    incrementalMedian:after.median-before.median,
+    incrementalEdge:after.edge-before.edge,
+    nBefore:before.n,
+    nAfter:after.n
+  };
 }
 
 /*
-  Walk-forward:
-  expanding training window -> следующий тестовый участок.
+  Для анализа последовательности факторов
+  начинаем с RSI 52–65 — наиболее интересного
+  фактора v2.7.
 */
-function makeFolds(data){
 
- const n=data.length;
- const first=Math.max(200,Math.floor(n*0.40));
- const testSize=Math.floor(n*0.12);
+function buildIncremental(data,returns){
 
- const folds=[];
+  const base=["rsiRange"];
 
- for(let f=0;f<5;f++){
+  const candidates=[
+    "macd",
+    "price200",
+    "volume",
+    "emaTrend",
+    "macdHist",
+    "rsi52",
+    "adx"
+  ];
 
-   const trainEnd=first+f*testSize;
-   const testStart=trainEnd+1;
-   const testEnd=Math.min(
-     n-2,
-     trainEnd+testSize
-   );
+  const first=[];
 
-   if(testEnd-testStart<30)continue;
+  for(const key of candidates){
 
-   folds.push({
-     fold:f+1,
-     trainStart:200,
-     trainEnd,
-     testStart,
-     testEnd
-   });
- }
+    const x=incrementalStats(
+      data,
+      returns,
+      base,
+      key
+    );
 
- return folds;
+    first.push(x);
+  }
+
+  first.sort(
+    (a,b)=>b.incrementalEdge-a.incrementalEdge
+  );
+
+  /*
+    Затем строим последовательность:
+    RSI -> лучший добавочный фактор ->
+    следующий лучший и т.д.
+  */
+
+  const chain=[];
+  let current=[...base];
+
+  const remaining=new Set(candidates);
+
+  while(remaining.size){
+
+    let best=null;
+
+    for(const key of remaining){
+
+      const x=incrementalStats(
+        data,
+        returns,
+        current,
+        key
+      );
+
+      if(
+        x.nAfter>=20 &&
+        (!best ||
+         x.incrementalEdge>best.incrementalEdge)
+      ){
+        best=x;
+      }
+    }
+
+    if(!best)break;
+
+    chain.push(best);
+    current.push(best.addKey);
+    remaining.delete(best.addKey);
+  }
+
+  return {
+    first,
+    chain
+  };
 }
 
-function evaluateComboWalk(data,combo,folds){
+/* ---------------------------------------------------------
+   КОМБИНАЦИИ
+--------------------------------------------------------- */
 
- const results=[];
+function candidateCombinations(){
 
- for(const fold of folds){
+  /*
+    Не перебираем бессмысленно все 255 комбинаций.
 
-   const tr=trainRank(
-     data,
-     combo,
-     fold.trainStart,
-     fold.trainEnd
-   );
+    Фокус:
+    RSI 52–65,
+    плюс потенциально полезные факторы.
+  */
 
-   if(!tr)continue;
+  const candidates=[
+    ["rsiRange"],
+    ["rsiRange","macd"],
+    ["rsiRange","price200"],
+    ["rsiRange","volume"],
+    ["rsiRange","emaTrend"],
+    ["rsiRange","macdHist"],
+    ["rsiRange","adx"],
 
-   const test=comboStats(
-     data,
-     combo,
-     fold.testStart,
-     fold.testEnd
-   );
+    ["rsiRange","macd","price200"],
+    ["rsiRange","macd","volume"],
+    ["rsiRange","price200","volume"],
+    ["rsiRange","emaTrend","volume"],
+    ["rsiRange","macd","emaTrend"],
+    ["rsiRange","macdHist","volume"],
+    ["rsiRange","price200","emaTrend"],
 
-   const base=baselineStats(
-     data,
-     fold.testStart,
-     fold.testEnd
-   );
+    ["macd","rsiRange"],
+    ["macd","rsiRange","price200"],
+    ["macd","rsiRange","volume"],
+    ["price200","rsiRange","volume"],
 
-   if(test.n<10 || base.n<10)continue;
+    ["rsi52","rsiRange"],
+    ["rsi52","rsiRange","macd"],
+    ["rsi52","rsiRange","price200"],
 
-   results.push({
-     fold:fold.fold,
-     trainN:tr.n,
-     testN:test.n,
-     trainAvg:tr.avg,
-     testAvg:test.avg,
-     testMedian:test.median,
-     testWin:test.win,
-     baselineAvg:base.avg,
-     baselineMedian:base.median,
-     baselineWin:base.win,
-     edge:test.avg-base.avg,
-     medianEdge:test.median-base.median,
-     winEdge:test.win-base.win
-   });
- }
+    ["rsiRange","macd","price200","volume"],
+    ["rsiRange","macd","emaTrend","volume"],
+    ["rsiRange","price200","emaTrend","volume"],
+    ["rsiRange","macd","price200","adx"],
+    ["rsiRange","macd","volume","adx"]
+  ];
 
- if(results.length<2)return null;
-
- const edges=results.map(x=>x.edge);
- const medEdges=results.map(x=>x.medianEdge);
-
- const positiveFolds=results.filter(x=>x.edge>0).length;
- const positiveMedianFolds=results.filter(x=>x.medianEdge>0).length;
-
- const meanEdge=avg(edges);
- const meanMedianEdge=avg(medEdges);
-
- const meanAvg=avg(results.map(x=>x.testAvg));
- const meanMedian=avg(results.map(x=>x.testMedian));
- const meanWin=avg(results.map(x=>x.testWin));
- const meanBase=avg(results.map(x=>x.baselineAvg));
-
- /*
-   Устойчивость важнее максимальной доходности.
-   Сильный штраф за отрицательные тестовые периоды.
- */
- const foldRatio=positiveFolds/results.length;
- const medianRatio=positiveMedianFolds/results.length;
-
- const worstEdge=Math.min(...edges);
-
- const stability=
-   meanEdge*45+
-   meanMedianEdge*25+
-   foldRatio*15+
-   medianRatio*10+
-   Math.max(-2,worstEdge)*2;
-
- return {
-   combo,
-   folds:results,
-   foldCount:results.length,
-   positiveFolds,
-   positiveMedianFolds,
-   meanEdge,
-   meanMedianEdge,
-   meanAvg,
-   meanMedian,
-   meanWin,
-   meanBase,
-   worstEdge,
-   stability
- };
+  return candidates;
 }
 
-function findRobustCombos(data){
+function evaluateCombinations(data,returns){
 
- const folds=makeFolds(data);
- const combos=allCombos();
+  const results=[];
 
- const results=[];
+  for(const keys of candidateCombinations()){
 
- for(const combo of combos){
+    const wf=walkForward(
+      data,
+      returns,
+      keys
+    );
 
-   const r=evaluateComboWalk(
-     data,
-     combo,
-     folds
-   );
+    if(!wf)continue;
 
-   if(r)results.push(r);
- }
+    results.push(wf);
+  }
 
- results.sort((a,b)=>b.stability-a.stability);
+  results.sort((a,b)=>{
 
- return {
-   folds,
-   results
- };
+    if(b.score!==a.score)
+      return b.score-a.score;
+
+    return b.meanEdge-a.meanEdge;
+  });
+
+  return results;
 }
 
-function currentFactorList(x){
+/* ---------------------------------------------------------
+   РЕЖИМ
+--------------------------------------------------------- */
 
- return FACTORS
-   .filter(f=>factorTrue(x,f.id))
-   .map(f=>f.id);
+function regime(d){
+
+  if(
+    d.close>d.ema200 &&
+    d.ema20>d.ema50 &&
+    d.macd>0 &&
+    d.adx>=30
+  )return "Strong Bullish";
+
+  if(
+    d.close>d.ema200 &&
+    d.ema20>d.ema50 &&
+    d.macd>0
+  )return "Bullish";
+
+  if(
+    d.close<d.ema200 &&
+    d.ema20<d.ema50 &&
+    d.macd<0 &&
+    d.adx>=30
+  )return "Strong Bearish";
+
+  if(
+    d.close<d.ema200 &&
+    d.ema20<d.ema50 &&
+    d.macd<0
+  )return "Bearish";
+
+  return "Flat";
 }
 
-function activeCombinationStats(data,x){
+function regimeStats(data,returns){
 
- const ids=currentFactorList(x);
+  const map={};
 
- if(ids.length<2)return null;
+  for(let i=200;i<data.length-1;i++){
 
- return {
-   ids,
-   stats:comboStats(
-     data,
-     ids,
-     200,
-     data.length-2
-   ),
-   baseline:baselineStats(
-     data,
-     200,
-     data.length-2
-   )
- };
+    const r=returns[i];
+
+    if(r==null)continue;
+
+    const rg=regime(data[i]);
+
+    if(!map[rg])map[rg]=[];
+
+    map[rg].push(r);
+  }
+
+  return Object.entries(map).map(([name,values])=>({
+    name,
+    ...stats(values)
+  }));
 }
 
-function getScore(data,x){
+/* ---------------------------------------------------------
+   ТЕКУЩИЙ СИГНАЛ
+--------------------------------------------------------- */
 
- const base=baselineStats(
-   data,
-   200,
-   data.length-2
- );
+function currentSignal(data,returns,top){
 
- const ids=currentFactorList(x);
+  const d=data[data.length-1];
 
- if(ids.length<2)return 50;
+  const active=activeFactors(d);
 
- const s=comboStats(
-   data,
-   ids,
-   200,
-   data.length-2
- );
+  const currentValues=[];
 
- if(s.n<30||!finite(s.avg))return 50;
+  for(let i=200;i<data.length-1;i++){
 
- const edge=s.avg-base.avg;
- const med=s.median-base.median;
- const win=s.win-base.win;
+    if(comboMatches(data,i,active))
+      currentValues.push(returns[i]);
+  }
 
- let score=50;
+  const s=stats(currentValues);
 
- score+=edge*12;
- score+=med*8;
- score+=win*0.15;
+  /*
+    Сравниваем с базой.
+  */
 
- if(s.n<50)score-=8;
- else if(s.n<100)score-=3;
- else if(s.n>=300)score+=3;
+  const allValues=[];
 
- return Math.max(0,Math.min(100,score));
+  for(let i=200;i<data.length-1;i++)
+    if(returns[i]!=null)
+      allValues.push(returns[i]);
+
+  const base=stats(allValues);
+
+  const edge=s.avg-base.avg;
+
+  /*
+    Не превращаем score в вероятность.
+
+    Это просто индикатор силы совокупности:
+    режим + историческое преимущество.
+  */
+
+  let score=50;
+
+  if(s.n>=50)score+=5;
+  if(s.n>=100)score+=5;
+
+  if(edge>0.001)score+=8;
+  if(edge>0.003)score+=8;
+  if(edge<0)score-=8;
+  if(edge<-0.003)score-=8;
+
+  if(regime(d)==="Strong Bullish")score+=8;
+  if(regime(d)==="Bullish")score+=4;
+  if(regime(d)==="Bearish")score-=4;
+  if(regime(d)==="Strong Bearish")score-=8;
+
+  score=Math.max(0,Math.min(100,Math.round(score)));
+
+  let signal="NEUTRAL";
+
+  if(score>=60)signal="BUY";
+  else if(score<=40)signal="SELL";
+
+  return {
+    d,
+    active,
+    n:s.n,
+    avg:s.avg,
+    median:s.median,
+    win:s.win,
+    plus1:s.plus1,
+    minus1:s.minus1,
+    baseline:base.avg,
+    edge,
+    score,
+    signal,
+    regime:regime(d)
+  };
 }
 
-function renderRobust(result){
+/* ---------------------------------------------------------
+   HTML
+--------------------------------------------------------- */
 
- const box=document.getElementById("robustBox");
+function factorHTML(key,active){
 
- if(!result.results.length){
-   box.innerHTML="Недостаточно данных для устойчивого поиска.";
-   return;
- }
+  const on=active.includes(key);
 
- const r=result.results[0];
-
- let status="НЕ ПОДТВЕРЖДАЕТСЯ";
-
- if(
-   r.positiveFolds>=Math.ceil(r.foldCount*0.75) &&
-   r.meanEdge>0 &&
-   r.meanMedianEdge>0
- ){
-   status="ПОДТВЕРЖДАЕТСЯ";
- }else if(
-   r.positiveFolds>=Math.ceil(r.foldCount*0.5) &&
-   r.meanEdge>0
- ){
-   status="ЧАСТИЧНО ПОДТВЕРЖДАЕТСЯ";
- }
-
- box.innerHTML=`
- <div>
-   ${r.combo.map(id=>{
-     const f=FACTORS.find(x=>x.id===id);
-     return `<span class="factor">${f.name}</span>`;
-   }).join("")}
- </div>
-
- <div class="grid" style="margin-top:10px">
-   <div class="metric">
-    <div class="label">Walk-forward N</div>
-    <div class="value">${r.folds.reduce((s,x)=>s+x.testN,0)}</div>
-   </div>
-
-   <div class="metric">
-    <div class="label">Средняя тестовая</div>
-    <div class="value">${pct(r.meanAvg)}</div>
-   </div>
-
-   <div class="metric">
-    <div class="label">Медиана теста</div>
-    <div class="value">${pct(r.meanMedian)}</div>
-   </div>
-
-   <div class="metric">
-    <div class="label">Преимущество</div>
-    <div class="value">${pct(r.meanEdge)}</div>
-   </div>
-
-   <div class="metric">
-    <div class="label">Положительных периодов</div>
-    <div class="value">${r.positiveFolds}/${r.foldCount}</div>
-   </div>
-
-   <div class="metric">
-    <div class="label">Stability Score</div>
-    <div class="value">${fmt(r.stability,1)}</div>
-   </div>
- </div>
-
- <div class="status">
-   <strong>${status}</strong><br>
-   Среднее преимущество над обычным BTC:
-   <strong>${pct(r.meanEdge)}</strong><br>
-   Преимущество по медиане:
-   <strong>${pct(r.meanMedianEdge)}</strong><br>
-   Худший тестовый период:
-   <strong>${pct(r.worstEdge)}</strong>
- </div>
- `;
-
+  return `
+    <span class="factor ${on?"on":"off"}">
+      ${on?"✓":"○"} ${FACTORS[key].name}
+    </span>
+  `;
 }
 
-function renderWalk(result){
+function keysHTML(keys){
 
- const box=document.getElementById("walkBox");
+  if(!keys.length)return "—";
 
- if(!result.results.length){
-   box.innerHTML="Недостаточно данных.";
-   return;
- }
-
- const r=result.results[0];
-
- let html=`
- <table>
- <tr>
-  <th>Период</th>
-  <th>Train N</th>
-  <th>Test N</th>
-  <th>Test ср.</th>
-  <th>BTC ср.</th>
-  <th>Edge</th>
- </tr>`;
-
- for(const x of r.folds){
-
-   const cls=x.edge>0?"good":"bad";
-
-   html+=`
-   <tr>
-    <td>${x.fold}</td>
-    <td>${x.trainN}</td>
-    <td>${x.testN}</td>
-    <td>${pct(x.testAvg)}</td>
-    <td>${pct(x.baselineAvg)}</td>
-    <td class="${cls}">${pct(x.edge)}</td>
-   </tr>`;
- }
-
- html+="</table>";
-
- box.innerHTML=html;
+  return keys.map(k=>
+    `<span class="factor">${FACTORS[k].name}</span>`
+  ).join(" ");
 }
 
-function renderCombos(result){
+function renderStatsRow(s){
 
- const box=document.getElementById("comboBox");
-
- const top=result.results.slice(0,10);
-
- if(!top.length){
-   box.innerHTML="Нет комбинаций с достаточной выборкой.";
-   return;
- }
-
- let html=`
- <table>
- <tr>
-  <th>#</th>
-  <th>Комбинация</th>
-  <th>Edge</th>
-  <th>Медиана</th>
-  <th>Периоды</th>
-  <th>Score</th>
- </tr>`;
-
- top.forEach((r,i)=>{
-
-   html+=`
-   <tr>
-    <td>${i+1}</td>
-    <td>${r.combo.map(id=>{
-      const f=FACTORS.find(x=>x.id===id);
-      return `<span class="factor">${f.name}</span>`;
-    }).join("")}</td>
-    <td class="${r.meanEdge>0?"good":"bad"}">
-      ${pct(r.meanEdge)}
-    </td>
-    <td class="${r.meanMedianEdge>0?"good":"bad"}">
-      ${pct(r.meanMedianEdge)}
-    </td>
-    <td>${r.positiveFolds}/${r.foldCount}</td>
-    <td>${fmt(r.stability,1)}</td>
-   </tr>`;
- });
-
- html+="</table>";
-
- box.innerHTML=html;
-}
-
-function renderCurrentCombo(data,x){
-
- const box=document.getElementById("currentComboBox");
-
- const r=activeCombinationStats(data,x);
-
- if(!r){
-
-   box.innerHTML=`
-   Сейчас активно менее двух факторов.
-   Комбинационная статистика не строится.
-   `;
-
-   return;
- }
-
- const s=r.stats;
- const b=r.baseline;
-
- box.innerHTML=`
- <div>
- ${r.ids.map(id=>{
-   const f=FACTORS.find(x=>x.id===id);
-   return `<span class="factor">${f.name}</span>`;
- }).join("")}
- </div>
-
- <div class="grid" style="margin-top:10px">
-
- <div class="metric">
-  <div class="label">N</div>
-  <div class="value">${s.n}</div>
- </div>
-
- <div class="metric">
-  <div class="label">Средняя</div>
-  <div class="value">${pct(s.avg)}</div>
- </div>
-
- <div class="metric">
-  <div class="label">Медиана</div>
-  <div class="value">${pct(s.median)}</div>
- </div>
-
- <div class="metric">
-  <div class="label">Win rate</div>
-  <div class="value">${fmt(s.win,1)}%</div>
- </div>
-
- <div class="metric">
-  <div class="label">BTC baseline</div>
-  <div class="value">${pct(b.avg)}</div>
- </div>
-
- <div class="metric">
-  <div class="label">Преимущество</div>
-  <div class="value">${pct(s.avg-b.avg)}</div>
- </div>
-
- </div>
-
- <div class="status">
- Историческое преимущество не означает вероятность
- будущего роста и не является гарантией результата.
- </div>
- `;
-}
-
-function renderFactors(data){
-
- const box=document.getElementById("factorBox");
-
- let html=`
- <table>
- <tr>
-  <th>Фактор</th>
-  <th>N</th>
-  <th>Средн.</th>
-  <th>Медиана</th>
-  <th>Win</th>
-  <th>&gt;+1%</th>
-  <th>&lt;-1%</th>
- </tr>`;
-
- for(const f of FACTORS){
-
-   const s=statsFor(
-     data,
-     x=>factorTrue(x,f.id),
-     200,
-     data.length-2
-   );
-
-   html+=`
-   <tr>
-    <td>${f.name}</td>
+  return `
+  <tr>
+    <td>${FACTORS[s.key]?.name||s.name||""}</td>
     <td>${s.n}</td>
     <td>${pct(s.avg)}</td>
     <td>${pct(s.median)}</td>
-    <td>${fmt(s.win,1)}%</td>
-    <td>${fmt(s.plus1,1)}%</td>
-    <td>${fmt(s.minus1,1)}%</td>
-   </tr>`;
- }
-
- html+="</table>";
-
- box.innerHTML=html;
+    <td>${pct1(s.win)}</td>
+    <td>${pct1(s.plus1)}</td>
+    <td>${pct1(s.minus1)}</td>
+  </tr>`;
 }
 
-function renderRegimes(data){
+function statusClass(status){
 
- const box=document.getElementById("regimeBox");
-
- const names=[
-   "Сильный бычий",
-   "Бычий",
-   "Боковик",
-   "Медвежий",
-   "Сильный медвежий"
- ];
-
- let html=`
- <table>
- <tr>
-  <th>Режим</th>
-  <th>N</th>
-  <th>Средн.</th>
-  <th>Медиана</th>
-  <th>Win</th>
- </tr>`;
-
- for(const name of names){
-
-   const s=statsFor(
-     data,
-     x=>regimeAt(x)===name,
-     200,
-     data.length-2
-   );
-
-   html+=`
-   <tr>
-    <td>${name}</td>
-    <td>${s.n}</td>
-    <td>${pct(s.avg)}</td>
-    <td>${pct(s.median)}</td>
-    <td>${fmt(s.win,1)}%</td>
-   </tr>`;
- }
-
- html+="</table>";
-
- box.innerHTML=html;
+  if(status==="ПОДТВЕРЖДАЕТСЯ")return "good";
+  if(status==="ЧАСТИЧНО ПОДТВЕРЖДАЕТСЯ")return "warn";
+  return "bad";
 }
 
-function updateCurrent(x,data){
+function renderWF(wf){
 
- document.getElementById("price").textContent=
-   finite(x.close)?x.close.toFixed(2):"—";
+  return `
+  <div class="grid">
+    <div class="stat">
+      <span class="small">Тест N</span>
+      <b>${wf.totalN}</b>
+    </div>
 
- document.getElementById("rsi").textContent=fmt(x.rsi);
- document.getElementById("adx").textContent=fmt(x.adx);
- document.getElementById("ema20").textContent=fmt(x.ema20);
- document.getElementById("ema50").textContent=fmt(x.ema50);
- document.getElementById("ema200").textContent=fmt(x.ema200);
- document.getElementById("macd").textContent=fmt(x.macd);
- document.getElementById("hist").textContent=fmt(x.hist);
+    <div class="stat">
+      <span class="small">Средний edge</span>
+      <b class="${wf.meanEdge>0?'good':'bad'}">
+        ${pct(wf.meanEdge)}
+      </b>
+    </div>
 
- const regime=regimeAt(x);
+    <div class="stat">
+      <span class="small">Median edge</span>
+      <b class="${wf.medianEdge>0?'good':'bad'}">
+        ${pct(wf.medianEdge)}
+      </b>
+    </div>
 
- document.getElementById("regime").textContent=regime;
+    <div class="stat">
+      <span class="small">Положительные периоды</span>
+      <b>${wf.positivePeriods}/${wf.tests.length}</b>
+    </div>
+  </div>
 
- let basic="НЕЙТРАЛЬНО";
+  <p>
+    <b class="${statusClass(wf.status)}">
+      ${wf.status}
+    </b>
+  </p>
 
- if(
-   x.close>x.ema200 &&
-   x.ema20>x.ema50 &&
-   x.macd>0
- )basic="ПОКУПКА";
+  <table>
+    <tr>
+      <th>Период</th>
+      <th>Train</th>
+      <th>Test</th>
+      <th>Test avg</th>
+      <th>BTC</th>
+      <th>Edge</th>
+    </tr>
 
- if(
-   x.close<x.ema200 &&
-   x.ema20<x.ema50 &&
-   x.macd<0
- )basic="ПРОДАЖА";
-
- document.getElementById("basic").textContent=basic;
-
- const score=getScore(data,x);
-
- document.getElementById("score").textContent=
-   Math.round(score)+"/100";
-
- document.getElementById("scorebar").style.width=
-   Math.round(score)+"%";
-
- const s=activeCombinationStats(data,x);
-
- if(s){
-   document.getElementById("histN").textContent=s.stats.n;
-   document.getElementById("avg").textContent=pct(s.stats.avg);
-   document.getElementById("median").textContent=pct(s.stats.median);
-   document.getElementById("up1").textContent=
-     fmt(s.stats.plus1,1)+"%";
-   document.getElementById("down1").textContent=
-     fmt(s.stats.minus1,1)+"%";
- }else{
-
-   const b=baselineStats(
-     data,
-     200,
-     data.length-2
-   );
-
-   document.getElementById("histN").textContent=b.n;
-   document.getElementById("avg").textContent=pct(b.avg);
-   document.getElementById("median").textContent=pct(b.median);
-   document.getElementById("up1").textContent=
-     fmt(b.plus1,1)+"%";
-   document.getElementById("down1").textContent=
-     fmt(b.minus1,1)+"%";
- }
-
- let text="";
-
- if(score>=70)
-   text="Сильный статистический сигнал в сторону роста.";
- else if(score>=60)
-   text="Умеренно положительный статистический сигнал.";
- else if(score<=30)
-   text="Сильный статистический сигнал в сторону снижения.";
- else if(score<=40)
-   text="Умеренно отрицательный статистический сигнал.";
- else
-   text="Выраженного статистического преимущества сейчас нет.";
-
- document.getElementById("signalText").textContent=text;
+    ${wf.tests.map((t,i)=>`
+      <tr class="${t.edge>0?'goodrow':'badrow'}">
+        <td>${i+1}</td>
+        <td>${t.trainN}</td>
+        <td>${t.testN}</td>
+        <td>${pct(t.testAvg)}</td>
+        <td>${pct(t.baseAvg)}</td>
+        <td>${pct(t.edge)}</td>
+      </tr>
+    `).join("")}
+  </table>
+  `;
 }
 
-async function run(){
+function renderIncremental(x){
 
- const btn=document.getElementById("runBtn");
- const status=document.getElementById("status");
+  const inc=x.incrementalEdge;
 
- btn.disabled=true;
-
- status.textContent=
-   "Загружаю историю BTC…";
-
- try{
-
-   /*
-    Основной расчёт — 1D.
-    Он соответствует прогнозу через 24 часа.
-   */
-   dataGlobal=await loadDaily();
-
-   if(dataGlobal.length<500)
-     throw new Error("Недостаточно исторических данных");
-
-   const current=
-     dataGlobal[dataGlobal.length-1];
-
-   currentIndicators=current;
-
-   status.textContent=
-     "История загружена. Ищу устойчивые комбинации…";
-
-   updateCurrent(current,dataGlobal);
-
-   renderFactors(dataGlobal);
-   renderRegimes(dataGlobal);
-   renderCurrentCombo(dataGlobal,current);
-
-   /*
-     Основная тяжёлая часть.
-     Комбинации 2–4 факторов + walk-forward.
-   */
-   const result=findRobustCombos(dataGlobal);
-
-   renderRobust(result);
-   renderWalk(result);
-   renderCombos(result);
-
-   status.textContent=
-     "Анализ завершён. Версия v2.7";
-
- }catch(e){
-
-   console.error(e);
-
-   status.textContent=
-     "Ошибка: "+e.message;
-
- }finally{
-
-   btn.disabled=false;
- }
+  return `
+  <tr class="${inc>0?'goodrow':'badrow'}">
+    <td>${FACTORS[x.addKey].name}</td>
+    <td>${x.nBefore}</td>
+    <td>${x.nAfter}</td>
+    <td>${pct(x.before.avg)}</td>
+    <td>${pct(x.after.avg)}</td>
+    <td class="${inc>0?'good':'bad'}">
+      <b>${pct(inc)}</b>
+    </td>
+    <td>${pct(x.incrementalMedian)}</td>
+  </tr>
+  `;
 }
 
-/*
-  Автоматический запуск при открытии.
-*/
-run();
+/* ---------------------------------------------------------
+   ГЛАВНЫЙ RENDER
+--------------------------------------------------------- */
+
+function render(data,returns){
+
+  const d=data[data.length-1];
+
+  const signal=currentSignal(
+    data,
+    returns
+  );
+
+  const singles=FACTOR_KEYS.map(
+    k=>singleFactorStats(data,returns,k)
+  );
+
+  singles.sort((a,b)=>b.avg-a.avg);
+
+  const incremental=
+    buildIncremental(data,returns);
+
+  const combinations=
+    evaluateCombinations(data,returns);
+
+  const best=
+    combinations.slice(0,10);
+
+  const regimeData=
+    regimeStats(data,returns);
+
+  const top=best[0];
+
+  document.getElementById("app").innerHTML=`
+
+  <!-- CURRENT -->
+  <div class="card">
+
+    <div class="small">
+      BTCUSDT · дневной график · прогноз следующего 24h
+    </div>
+
+    <div class="price">
+      $${d.close.toLocaleString("en-US",{
+        maximumFractionDigits:2
+      })}
+    </div>
+
+    <div class="signal ${
+      signal.signal==="BUY"
+        ?"buy"
+        :signal.signal==="SELL"
+          ?"sell"
+          :"neutral"
+    }">
+      ${signal.signal}
+    </div>
+
+    <div class="small">
+      Score: ${signal.score}/100 · это НЕ вероятность
+    </div>
+
+    <div class="bar">
+      <div style="width:${signal.score}%"></div>
+    </div>
+
+    <div class="grid">
+
+      <div class="stat">
+        <span class="small">RSI14</span>
+        <b>${d.rsi?.toFixed(2)??"—"}</b>
+      </div>
+
+      <div class="stat">
+        <span class="small">ADX14</span>
+        <b>${d.adx?.toFixed(2)??"—"}</b>
+      </div>
+
+      <div class="stat">
+        <span class="small">EMA20</span>
+        <b>${d.ema20?.toFixed(0)??"—"}</b>
+      </div>
+
+      <div class="stat">
+        <span class="small">EMA50</span>
+        <b>${d.ema50?.toFixed(0)??"—"}</b>
+      </div>
+
+      <div class="stat">
+        <span class="small">EMA200</span>
+        <b>${d.ema200?.toFixed(0)??"—"}</b>
+      </div>
+
+      <div class="stat">
+        <span class="small">MACD</span>
+        <b>${d.macd?.toFixed(0)??"—"}</b>
+      </div>
+
+    </div>
+
+    <h3>Текущий режим</h3>
+    <b>${signal.regime}</b>
+
+  </div>
+
+
+  <!-- CURRENT STATISTICS -->
+
+  <div class="card">
+
+    <h2>📊 Статистика текущей комбинации</h2>
+
+    <div>
+      ${signal.active.map(k=>factorHTML(k,signal.active)).join("")}
+    </div>
+
+    <div class="grid">
+
+      <div class="stat">
+        <span class="small">Исторический N</span>
+        <b>${signal.n}</b>
+      </div>
+
+      <div class="stat">
+        <span class="small">Средний результат</span>
+        <b>${pct(signal.avg)}</b>
+      </div>
+
+      <div class="stat">
+        <span class="small">Медиана</span>
+        <b>${pct(signal.median)}</b>
+      </div>
+
+      <div class="stat">
+        <span class="small">Win rate</span>
+        <b>${pct1(signal.win)}</b>
+      </div>
+
+      <div class="stat">
+        <span class="small">BTC baseline</span>
+        <b>${pct(signal.baseline)}</b>
+      </div>
+
+      <div class="stat">
+        <span class="small">Edge</span>
+        <b class="${signal.edge>0?'good':'bad'}">
+          ${pct(signal.edge)}
+        </b>
+      </div>
+
+    </div>
+
+    <p class="notice">
+      ${signal.edge>0
+        ?"Текущие условия исторически имели преимущество над BTC baseline."
+        :"Выраженного статистического преимущества текущей комбинации нет."
+      }
+    </p>
+
+  </div>
+
+
+  <!-- INCREMENTAL -->
+
+  <div class="card">
+
+    <h2>🔬 Что реально добавляет фактор</h2>
+
+    <p class="small">
+      База: <b>RSI 52–65</b>.
+      Incremental edge показывает изменение результата
+      после добавления второго фактора.
+    </p>
+
+    <table>
+
+      <tr>
+        <th>Добавляем</th>
+        <th>N до</th>
+        <th>N после</th>
+        <th>До</th>
+        <th>После</th>
+        <th>Δ avg</th>
+        <th>Δ median</th>
+      </tr>
+
+      ${incremental.first.map(renderIncremental).join("")}
+
+    </table>
+
+  </div>
+
+
+  <!-- CHAIN -->
+
+  <div class="card">
+
+    <h2>⛓ Последовательное добавление факторов</h2>
+
+    <p class="small">
+      На каждом шаге выбирается фактор,
+      который даёт наибольший прирост относительно
+      уже выбранной комбинации.
+    </p>
+
+    <table>
+
+      <tr>
+        <th>Шаг</th>
+        <th>Добавлен</th>
+        <th>N</th>
+        <th>Δ avg</th>
+        <th>Δ median</th>
+        <th>Результат</th>
+      </tr>
+
+      ${incremental.chain.map((x,i)=>`
+        <tr class="${x.incrementalEdge>0?'goodrow':'badrow'}">
+          <td>${i+1}</td>
+          <td>${FACTORS[x.addKey].name}</td>
+          <td>${x.nAfter}</td>
+          <td>${pct(x.incrementalEdge)}</td>
+          <td>${pct(x.incrementalMedian)}</td>
+          <td>${pct(x.after.avg)}</td>
+        </tr>
+      `).join("")}
+
+    </table>
+
+  </div>
+
+
+  <!-- SINGLE -->
+
+  <div class="card">
+
+    <h2>📌 Факторы по отдельности</h2>
+
+    <table>
+
+      <tr>
+        <th>Фактор</th>
+        <th>N</th>
+        <th>Avg</th>
+        <th>Median</th>
+        <th>Win</th>
+        <th>>+1%</th>
+        <th><−1%</th>
+      </tr>
+
+      ${singles.map(renderStatsRow).join("")}
+
+    </table>
+
+  </div>
+
+
+  <!-- WALK FORWARD -->
+
+  <div class="card">
+
+    <h2>🧪 Walk-forward: лучшие комбинации</h2>
+
+    <p class="small">
+      Тест выполняется только на данных,
+      которые следуют после обучающего периода.
+      Будущее не используется при обучении.
+    </p>
+
+    ${best.map((x,i)=>`
+
+      <div style="
+        margin-top:18px;
+        padding-top:12px;
+        border-top:1px solid #263244">
+
+        <h3>
+          #${i+1}
+          ${keysHTML(x.keys)}
+        </h3>
+
+        <div class="grid">
+
+          <div class="stat">
+            <span class="small">Score</span>
+            <b>${x.score}/100</b>
+          </div>
+
+          <div class="stat">
+            <span class="small">Test N</span>
+            <b>${x.totalN}</b>
+          </div>
+
+          <div class="stat">
+            <span class="small">Mean edge</span>
+            <b class="${x.meanEdge>0?'good':'bad'}">
+              ${pct(x.meanEdge)}
+            </b>
+          </div>
+
+          <div class="stat">
+            <span class="small">Worst fold</span>
+            <b class="${x.worstEdge>=0?'good':'bad'}">
+              ${pct(x.worstEdge)}
+            </b>
+          </div>
+
+        </div>
+
+        <p>
+          <b class="${statusClass(x.status)}">
+            ${x.status}
+          </b>
+        </p>
+
+        ${renderWF(x)}
+
+      </div>
+
+    `).join("")}
+
+  </div>
+
+
+  <!-- CURRENT FACTORS -->
+
+  <div class="card">
+
+    <h2>🎯 Все текущие факторы</h2>
+
+    ${FACTOR_KEYS.map(
+      k=>factorHTML(k,signal.active)
+    ).join("")}
+
+    <p class="small">
+      Важно: больше активных факторов ≠ лучше.
+      v2.7 показала, что слишком жёсткая комбинация
+      может ухудшать результат.
+    </p>
+
+  </div>
+
+
+  <!-- REGIMES -->
+
+  <div class="card">
+
+    <h2>🌐 Статистика по режимам</h2>
+
+    <table>
+
+      <tr>
+        <th>Режим</th>
+        <th>N</th>
+        <th>Avg</th>
+        <th>Median</th>
+        <th>Win</th>
+      </tr>
+
+      ${regimeData.map(r=>`
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.n}</td>
+          <td>${pct(r.avg)}</td>
+          <td>${pct(r.median)}</td>
+          <td>${pct1(r.win)}</td>
+        </tr>
+      `).join("")}
+
+    </table>
+
+  </div>
+
+
+  <!-- METHODOLOGY -->
+
+  <div class="card">
+
+    <h2>🧠 Методика v2.8</h2>
+
+    <div class="notice">
+
+      <b>Цель:</b> найти устойчивое преимущество
+      для прогноза следующего 24h, а не максимальный
+      исторический результат.
+
+      <br><br>
+
+      <b>Главный критерий:</b>
+      комбинация должна сохранять преимущество
+      на будущих walk-forward периодах.
+
+      <br><br>
+
+      <b>Подтверждение:</b>
+      минимум 4 тестовых периода,
+      минимум 150 тестовых наблюдений,
+      средний edge > +0.10%,
+      median edge > 0,
+      минимум 75% положительных периодов,
+      худший период не хуже −0.50%.
+
+      <br><br>
+
+      Если эти условия не выполнены,
+      модель не называет комбинацию надёжной.
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <button onclick="location.reload()">
+      🔄 Обновить данные
+    </button>
+
+    <p class="small">
+      Версия ${VERSION} · Binance · BTCUSDT · 1D
+    </p>
+
+  </div>
+
+  `;
+}
+
+/* ---------------------------------------------------------
+   START
+--------------------------------------------------------- */
+
+async function start(){
+
+  const app=document.getElementById("app");
+
+  try{
+
+    app.innerHTML=`
+      <div class="loading">
+        Получаем историю BTC и рассчитываем статистику...
+      </div>
+    `;
+
+    const raw=await fetchKlines();
+
+    if(!raw || raw.length<400)
+      throw new Error(
+        "Недостаточно исторических данных: "+raw.length
+      );
+
+    const data=prepare(raw);
+
+    const returns=buildReturns(data);
+
+    render(data,returns);
+
+  }catch(e){
+
+    console.error(e);
+
+    app.innerHTML=`
+      <div class="card">
+
+        <h2>⚠️ Ошибка</h2>
+
+        <p>${e.message}</p>
+
+        <button onclick="location.reload()">
+          Повторить
+        </button>
+
+        <p class="small">
+          Проверьте интернет-соединение
+          и доступность Binance API.
+        </p>
+
+      </div>
+    `;
+  }
+}
+
+start();
 </script>
 
 </body>
