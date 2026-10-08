@@ -5,3012 +5,591 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.webmanifest">
-<title>₿ BTC Signal v3.1</title>
+<title>₿ BTC Signal v3.2</title>
 
 <style>
-*{box-sizing:border-box}
-
 body{
- margin:0;
- background:#0b1020;
- color:#e5e7eb;
- font-family:Arial,sans-serif;
+  margin:0;
+  padding:16px;
+  background:#111827;
+  color:#f3f4f6;
+  font-family:Arial,sans-serif;
 }
-
-.container{
- max-width:950px;
- margin:auto;
- padding:16px;
-}
-
-h1{
- font-size:27px;
- margin:0 0 12px;
-}
-
-h2{
- font-size:19px;
- margin:22px 0 10px;
-}
-
-h3{
- margin-top:10px;
-}
-
+h1{font-size:24px;margin:0 0 8px}
+h2{font-size:18px;margin:22px 0 10px}
 .card{
- background:#151c31;
- border:1px solid #29334f;
- border-radius:14px;
- padding:15px;
- margin-bottom:14px;
+  background:#1f2937;
+  border-radius:12px;
+  padding:14px;
+  margin:10px 0;
 }
-
-.status{
- font-size:18px;
- font-weight:bold;
-}
-
-.small{
- font-size:13px;
- color:#9ca3af;
- line-height:1.5;
-}
-
-.loading{
- color:#fbbf24;
-}
-
-.success{
- color:#4ade80;
-}
-
-.error{
- color:#f87171;
-}
-
-.big{
- font-size:28px;
- font-weight:bold;
-}
-
-.good{
- color:#4ade80;
-}
-
-.bad{
- color:#f87171;
-}
-
-.neutral{
- color:#fbbf24;
-}
-
+.good{color:#4ade80}
+.warn{color:#fbbf24}
+.bad{color:#f87171}
+.small{font-size:13px;color:#9ca3af}
 table{
- width:100%;
- border-collapse:collapse;
- font-size:13px;
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
 }
-
 th,td{
- padding:7px 5px;
- border-bottom:1px solid #29334f;
- text-align:right;
+  padding:7px 4px;
+  border-bottom:1px solid #374151;
+  text-align:right;
 }
-
-th:first-child,
-td:first-child{
- text-align:left;
-}
-
-th{
- color:#9ca3af;
-}
-
-.progress{
- height:8px;
- background:#29334f;
- border-radius:8px;
- margin-top:12px;
- overflow:hidden;
-}
-
-.bar{
- height:100%;
- width:0;
- background:#4ade80;
- transition:.3s;
-}
-
-.badge{
- display:inline-block;
- background:#29334f;
- padding:6px 10px;
- border-radius:8px;
-}
-
-.testbox{
- border:1px solid #374151;
- border-radius:10px;
- padding:12px;
- margin-top:12px;
-}
-
-.test-good{
- border-color:#166534;
-}
-
-.test-bad{
- border-color:#991b1b;
-}
-
-.test-neutral{
- border-color:#92400e;
-}
-
-.note{
- background:#101827;
- border-radius:10px;
- padding:10px;
- margin-top:10px;
- font-size:13px;
- line-height:1.5;
- color:#cbd5e1;
+th:first-child,td:first-child{text-align:left}
+button{
+  width:100%;
+  padding:13px;
+  border:0;
+  border-radius:10px;
+  background:#2563eb;
+  color:white;
+  font-size:16px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<h1>₿ BTC Signal</h1>
+<div class="small">v3.2 · проверка горизонтов</div>
 
-<h1>₿ BTC Signal <span class="small">v3.1</span></h1>
+<div class="card" id="status">
+  Загрузка BTC…
+</div>
+
+<div class="card" id="current"></div>
 
 <div class="card">
-
-<div id="status" class="status loading">
-Запуск…
+  <h2>⏱ Сравнение горизонтов</h2>
+  <div class="small">
+    Сигнал: EMA20 > EMA50 + ADX >25 + Volume > average
+  </div>
+  <div id="horizon"></div>
 </div>
-
-<div id="diag" class="small">
-JavaScript запускается…
-</div>
-
-<div class="progress">
-<div id="bar" class="bar"></div>
-</div>
-
-</div>
-
-
-<div id="app" style="display:none">
-
 
 <div class="card">
-
-<h2>Текущий режим</h2>
-
-<div id="regime" class="big"></div>
-
-<div id="regimeInfo" class="small"></div>
-
+  <h2>🔒 Финальный независимый тест</h2>
+  <div class="small">
+    Последние 10% данных полностью исключены из разработки.
+  </div>
+  <div id="holdout"></div>
 </div>
 
-
-<div class="card">
-
-<h2>24h сигнал</h2>
-
-<div id="signal"></div>
-
-</div>
-
-
-<div class="card">
-
-<h2>Индикаторы</h2>
-
-<div id="indicators"></div>
-
-</div>
-
-
-<div class="card">
-
-<h2>Инкрементальный анализ</h2>
-
-<div class="small">
-Показывает изменение результата после добавления второго фактора.
-</div>
-
-<div id="incremental"></div>
-
-</div>
-
-
-<div class="card">
-
-<h2>Индивидуальные факторы</h2>
-
-<div id="factors"></div>
-
-</div>
-
-
-<div class="card">
-
-<h2>Режимы рынка</h2>
-
-<div id="regimes"></div>
-
-</div>
-
-
-<div class="card">
-
-<h2>Walk-forward проверка</h2>
-
-<div class="small">
-Проверка комбинаций на последовательных исторических периодах.
-Последние 10% данных не участвуют в этом разделе.
-</div>
-
-<div id="walk"></div>
-
-</div>
-
-
-<div class="card">
-
-<h2>Наиболее стабильная комбинация</h2>
-
-<div id="best"></div>
-
-</div>
-
-
-<div class="card">
-
-<h2>🔒 Финальный независимый тест</h2>
-
-<div class="small">
-Последние 10% исторических данных полностью отложены.
-Они не используются для выбора комбинации.
-Сравнение идёт с обычным BTC Open → Close на том же периоде.
-</div>
-
-<div id="holdout"></div>
-
-</div>
-
-
-</div>
-
-</div>
-
+<button onclick="location.reload()">🔄 Обновить данные</button>
 
 <script>
 
-"use strict";
-
-
-/* =========================================================
-   НАСТРОЙКИ
-========================================================= */
-
 const API="https://api.binance.com/api/v3/klines";
 
-const REQUESTS=5;
+let candles=[];
+let rows=[];
 
-const LIMIT=1000;
-
-const TIMEOUT=10000;
-
-
-const FACTORS=[
-
- "EMA20 > EMA50",
-
- "Price > EMA200",
-
- "MACD > 0",
-
- "MACD Histogram > 0",
-
- "RSI > 52",
-
- "RSI 52–65",
-
- "ADX > 25",
-
- "Volume > average"
-
-];
-
-
-/*
-   ФИКСИРОВАННЫЕ КАНДИДАТЫ
-   ДЛЯ НЕЗАВИСИМОГО ТЕСТА.
-
-   ВАЖНО:
-   Последние 10% данных не используются
-   для выбора этих комбинаций.
-*/
-
-const HOLDOUT_CANDIDATES=[
-
- [
-   "Price > EMA200",
-   "MACD > 0",
-   "ADX > 25"
- ],
-
- [
-   "RSI > 52",
-   "Volume > average"
- ],
-
- [
-   "Price > EMA200",
-   "MACD > 0",
-   "RSI > 52",
-   "Volume > average"
- ],
-
- [
-   "EMA20 > EMA50",
-   "Price > EMA200",
-   "MACD > 0",
-   "ADX > 25"
- ]
-
-];
-
-
-/* =========================================================
-   ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-========================================================= */
-
-function $(id){
- return document.getElementById(id);
+function fmt(x){
+  if(!Number.isFinite(x)) return "—";
+  return (x>=0?"+":"")+x.toFixed(2)+"%";
 }
 
-
-function status(text,className){
-
- $("status").textContent=text;
-
- $("status").className=
-   "status "+className;
+function median(arr){
+  if(!arr.length)return NaN;
+  const a=[...arr].sort((x,y)=>x-y);
+  const m=Math.floor(a.length/2);
+  return a.length%2?a[m]:(a[m-1]+a[m])/2;
 }
 
-
-function diag(text){
- $("diag").textContent=text;
+function maxLosingStreak(arr){
+  let cur=0,max=0;
+  for(const x of arr){
+    if(x<0){
+      cur++;
+      if(cur>max)max=cur;
+    }else cur=0;
+  }
+  return max;
 }
 
+function ema(values,period){
+  const out=new Array(values.length).fill(null);
+  if(values.length<period)return out;
 
-function progress(value){
- $("bar").style.width=value+"%";
+  let sum=0;
+  for(let i=0;i<period;i++)sum+=values[i];
+
+  out[period-1]=sum/period;
+
+  const k=2/(period+1);
+
+  for(let i=period;i<values.length;i++){
+    out[i]=values[i]*k+out[i-1]*(1-k);
+  }
+
+  return out;
 }
 
+function calcRSI(values,period=14){
+  const out=new Array(values.length).fill(null);
+  if(values.length<=period)return out;
 
-function pct(value){
+  let gain=0,loss=0;
 
- if(!Number.isFinite(value))
-   return "—";
+  for(let i=1;i<=period;i++){
+    const d=values[i]-values[i-1];
+    if(d>=0)gain+=d;
+    else loss-=d;
+  }
 
- return (value>=0?"+":"")+
-   value.toFixed(2)+"%";
+  let avgGain=gain/period;
+  let avgLoss=loss/period;
+
+  out[period]=avgLoss===0?100:100-(100/(1+avgGain/avgLoss));
+
+  for(let i=period+1;i<values.length;i++){
+    const d=values[i]-values[i-1];
+    const g=Math.max(d,0);
+    const l=Math.max(-d,0);
+
+    avgGain=(avgGain*(period-1)+g)/period;
+    avgLoss=(avgLoss*(period-1)+l)/period;
+
+    out[i]=avgLoss===0?100:100-(100/(1+avgGain/avgLoss));
+  }
+
+  return out;
 }
 
+function calcADX(high,low,close,period=14){
 
-function avg(arr){
+  const n=close.length;
+  const tr=new Array(n).fill(null);
+  const plusDM=new Array(n).fill(0);
+  const minusDM=new Array(n).fill(0);
 
- if(!arr.length)
-   return NaN;
+  for(let i=1;i<n;i++){
 
- return arr.reduce(
-   (a,b)=>a+b,0
- )/arr.length;
+    const up=high[i]-high[i-1];
+    const down=low[i-1]-low[i];
+
+    tr[i]=Math.max(
+      high[i]-low[i],
+      Math.abs(high[i]-close[i-1]),
+      Math.abs(low[i]-close[i-1])
+    );
+
+    plusDM[i]=(up>down && up>0)?up:0;
+    minusDM[i]=(down>up && down>0)?down:0;
+  }
+
+  const adx=new Array(n).fill(null);
+
+  let atr=0,pdm=0,mdm=0;
+
+  for(let i=1;i<=period;i++){
+    atr+=tr[i]||0;
+    pdm+=plusDM[i];
+    mdm+=minusDM[i];
+  }
+
+  atr/=period;
+  pdm/=period;
+  mdm/=period;
+
+  const dx=[];
+
+  for(let i=period;i<n;i++){
+
+    if(i>period){
+      atr=(atr*(period-1)+(tr[i]||0))/period;
+      pdm=(pdm*(period-1)+plusDM[i])/period;
+      mdm=(mdm*(period-1)+minusDM[i])/period;
+    }
+
+    const pdi=atr?100*pdm/atr:0;
+    const mdi=atr?100*mdm/atr:0;
+
+    const d=pdi+mdi===0?0:100*Math.abs(pdi-mdi)/(pdi+mdi);
+
+    dx.push({i,d});
+
+    if(dx.length===period){
+      let s=0;
+      for(const x of dx)s+=x.d;
+      adx[i]=s/period;
+    }
+
+    if(dx.length>period){
+      const prev=adx[i-1];
+      if(prev!=null)adx[i]=(prev*(period-1)+d)/period;
+    }
+  }
+
+  return adx;
 }
 
+function buildIndicators(){
 
-function med(arr){
+  const close=candles.map(x=>+x[4]);
+  const high=candles.map(x=>+x[2]);
+  const low=candles.map(x=>+x[3]);
+  const volume=candles.map(x=>+x[5]);
 
- if(!arr.length)
-   return NaN;
+  const e20=ema(close,20);
+  const e50=ema(close,50);
+  const e200=ema(close,200);
 
- let b=[...arr].sort(
-   (a,b)=>a-b
- );
+  const e12=ema(close,12);
+  const e26=ema(close,26);
 
- let m=Math.floor(b.length/2);
+  const macd=e12.map((x,i)=>{
+    if(x==null||e26[i]==null)return null;
+    return x-e26[i];
+  });
 
- if(b.length%2)
-   return b[m];
+  const signal=ema(
+    macd.map(x=>x==null?0:x),
+    9
+  );
 
- return (b[m-1]+b[m])/2;
+  const hist=macd.map((x,i)=>{
+    if(x==null||signal[i]==null)return null;
+    return x-signal[i];
+  });
+
+  const rsi=calcRSI(close,14);
+  const adx=calcADX(high,low,close,14);
+
+  const volAvg=new Array(volume.length).fill(null);
+
+  for(let i=19;i<volume.length;i++){
+    let s=0;
+    for(let j=i-19;j<=i;j++)s+=volume[j];
+    volAvg[i]=s/20;
+  }
+
+  rows=[];
+
+  /*
+    Один row соответствует закрытой дневной свече.
+
+    ret12/24/48/72:
+    доходность от открытия следующей свечи
+    до закрытия через соответствующее количество часов.
+
+    Поскольку данные дневные:
+    24h = следующая дневная свеча.
+    48h = две дневные свечи.
+    72h = три дневные свечи.
+
+    Для 12h используем половину дневного диапазона
+    как приближение. Это НЕ реальная внутридневная
+    доходность, поэтому 12h помечается отдельно.
+  */
+
+  for(let i=200;i<candles.length-3;i++){
+
+    if(
+      e20[i]==null ||
+      e50[i]==null ||
+      e200[i]==null ||
+      macd[i]==null ||
+      hist[i]==null ||
+      rsi[i]==null ||
+      adx[i]==null ||
+      volAvg[i]==null
+    )continue;
+
+    const signalActive=
+      e20[i]>e50[i] &&
+      adx[i]>25 &&
+      volume[i]>volAvg[i];
+
+    const next=candles[i+1];
+
+    const open1=+next[1];
+
+    const close1=+candles[i+1][4];
+    const close2=+candles[i+2][4];
+    const close3=+candles[i+3][4];
+
+    const ret24=(close1-open1)/open1*100;
+    const ret48=(close2-open1)/open1*100;
+    const ret72=(close3-open1)/open1*100;
+
+    /*
+      12h approximation:
+      midpoint between open and close of next day.
+      Это только ориентир.
+    */
+    const mid12=(open1+close1)/2;
+    const ret12=(mid12-open1)/open1*100;
+
+    rows.push({
+      i,
+      active:signalActive,
+      ret12,
+      ret24,
+      ret48,
+      ret72,
+      baseline12:ret12,
+      baseline24:ret24,
+      baseline48:ret48,
+      baseline72:ret72
+    });
+  }
 }
 
+function stats(data,key,baseKey){
 
-/* =========================================================
-   EMA
-========================================================= */
+  if(!data.length){
+    return {
+      n:0,avg:NaN,med:NaN,win:NaN,
+      gt1:NaN,lt1:NaN,streak:0,
+      base:NaN,edge:NaN
+    };
+  }
 
-function EMA(values,period){
+  const vals=data.map(x=>x[key]);
+  const base=data.map(x=>x[baseKey]);
 
- let result=
-   new Array(values.length).fill(null);
+  const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+  const baseAvg=base.reduce((a,b)=>a+b,0)/base.length;
 
- if(values.length<period)
-   return result;
-
- let sum=0;
-
- for(let i=0;i<period;i++)
-   sum+=values[i];
-
- result[period-1]=sum/period;
-
- let k=2/(period+1);
-
- for(
-   let i=period;
-   i<values.length;
-   i++
- ){
-
-   result[i]=
-     values[i]*k+
-     result[i-1]*(1-k);
-
- }
-
- return result;
+  return {
+    n:vals.length,
+    avg,
+    med:median(vals),
+    win:vals.filter(x=>x>0).length/vals.length*100,
+    gt1:vals.filter(x=>x>1).length/vals.length*100,
+    lt1:vals.filter(x=>x<-1).length/vals.length*100,
+    streak:maxLosingStreak(vals),
+    base:baseAvg,
+    edge:avg-baseAvg
+  };
 }
 
+function statRow(label,s){
 
-/* =========================================================
-   RSI
-========================================================= */
-
-function RSI(values,period=14){
-
- let result=
-   new Array(values.length).fill(null);
-
- if(values.length<=period)
-   return result;
-
- let gains=0;
- let losses=0;
-
- for(let i=1;i<=period;i++){
-
-   let d=
-     values[i]-values[i-1];
-
-   if(d>0)
-     gains+=d;
-   else
-     losses-=d;
-
- }
-
- let avgGain=gains/period;
- let avgLoss=losses/period;
-
- result[period]=
-   avgLoss===0
-   ?100
-   :100-100/(1+avgGain/avgLoss);
-
-
- for(
-   let i=period+1;
-   i<values.length;
-   i++
- ){
-
-   let d=
-     values[i]-values[i-1];
-
-   let gain=d>0?d:0;
-
-   let loss=d<0?-d:0;
-
-   avgGain=
-     (avgGain*(period-1)+gain)/period;
-
-   avgLoss=
-     (avgLoss*(period-1)+loss)/period;
-
-   result[i]=
-     avgLoss===0
-     ?100
-     :100-100/(1+avgGain/avgLoss);
-
- }
-
- return result;
+  return `
+  <tr>
+    <td>${label}</td>
+    <td>${s.n}</td>
+    <td>${fmt(s.avg)}</td>
+    <td>${fmt(s.base)}</td>
+    <td>${fmt(s.edge)}</td>
+    <td>${fmt(s.med)}</td>
+    <td>${s.win.toFixed(1)}%</td>
+    <td>${s.streak}</td>
+  </tr>`;
 }
 
+function renderHorizons(){
 
-/* =========================================================
-   MACD
-========================================================= */
+  const active=rows.filter(x=>x.active);
 
-function MACD(values){
+  const horizons=[
+    ["12h","ret12","baseline12"],
+    ["24h","ret24","baseline24"],
+    ["48h","ret48","baseline48"],
+    ["72h","ret72","baseline72"]
+  ];
 
- let ema12=EMA(values,12);
+  let html=`
+  <table>
+  <tr>
+    <th>Горизонт</th>
+    <th>N</th>
+    <th>Signal</th>
+    <th>BTC</th>
+    <th>Edge</th>
+    <th>Median</th>
+    <th>Win</th>
+    <th>Loss streak</th>
+  </tr>`;
 
- let ema26=EMA(values,26);
+  for(const h of horizons){
+    html+=statRow(h[0],stats(active,h[1],h[2]));
+  }
 
- let line=
-   new Array(values.length).fill(null);
+  html+="</table>";
 
-
- for(
-   let i=0;
-   i<values.length;
-   i++
- ){
-
-   if(
-     ema12[i]!==null &&
-     ema26[i]!==null
-   ){
-
-     line[i]=
-       ema12[i]-ema26[i];
-
-   }
-
- }
-
-
- let compact=[];
-
- let indexes=[];
-
-
- for(let i=0;i<line.length;i++){
-
-   if(line[i]!==null){
-
-     compact.push(line[i]);
-
-     indexes.push(i);
-
-   }
-
- }
-
-
- let signalCompact=
-   EMA(compact,9);
-
- let signal=
-   new Array(values.length).fill(null);
-
- let histogram=
-   new Array(values.length).fill(null);
-
-
- for(
-   let j=0;
-   j<indexes.length;
-   j++
- ){
-
-   let i=indexes[j];
-
-   if(signalCompact[j]!==null){
-
-     signal[i]=signalCompact[j];
-
-     histogram[i]=
-       line[i]-signal[i];
-
-   }
-
- }
-
-
- return {
-   line,
-   histogram
- };
+  document.getElementById("horizon").innerHTML=html;
 }
 
-
-/* =========================================================
-   ADX
-========================================================= */
-
-function ADX(high,low,close,period=14){
-
- let n=close.length;
-
- let tr=
-   new Array(n).fill(0);
-
- let plus=
-   new Array(n).fill(0);
-
- let minus=
-   new Array(n).fill(0);
-
-
- for(let i=1;i<n;i++){
-
-   tr[i]=Math.max(
-     high[i]-low[i],
-     Math.abs(high[i]-close[i-1]),
-     Math.abs(low[i]-close[i-1])
-   );
-
-
-   let up=
-     high[i]-high[i-1];
-
-   let down=
-     low[i-1]-low[i];
-
-
-   plus[i]=
-     up>down && up>0
-     ?up
-     :0;
-
-
-   minus[i]=
-     down>up && down>0
-     ?down
-     :0;
-
- }
-
-
- let atr=
-   new Array(n).fill(null);
-
- let pdi=
-   new Array(n).fill(null);
-
- let mdi=
-   new Array(n).fill(null);
-
- let dx=
-   new Array(n).fill(null);
-
- let result=
-   new Array(n).fill(null);
-
-
- let trSum=0;
- let plusSum=0;
- let minusSum=0;
-
-
- for(let i=1;i<=period;i++){
-
-   trSum+=tr[i];
-
-   plusSum+=plus[i];
-
-   minusSum+=minus[i];
-
- }
-
-
- atr[period]=trSum/period;
-
- let p=plusSum/period;
-
- let m=minusSum/period;
-
-
- pdi[period]=
-   atr[period]
-   ?100*p/atr[period]
-   :0;
-
-
- mdi[period]=
-   atr[period]
-   ?100*m/atr[period]
-   :0;
-
-
- let total=
-   pdi[period]+mdi[period];
-
-
- dx[period]=
-   total
-   ?100*Math.abs(
-      pdi[period]-mdi[period]
-    )/total
-   :0;
-
-
- for(
-   let i=period+1;
-   i<n;
-   i++
- ){
-
-   atr[i]=
-     (atr[i-1]*(period-1)+tr[i])
-     /period;
-
-
-   p=
-     (p*(period-1)+plus[i])
-     /period;
-
-
-   m=
-     (m*(period-1)+minus[i])
-     /period;
-
-
-   pdi[i]=
-     atr[i]
-     ?100*p/atr[i]
-     :0;
-
-
-   mdi[i]=
-     atr[i]
-     ?100*m/atr[i]
-     :0;
-
-
-   total=
-     pdi[i]+mdi[i];
-
-
-   dx[i]=
-     total
-     ?100*Math.abs(
-        pdi[i]-mdi[i]
-      )/total
-     :0;
-
- }
-
-
- let count=0;
-
- let sum=0;
-
-
- for(
-   let i=period;
-   i<n;
-   i++
- ){
-
-   if(count<period){
-
-     sum+=dx[i];
-
-     count++;
-
-     if(count===period){
-
-       result[i]=sum/period;
-
-     }
-
-   }else{
-
-     result[i]=
-       (
-         result[i-1]*(period-1)+
-         dx[i]
-       )/period;
-
-   }
-
- }
-
-
- return result;
+function renderHoldout(){
+
+  const split=Math.floor(rows.length*0.90);
+
+  const finalRows=rows.slice(split).filter(x=>x.active);
+
+  const horizons=[
+    ["12h","ret12","baseline12"],
+    ["24h","ret24","baseline24"],
+    ["48h","ret48","baseline48"],
+    ["72h","ret72","baseline72"]
+  ];
+
+  let html=`
+  <table>
+  <tr>
+    <th>Горизонт</th>
+    <th>N</th>
+    <th>Signal</th>
+    <th>BTC</th>
+    <th>Edge</th>
+    <th>Median</th>
+    <th>Win</th>
+    <th>Loss</th>
+  </tr>`;
+
+  for(const h of horizons){
+
+    const s=stats(
+      finalRows,
+      h[1],
+      h[2]
+    );
+
+    html+=statRow(h[0],s);
+  }
+
+  html+="</table>";
+
+  html+=`
+  <p class="small">
+  Финальный участок: ${finalRows.length} сигналов.
+  Сигнал выбран заранее и не подбирался по этому участку.
+  </p>`;
+
+  document.getElementById("holdout").innerHTML=html;
 }
 
+function renderCurrent(){
 
-/* =========================================================
-   ПОСТРОЕНИЕ ДАННЫХ
-========================================================= */
+  const last=candles[candles.length-1];
 
-function build(raw){
+  const close=+last[4];
 
- let close=
-   raw.map(x=>+x[4]);
+  const closes=candles.map(x=>+x[4]);
+  const highs=candles.map(x=>+x[2]);
+  const lows=candles.map(x=>+x[3]);
 
- let open=
-   raw.map(x=>+x[1]);
+  const e20=ema(closes,20);
+  const e50=ema(closes,50);
+  const e200=ema(closes,200);
+  const rsi=calcRSI(closes,14);
+  const adx=calcADX(highs,lows,closes,14);
 
- let high=
-   raw.map(x=>+x[2]);
+  const volume=candles.map(x=>+x[5]);
 
- let low=
-   raw.map(x=>+x[3]);
+  let vs=0;
 
- let volume=
-   raw.map(x=>+x[5]);
+  for(let i=volume.length-20;i<volume.length;i++)
+    vs+=volume[i];
 
- let time=
-   raw.map(x=>+x[0]);
+  const va=vs/20;
 
+  const active=
+    e20.at(-1)>e50.at(-1) &&
+    adx.at(-1)>25 &&
+    volume.at(-1)>va;
 
- let ema20=
-   EMA(close,20);
+  document.getElementById("current").innerHTML=`
 
- let ema50=
-   EMA(close,50);
+  <h2>📡 Текущий сигнал</h2>
 
- let ema200=
-   EMA(close,200);
+  <b class="${active?"good":"warn"}">
+    ${active?"🟢 SIGNAL LONG":"⚪ NO SIGNAL"}
+  </b>
 
- let rsi=
-   RSI(close,14);
+  <p>BTC: $${close.toLocaleString("en-US",{maximumFractionDigits:0})}</p>
 
- let macd=
-   MACD(close);
-
- let adx=
-   ADX(high,low,close,14);
-
-
- let averageVolume=
-   new Array(close.length).fill(null);
-
-
- for(
-   let i=20;
-   i<close.length;
-   i++
- ){
-
-   let sum=0;
-
-   for(
-     let j=i-20;
-     j<i;
-     j++
-   ){
-
-     sum+=volume[j];
-
-   }
-
-   averageVolume[i]=sum/20;
-
- }
-
-
- let data=[];
-
-
- for(let i=0;i<close.length;i++){
-
-   data.push({
-
-     i,
-
-     time:time[i],
-
-     open:open[i],
-
-     high:high[i],
-
-     low:low[i],
-
-     close:close[i],
-
-     volume:volume[i],
-
-     ema20:ema20[i],
-
-     ema50:ema50[i],
-
-     ema200:ema200[i],
-
-     rsi:rsi[i],
-
-     macd:macd.line[i],
-
-     hist:macd.histogram[i],
-
-     adx:adx[i],
-
-     avgVol:averageVolume[i]
-
-   });
-
- }
-
-
- return data;
+  <p>
+  EMA20 ${e20.at(-1)>e50.at(-1)?"✓":"✗"}
+  · ADX ${adx.at(-1).toFixed(1)}
+  ${adx.at(-1)>25?"✓":"✗"}
+  · Volume ${(volume.at(-1)/va).toFixed(2)}x
+  ${volume.at(-1)>va?"✓":"✗"}
+  </p>`;
 }
 
+async function fetchBatch(endTime){
 
-/* =========================================================
-   ФАКТОРЫ
-========================================================= */
+  const url=
+    API+
+    "?symbol=BTCUSDT&interval=1d&limit=1000"+
+    (endTime?("&endTime="+endTime):"");
 
-function factors(d){
+  const controller=new AbortController();
 
- return {
+  const timer=setTimeout(
+    ()=>controller.abort(),
+    10000
+  );
 
-   "EMA20 > EMA50":
-     d.ema20!==null &&
-     d.ema50!==null &&
-     d.ema20>d.ema50,
+  try{
 
-   "Price > EMA200":
-     d.ema200!==null &&
-     d.close>d.ema200,
+    const r=await fetch(url,{
+      signal:controller.signal
+    });
 
-   "MACD > 0":
-     d.macd!==null &&
-     d.macd>0,
+    if(!r.ok)
+      throw new Error("HTTP "+r.status);
 
-   "MACD Histogram > 0":
-     d.hist!==null &&
-     d.hist>0,
+    return await r.json();
 
-   "RSI > 52":
-     d.rsi!==null &&
-     d.rsi>52,
-
-   "RSI 52–65":
-     d.rsi!==null &&
-     d.rsi>=52 &&
-     d.rsi<=65,
-
-   "ADX > 25":
-     d.adx!==null &&
-     d.adx>25,
-
-   "Volume > average":
-     d.avgVol!==null &&
-     d.volume>d.avgVol
-
- };
+  }finally{
+    clearTimeout(timer);
+  }
 }
-
-
-/* =========================================================
-   ПОДГОТОВКА СТАТИСТИКИ
-========================================================= */
-
-function prepare(data){
-
- let rows=[];
-
-
- for(
-   let i=0;
-   i<data.length-1;
-   i++
- ){
-
-   let d=data[i];
-
-
-   if(
-     d.ema200===null ||
-     d.macd===null ||
-     d.hist===null ||
-     d.rsi===null ||
-     d.adx===null ||
-     d.avgVol===null
-   ){
-
-     continue;
-
-   }
-
-
-   let next=data[i+1];
-
-
-   let ret=
-     (
-       next.close-
-       next.open
-     )/
-     next.open*100;
-
-
-   rows.push({
-
-     ...d,
-
-     ret,
-
-     f:factors(d)
-
-   });
-
- }
-
-
- return rows;
-}
-
-
-/* =========================================================
-   ПРОВЕРКА КОМБИНАЦИИ
-========================================================= */
-
-function match(row,combination){
-
- return combination.every(
-   factor=>row.f[factor]
- );
-}
-
-
-/* =========================================================
-   СТАТИСТИКА
-========================================================= */
-
-function stats(rows){
-
- if(!rows.length){
-
-   return {
-
-     n:0,
-
-     avg:NaN,
-
-     median:NaN,
-
-     win:NaN,
-
-     p1:NaN,
-
-     m1:NaN,
-
-     maxLossStreak:0
-
-   };
-
- }
-
-
- let returns=
-   rows.map(x=>x.ret);
-
-
- let maxLossStreak=0;
-
- let currentLossStreak=0;
-
-
- for(let r of returns){
-
-   if(r<0){
-
-     currentLossStreak++;
-
-     if(currentLossStreak>maxLossStreak)
-       maxLossStreak=currentLossStreak;
-
-   }else{
-
-     currentLossStreak=0;
-
-   }
-
- }
-
-
- return {
-
-   n:returns.length,
-
-   avg:avg(returns),
-
-   median:med(returns),
-
-   win:
-     returns.filter(x=>x>0).length/
-     returns.length*100,
-
-   p1:
-     returns.filter(x=>x>1).length/
-     returns.length*100,
-
-   m1:
-     returns.filter(x=>x<-1).length/
-     returns.length*100,
-
-   maxLossStreak
-
- };
-
-}
-
-
-/* =========================================================
-   СТАТИСТИКА КОМБИНАЦИИ
-========================================================= */
-
-function cstats(
- rows,
- combination,
- start=0,
- end=rows.length
-){
-
- let selected=[];
-
-
- for(
-   let i=start;
-   i<end;
-   i++
- ){
-
-   if(
-     match(rows[i],combination)
-   ){
-
-     selected.push(rows[i]);
-
-   }
-
- }
-
-
- return stats(selected);
-}
-
-
-/* =========================================================
-   КОМБИНАЦИИ
-========================================================= */
-
-function combinations(
- array,
- min,
- max
-){
-
- let result=[];
-
-
- function generate(
-   start,
-   current
- ){
-
-   if(current.length>=min){
-
-     result.push(
-       [...current]
-     );
-
-   }
-
-
-   if(
-     current.length===max
-   ){
-
-     return;
-
-   }
-
-
-   for(
-     let i=start;
-     i<array.length;
-     i++
-   ){
-
-     current.push(array[i]);
-
-     generate(
-       i+1,
-       current
-     );
-
-     current.pop();
-
-   }
-
- }
-
-
- generate(0,[]);
-
-
- return result;
-}
-
-
-/* =========================================================
-   WALK-FORWARD
-   ВАЖНО:
-   Последние 10% полностью исключены.
-========================================================= */
-
-function walk(rows,combination){
-
- let usableEnd=
-   Math.floor(
-     rows.length*0.90
-   );
-
- let workRows=
-   rows.slice(0,usableEnd);
-
-
- let folds=[];
-
- let n=workRows.length;
-
- let train=
-   Math.floor(n*0.5);
-
- let remaining=
-   n-train;
-
- let testSize=
-   Math.floor(remaining/5);
-
-
- for(let k=0;k<5;k++){
-
-   let start=train;
-
-   let end=
-     k===4
-     ?n
-     :Math.min(
-        n,
-        start+testSize
-      );
-
-
-   let combo=
-     cstats(
-       workRows,
-       combination,
-       start,
-       end
-     );
-
-
-   let baseline=
-     stats(
-       workRows.slice(
-         start,
-         end
-       )
-     );
-
-
-   if(
-     combo.n>0 &&
-     baseline.n>0
-   ){
-
-     folds.push({
-
-       train,
-
-       test:end-start,
-
-       n:combo.n,
-
-       combo:combo.avg,
-
-       btc:baseline.avg,
-
-       edge:
-         combo.avg-
-         baseline.avg
-
-     });
-
-   }
-
-
-   train=end;
-
- }
-
-
- return folds;
-}
-
-
-/* =========================================================
-   SCORE
-========================================================= */
-
-function score(folds){
-
- if(folds.length<4)
-   return 0;
-
-
- let n=
-   folds.reduce(
-     (sum,x)=>sum+x.n,
-     0
-   );
-
-
- let edges=
-   folds.map(
-     x=>x.edge
-   );
-
-
- let positive=
-   edges.filter(
-     x=>x>0
-   ).length;
-
-
- let meanEdge=
-   avg(edges);
-
- let medianEdge=
-   med(edges);
-
- let worst=
-   Math.min(...edges);
-
-
- let score=0;
-
-
- if(folds.length>=4)
-   score+=20;
-
-
- if(n>=100)
-   score+=20;
-
-
- if(
-   positive/folds.length>=0.75
- )
-   score+=20;
-
-
- if(meanEdge>0.10)
-   score+=20;
-
-
- if(medianEdge>0)
-   score+=10;
-
-
- if(worst>-0.50)
-   score+=10;
-
-
- return score;
-}
-
-
-/* =========================================================
-   РЕЖИМ РЫНКА
-========================================================= */
-
-function regime(d){
-
- if(
-   d.ema200!==null &&
-   d.ema20!==null &&
-   d.ema50!==null &&
-   d.macd!==null &&
-   d.adx!==null
- ){
-
-   if(
-     d.close>d.ema200 &&
-     d.ema20>d.ema50 &&
-     d.macd>0
-   ){
-
-     return d.adx>=30
-       ?"Strong Bullish"
-       :"Bullish";
-
-   }
-
-
-   if(
-     d.close<d.ema200 &&
-     d.ema20<d.ema50 &&
-     d.macd<0
-   ){
-
-     return d.adx>=30
-       ?"Strong Bearish"
-       :"Bearish";
-
-   }
-
- }
-
-
- return "Flat";
-}
-
-
-/* =========================================================
-   ТАБЛИЦА
-========================================================= */
-
-function table(headers,rows){
-
- let html=
-   "<table><thead><tr>";
-
-
- headers.forEach(
-   h=>{
-     html+="<th>"+h+"</th>";
-   }
- );
-
-
- html+="</tr></thead><tbody>";
-
-
- rows.forEach(
-   row=>{
-
-     html+="<tr>";
-
-     row.forEach(
-       cell=>{
-         html+="<td>"+cell+"</td>";
-       }
-     );
-
-     html+="</tr>";
-
-   }
- );
-
-
- html+="</tbody></table>";
-
-
- return html;
-}
-
-
-/* =========================================================
-   ЗАГРУЗКА ОДНОГО БЛОКА
-========================================================= */
-
-async function getBatch(
- endTime,
- number
-){
-
- let url=
-   API+
-   "?symbol=BTCUSDT"+
-   "&interval=1d"+
-   "&limit="+LIMIT;
-
-
- if(endTime!==null){
-
-   url+=
-     "&endTime="+
-     endTime;
-
- }
-
-
- diag(
-   "Запрос "+
-   number+
-   "/"+
-   REQUESTS+
-   " — ожидание Binance…"
- );
-
-
- status(
-   "Загрузка истории "+
-   number+
-   "/"+
-   REQUESTS+
-   "…",
-   "loading"
- );
-
-
- let controller=
-   new AbortController();
-
-
- let timer=
-   setTimeout(
-     ()=>{
-       controller.abort();
-     },
-     TIMEOUT
-   );
-
-
- try{
-
-   let response=
-     await fetch(
-       url,
-       {
-         cache:"no-store",
-         signal:controller.signal
-       }
-     );
-
-
-   if(!response.ok){
-
-     throw new Error(
-       "HTTP "+
-       response.status
-     );
-
-   }
-
-
-   let data=
-     await response.json();
-
-
-   if(
-     !Array.isArray(data)
-   ){
-
-     throw new Error(
-       "Некорректный ответ Binance"
-     );
-
-   }
-
-
-   if(
-     data.length===0
-   ){
-
-     throw new Error(
-       "Пустой ответ Binance"
-     );
-
-   }
-
-
-   return data;
-
- }
- catch(error){
-
-   if(
-     error.name==="AbortError"
-   ){
-
-     throw new Error(
-       "Запрос "+
-       number+
-       " не ответил за 10 секунд"
-     );
-
-   }
-
-
-   throw error;
-
- }
- finally{
-
-   clearTimeout(timer);
-
- }
-}
-
-
-/* =========================================================
-   ЗАГРУЗКА ВСЕЙ ДОСТУПНОЙ ИСТОРИИ
-========================================================= */
 
 async function loadHistory(){
 
- let all=[];
+  let all=[];
+  let endTime=null;
 
- let end=null;
+  for(let n=1;n<=5;n++){
 
+    document.getElementById("status").innerHTML=
+      `Загрузка BTC… запрос ${n}/5`;
 
- for(
-   let number=1;
-   number<=REQUESTS;
-   number++
- ){
+    const batch=await fetchBatch(endTime);
 
-   let batch;
+    if(!batch.length)break;
 
+    all=all.concat(batch);
 
-   try{
+    endTime=batch[0][0]-1;
 
-     batch=
-       await getBatch(
-         end,
-         number
-       );
+    if(batch.length<1000)break;
+  }
 
-   }
-   catch(error){
+  const map=new Map();
 
-     if(
-       error.message===
-       "Пустой ответ Binance"
-     ){
+  for(const c of all)
+    map.set(c[0],c);
 
-       diag(
-         "Начало доступной истории достигнуто. "+
-         "Используем "+
-         all.length+
-         " полученных свечей."
-       );
+  candles=[...map.values()]
+    .sort((a,b)=>a[0]-b[0]);
 
-       break;
+  buildIndicators();
 
-     }
+  document.getElementById("status").innerHTML=`
+    <b class="good">Данные обновлены</b><br>
+    ${candles.length} свечей · ${rows.length} строк для статистики
+  `;
 
-
-     throw error;
-
-   }
-
-
-   diag(
-     "Запрос "+
-     number+
-     "/"+
-     REQUESTS+
-     " получен: "+
-     batch.length+
-     " свечей"
-   );
-
-
-   all=
-     batch.concat(all);
-
-
-   end=
-     batch[0][0]-1;
-
-
-   progress(
-     number/
-     REQUESTS*
-     100
-   );
-
-
-   if(
-     batch.length<LIMIT
-   ){
-
-     diag(
-       "История закончилась. "+
-       "Получено "+
-       all.length+
-       " свечей."
-     );
-
-     break;
-
-   }
-
-
-   if(
-     number<REQUESTS
-   ){
-
-     await new Promise(
-       resolve=>{
-         setTimeout(
-           resolve,
-           500
-         );
-       }
-     );
-
-   }
-
- }
-
-
- let unique=
-   new Map();
-
-
- all.forEach(
-   candle=>{
-     unique.set(
-       candle[0],
-       candle
-     );
-   }
- );
-
-
- let result=
-   [...unique.values()]
-   .sort(
-     (a,b)=>a[0]-b[0]
-   );
-
-
- return result;
+  renderCurrent();
+  renderHorizons();
+  renderHoldout();
 }
 
-
-/* =========================================================
-   ОТРИСОВКА ОСНОВНОЙ ИНФОРМАЦИИ
-========================================================= */
-
-function render(
- data,
- rows
-){
-
- let d=
-   data[data.length-1];
-
-
- let currentRegime=
-   regime(d);
-
-
- let currentFactors=
-   factors(d);
-
-
- $("regime").textContent=
-   currentRegime;
-
-
- $("regime").className=
-   "big "+
-   (
-     currentRegime.includes(
-       "Bullish"
-     )
-     ?"good"
-     :
-     currentRegime.includes(
-       "Bearish"
-     )
-     ?"bad"
-     :"neutral"
-   );
-
-
- $("regimeInfo").textContent=
-   "BTC: $"+
-   d.close.toLocaleString(
-     "en-US",
-     {
-       maximumFractionDigits:0
-     }
-   )+
-   " · RSI: "+
-   d.rsi.toFixed(1)+
-   " · ADX: "+
-   d.adx.toFixed(1);
-
-
- let active=
-   FACTORS.filter(
-     factor=>
-       currentFactors[factor]
-   );
-
-
- let inactive=
-   FACTORS.filter(
-     factor=>
-       !currentFactors[factor]
-   );
-
-
- $("signal").innerHTML=
-
-   "<b>Активны:</b> "+
-   (
-     active.length
-     ?active.join(" · ")
-     :"нет"
-   )+
-
-   "<br><br>"+
-
-   "<b>Неактивны:</b> "+
-   (
-     inactive.length
-     ?inactive.join(" · ")
-     :"нет"
-   )+
-
-   "<br><br>"+
-
-   "<span class='small'>"+
-   "Score не является вероятностью. "+
-   "Это оценка устойчивости комбинации "+
-   "в историческом walk-forward тесте."+
-   "</span>";
-
-
- $("indicators").innerHTML=
-   table(
-
-     [
-       "Индикатор",
-       "Значение"
-     ],
-
-     [
-
-       [
-         "Цена",
-         "$"+
-         d.close.toLocaleString(
-           "en-US",
-           {
-             maximumFractionDigits:0
-           }
-         )
-       ],
-
-       [
-         "EMA20",
-         d.ema20.toFixed(2)
-       ],
-
-       [
-         "EMA50",
-         d.ema50.toFixed(2)
-       ],
-
-       [
-         "EMA200",
-         d.ema200.toFixed(2)
-       ],
-
-       [
-         "MACD",
-         d.macd.toFixed(4)
-       ],
-
-       [
-         "MACD Histogram",
-         d.hist.toFixed(4)
-       ],
-
-       [
-         "RSI",
-         d.rsi.toFixed(2)
-       ],
-
-       [
-         "ADX",
-         d.adx.toFixed(2)
-       ],
-
-       [
-         "Volume / Avg",
-         (
-           d.volume/
-           d.avgVol
-         ).toFixed(2)+"x"
-       ]
-
-     ]
-
-   );
-
-
- renderIncremental(rows);
-
- renderFactors(rows);
-
- renderRegimes(rows);
-
- renderWalk(rows);
-
- renderHoldout(rows);
-
-}
-
-
-/* =========================================================
-   ИНКРЕМЕНТАЛЬНЫЙ АНАЛИЗ
-========================================================= */
-
-function renderIncremental(rows){
-
- let result=[];
-
-
- for(
-   let a=0;
-   a<FACTORS.length;
-   a++
- ){
-
-   let base=
-     cstats(
-       rows,
-       [FACTORS[a]]
-     );
-
-
-   if(base.n<100)
-     continue;
-
-
-   for(
-     let b=0;
-     b<FACTORS.length;
-     b++
-   ){
-
-     if(a===b)
-       continue;
-
-
-     let after=
-       cstats(
-         rows,
-         [
-           FACTORS[a],
-           FACTORS[b]
-         ]
-       );
-
-
-     if(after.n<50)
-       continue;
-
-
-     result.push({
-
-       a:FACTORS[a],
-
-       b:FACTORS[b],
-
-       base,
-
-       after,
-
-       delta:
-         after.avg-
-         base.avg
-
-     });
-
-   }
-
- }
-
-
- result.sort(
-   (a,b)=>
-     b.delta-a.delta
- );
-
-
- $("incremental").innerHTML=
-   table(
-
-     [
-       "Комбинация",
-       "N base",
-       "N after",
-       "Base",
-       "After",
-       "Δ"
-     ],
-
-     result
-       .slice(0,10)
-       .map(x=>[
-
-         x.a+
-         " → + "+
-         x.b,
-
-         x.base.n,
-
-         x.after.n,
-
-         pct(x.base.avg),
-
-         pct(x.after.avg),
-
-         "<span class='"+
-         (
-           x.delta>0
-           ?"good"
-           :"bad"
-         )+
-         "'>"+
-         pct(x.delta)+
-         "</span>"
-
-       ])
-
-   );
-}
-
-
-/* =========================================================
-   ИНДИВИДУАЛЬНЫЕ ФАКТОРЫ
-========================================================= */
-
-function renderFactors(rows){
-
- $("factors").innerHTML=
-   table(
-
-     [
-       "Фактор",
-       "N",
-       "Avg",
-       "Median",
-       "Win",
-       ">+1%",
-       "<-1%"
-     ],
-
-     FACTORS.map(
-       factor=>{
-
-         let s=
-           cstats(
-             rows,
-             [factor]
-           );
-
-
-         return [
-
-           factor,
-
-           s.n,
-
-           pct(s.avg),
-
-           pct(s.median),
-
-           s.n
-           ?s.win.toFixed(1)+"%"
-           :"—",
-
-           s.n
-           ?s.p1.toFixed(1)+"%"
-           :"—",
-
-           s.n
-           ?s.m1.toFixed(1)+"%"
-           :"—"
-
-         ];
-
-       }
-     )
-
-   );
-}
-
-
-/* =========================================================
-   РЕЖИМЫ
-========================================================= */
-
-function renderRegimes(rows){
-
- let names=[
-
-   "Flat",
-
-   "Bullish",
-
-   "Strong Bullish",
-
-   "Bearish",
-
-   "Strong Bearish"
-
- ];
-
-
- $("regimes").innerHTML=
-   table(
-
-     [
-       "Режим",
-       "N",
-       "Avg",
-       "Median",
-       "Win"
-     ],
-
-     names.map(
-       name=>{
-
-         let s=
-           stats(
-             rows.filter(
-               row=>
-                 regime(row)===
-                 name
-             )
-           );
-
-
-         return [
-
-           name,
-
-           s.n,
-
-           pct(s.avg),
-
-           pct(s.median),
-
-           s.n
-           ?s.win.toFixed(1)+"%"
-           :"—"
-
-         ];
-
-       }
-     )
-
-   );
-}
-
-
-/* =========================================================
-   WALK-FORWARD
-   Последние 10% исключены.
-========================================================= */
-
-function renderWalk(rows){
-
- let results=[];
-
-
- /*
-   Берём только первые 90%.
-
-   Последние 10% не участвуют
-   в поиске лучшей комбинации.
- */
-
- let workRows=
-   rows.slice(
-     0,
-     Math.floor(rows.length*0.90)
-   );
-
-
- let combos=
-   combinations(
-     FACTORS,
-     2,
-     4
-   );
-
-
- for(
-   let i=0;
-   i<combos.length;
-   i++
- ){
-
-   let combination=
-     combos[i];
-
-
-   let folds=
-     walk(
-       workRows,
-       combination
-     );
-
-
-   if(folds.length<4)
-     continue;
-
-
-   let n=
-     folds.reduce(
-       (sum,x)=>
-         sum+x.n,
-       0
-     );
-
-
-   if(n<80)
-     continue;
-
-
-   let edges=
-     folds.map(
-       x=>x.edge
-     );
-
-
-   let meanEdge=
-     avg(edges);
-
-   let medianEdge=
-     med(edges);
-
-   let worst=
-     Math.min(...edges);
-
-   let positive=
-     edges.filter(
-       x=>x>0
-     ).length;
-
-
-   results.push({
-
-     combination,
-
-     folds,
-
-     n,
-
-     meanEdge,
-
-     medianEdge,
-
-     worst,
-
-     positive,
-
-     score:
-       score(folds)
-
-   });
-
- }
-
-
- results.sort(
-   (a,b)=>{
-
-     if(
-       b.score!==a.score
-     ){
-
-       return b.score-a.score;
-
-     }
-
-
-     if(
-       b.meanEdge!==a.meanEdge
-     ){
-
-       return b.meanEdge-
-         a.meanEdge;
-
-     }
-
-
-     return b.n-a.n;
-
-   }
- );
-
-
- let top=
-   results.slice(0,10);
-
-
- $("walk").innerHTML=
-   table(
-
-     [
-       "Комбинация",
-       "N",
-       "Edge",
-       "Median",
-       "Позитивные",
-       "Worst",
-       "Score"
-     ],
-
-     top.map(
-       x=>[
-
-         x.combination.join(
-           " + "
-         ),
-
-         x.n,
-
-         pct(x.meanEdge),
-
-         pct(x.medianEdge),
-
-         x.positive+
-         "/"+
-         x.folds.length,
-
-         pct(x.worst),
-
-         x.score+
-         "/100"
-
-       ]
-     )
-
-   );
-
-
- if(!top.length){
-
-   $("best").textContent=
-     "Недостаточно данных.";
-
-   return;
-
- }
-
-
- let best=
-   top[0];
-
-
- let confirmed=
-
-   best.folds.length>=4 &&
-
-   best.n>=150 &&
-
-   best.positive/
-   best.folds.length>=0.75 &&
-
-   best.meanEdge>0.10 &&
-
-   best.medianEdge>0 &&
-
-   best.worst>-.50;
-
-
- $("best").innerHTML=
-
-   "<h3>"+
-   best.combination.join(
-     " + "
-   )+
-   "</h3>"+
-
-   "<div class='badge'>"+
-   (
-     confirmed
-     ?"ПРОШЁЛ WALK-FORWARD"
-     :"ЧАСТИЧНО ПОДТВЕРЖДАЕТСЯ"
-   )+
-   "</div>"+
-
-   "<p>"+
-
-   "<b>Score:</b> "+
-   best.score+
-   "/100<br>"+
-
-   "<b>Test N:</b> "+
-   best.n+
-   "<br>"+
-
-   "<b>Mean edge:</b> "+
-   pct(best.meanEdge)+
-   "<br>"+
-
-   "<b>Median edge:</b> "+
-   pct(best.medianEdge)+
-   "<br>"+
-
-   "<b>Положительных:</b> "+
-   best.positive+
-   "/"+
-   best.folds.length+
-   "<br>"+
-
-   "<b>Worst:</b> "+
-   pct(best.worst)+
-
-   "</p>"+
-
-   "<h3>Walk-forward</h3>"+
-
-   table(
-
-     [
-       "#",
-       "Train",
-       "Test",
-       "Combo",
-       "BTC",
-       "Edge"
-     ],
-
-     best.folds.map(
-       (fold,index)=>[
-
-         index+1,
-
-         fold.train,
-
-         fold.test,
-
-         pct(fold.combo),
-
-         pct(fold.btc),
-
-         pct(fold.edge)
-
-       ]
-     )
-
-   );
-}
-
-
-/* =========================================================
-   ФИНАЛЬНЫЙ НЕЗАВИСИМЫЙ ТЕСТ
-========================================================= */
-
-function renderHoldout(rows){
-
- /*
-   Разделение:
-
-   70% — разработка
-   20% — промежуточная проверка
-   10% — финальный holdout
-
-   Последние 10% НИГДЕ не используются
-   при выборе комбинации.
- */
-
- let n=rows.length;
-
- let devEnd=
-   Math.floor(n*0.70);
-
- let validationEnd=
-   Math.floor(n*0.90);
-
- let finalRows=
-   rows.slice(
-     validationEnd,
-     n
-   );
-
-
- let validationRows=
-   rows.slice(
-     devEnd,
-     validationEnd
-   );
-
-
- let devRows=
-   rows.slice(
-     0,
-     devEnd
-   );
-
-
- /*
-   Базовая доходность BTC
- */
-
- let devBase=
-   stats(devRows);
-
- let validationBase=
-   stats(validationRows);
-
- let finalBase=
-   stats(finalRows);
-
-
- let html="";
-
- html+=
-   "<div class='note'>"+
-   "<b>Разделение истории:</b><br>"+
-   "Разработка: 70% ("+
-   devRows.length+
-   " строк)<br>"+
-   "Валидация: 20% ("+
-   validationRows.length+
-   " строк)<br>"+
-   "Финальный holdout: 10% ("+
-   finalRows.length+
-   " строк)<br><br>"+
-   "Финальный участок не использовался "+
-   "для выбора комбинаций."+
-   "</div>";
-
-
- html+=
-   "<h3>Базовый BTC</h3>";
-
-
- html+=
-   table(
-
-     [
-       "Период",
-       "N",
-       "Avg",
-       "Median",
-       "Win"
-     ],
-
-     [
-
-       [
-         "Разработка",
-         devBase.n,
-         pct(devBase.avg),
-         pct(devBase.median),
-         devBase.win.toFixed(1)+"%"
-       ],
-
-       [
-         "Валидация",
-         validationBase.n,
-         pct(validationBase.avg),
-         pct(validationBase.median),
-         validationBase.win.toFixed(1)+"%"
-       ],
-
-       [
-         "Финальный 10%",
-         finalBase.n,
-         pct(finalBase.avg),
-         pct(finalBase.median),
-         finalBase.win.toFixed(1)+"%"
-       ]
-
-     ]
-
-   );
-
-
- /*
-   Проверяем только заранее выбранные кандидаты.
- */
-
- let result=[];
-
-
- HOLDOUT_CANDIDATES.forEach(
-   combination=>{
-
-     let dev=
-       cstats(
-         rows,
-         combination,
-         0,
-         devEnd
-       );
-
-
-     let validation=
-       cstats(
-         rows,
-         combination,
-         devEnd,
-         validationEnd
-       );
-
-
-     let final=
-       cstats(
-         rows,
-         combination,
-         validationEnd,
-         n
-       );
-
-
-     result.push({
-
-       combination,
-
-       dev,
-
-       validation,
-
-       final,
-
-       validationEdge:
-         validation.avg-
-         validationBase.avg,
-
-       finalEdge:
-         final.avg-
-         finalBase.avg
-
-     });
-
-   }
- );
-
-
- html+=
-   "<h3>Предварительно выбранные кандидаты</h3>";
-
-
- html+=
-   table(
-
-     [
-       "Комбинация",
-       "Dev Avg",
-       "Val Edge",
-       "Final N",
-       "Final Avg",
-       "Final Edge",
-       "Final Win"
-     ],
-
-     result.map(
-       x=>[
-
-         x.combination.join(
-           " + "
-         ),
-
-         pct(x.dev.avg),
-
-         pct(x.validationEdge),
-
-         x.final.n,
-
-         pct(x.final.avg),
-
-         "<span class='"+
-         (
-           x.finalEdge>0
-           ?"good"
-           :"bad"
-         )+
-         "'>"+
-         pct(x.finalEdge)+
-         "</span>",
-
-         x.final.n
-         ?x.final.win.toFixed(1)+"%"
-         :"—"
-
-       ]
-     )
-
-   );
-
-
- /*
-   Детальный разбор каждого кандидата.
- */
-
- result.forEach(
-   (x,index)=>{
-
-     let final=x.final;
-
-     let finalEdge=x.finalEdge;
-
-     /*
-       Строгий критерий.
-
-       Требуем:
-       N >= 50
-       Edge > 0
-       Median > 0
-       Win > 50%
-     */
-
-     let passed=
-
-       final.n>=50 &&
-
-       finalEdge>0 &&
-
-       final.median>0 &&
-
-       final.win>50;
-
-
-     let cls=
-       passed
-       ?"test-good"
-       :
-       finalEdge>0
-       ?"test-neutral"
-       :"test-bad";
-
-
-     html+=
-       "<div class='testbox "+
-       cls+
-       "'>";
-
-
-     html+=
-       "<h3>"+
-       (index+1)+". "+
-       x.combination.join(
-         " + "
-       )+
-       "</h3>";
-
-
-     html+=
-       "<div class='badge'>"+
-       (
-         passed
-         ?"✅ ПРОШЁЛ"
-         :
-         finalEdge>0
-         ?"⚠ ПОЛОЖИТЕЛЬНЫЙ, НО НЕДОСТАТОЧНО"
-         :"❌ НЕ ПОДТВЕРДИЛСЯ"
-       )+
-       "</div>";
-
-
-     html+=
-       "<p>"+
-
-       "<b>Разработка:</b> "+
-       pct(x.dev.avg)+
-       " · N="+
-       x.dev.n+
-       "<br>"+
-
-       "<b>Валидация:</b> "+
-       pct(x.validation.avg)+
-       " · N="+
-       x.validation.n+
-       " · Edge "+
-       pct(x.validationEdge)+
-       "<br>"+
-
-       "<b>Финальный 10%:</b> "+
-       pct(final.avg)+
-       " · N="+
-       final.n+
-       "<br>"+
-
-       "<b>BTC baseline:</b> "+
-       pct(finalBase.avg)+
-       "<br>"+
-
-       "<b>Final Edge:</b> "+
-       pct(finalEdge)+
-       "<br>"+
-
-       "<b>Median:</b> "+
-       pct(final.median)+
-       "<br>"+
-
-       "<b>Win:</b> "+
-       (
-         final.n
-         ?final.win.toFixed(1)+"%"
-         :"—"
-       )+
-       "<br>"+
-
-       "<b>> +1%:</b> "+
-       (
-         final.n
-         ?final.p1.toFixed(1)+"%"
-         :"—"
-       )+
-       "<br>"+
-
-       "<b>< -1%:</b> "+
-       (
-         final.n
-         ?final.m1.toFixed(1)+"%"
-         :"—"
-       )+
-       "<br>"+
-
-       "<b>Макс. серия убытков:</b> "+
-       final.maxLossStreak+
-
-       "</p>";
-
-
-     html+=
-       "</div>";
-
-   }
- );
-
-
- html+=
-   "<div class='note'>"+
-   "<b>Как читать результат:</b><br>"+
-   "Final Edge показывает преимущество "+
-   "комбинации над обычным BTC на одном "+
-   "и том же последнем 10%-участке.<br><br>"+
-   "Это не вероятность роста BTC и не "+
-   "гарантия прибыли. Даже положительный "+
-   "финальный Edge может оказаться случайным, "+
-   "особенно при небольшом числе наблюдений."+
-   "</div>";
-
-
- $("holdout").innerHTML=html;
-}
-
-
-/* =========================================================
-   ЗАПУСК
-========================================================= */
-
-async function start(){
-
- try{
-
-   status(
-     "JavaScript работает",
-     "success"
-   );
-
-
-   diag(
-     "Начинаем загрузку истории BTC…"
-   );
-
-
-   progress(0);
-
-
-   let raw=
-     await loadHistory();
-
-
-   if(raw.length<1000){
-
-     throw new Error(
-       "Получено слишком мало данных: "+
-       raw.length+
-       " свечей."
-     );
-
-   }
-
-
-   diag(
-     "Получено "+
-     raw.length+
-     " уникальных свечей. "+
-     "Рассчитываем индикаторы…"
-   );
-
-
-   let data=
-     build(raw);
-
-
-   let rows=
-     prepare(data);
-
-
-   if(rows.length<500){
-
-     throw new Error(
-       "После расчёта индикаторов "+
-       "осталось только "+
-       rows.length+
-       " строк."
-     );
-
-   }
-
-
-   render(
-     data,
-     rows
-   );
-
-
-   $("app").style.display=
-     "block";
-
-
-   progress(100);
-
-
-   status(
-     "Данные обновлены",
-     "success"
-   );
-
-
-   diag(
-     "Готово: "+
-     raw.length+
-     " свечей, "+
-     rows.length+
-     " строк для статистики."
-   );
-
-
- }
- catch(error){
-
-   console.error(
-     "BTC Signal error:",
-     error
-   );
-
-
-   status(
-     "Ошибка",
-     "error"
-   );
-
-
-   diag(
-     error.message||
-     String(error)
-   );
-
- }
-
-}
-
-
-/* =========================================================
-   СТАРТ
-========================================================= */
-
-window.addEventListener(
- "load",
- start
-);
+loadHistory().catch(e=>{
+
+  document.getElementById("status").innerHTML=
+    `<span class="bad">
+      Ошибка загрузки: ${e.message}
+    </span>`;
+});
 
 </script>
 
