@@ -20,14 +20,8 @@ body{
   margin:auto;
   padding:18px;
 }
-h1{
-  margin:0 0 8px;
-  font-size:28px;
-}
-h2{
-  font-size:19px;
-  margin:24px 0 10px;
-}
+h1{margin:0 0 8px;font-size:28px}
+h2{font-size:19px;margin:24px 0 10px}
 .card{
   background:#151c31;
   border:1px solid #26304b;
@@ -45,15 +39,16 @@ h2{
   font-size:13px;
   line-height:1.5;
 }
-.loading{
-  color:#fbbf24;
-}
-.error{
-  color:#f87171;
-  white-space:pre-wrap;
-}
-.success{
-  color:#4ade80;
+.loading{color:#fbbf24}
+.error{color:#f87171;white-space:pre-wrap}
+.success{color:#4ade80}
+.big{font-size:30px;font-weight:bold}
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:9px;
+  background:#26304b;
+  margin-top:6px;
 }
 table{
   width:100%;
@@ -65,31 +60,29 @@ th,td{
   border-bottom:1px solid #27304a;
   text-align:right;
 }
-th:first-child,td:first-child{
-  text-align:left;
-}
-th{
-  color:#9ca3af;
-}
+th:first-child,td:first-child{text-align:left}
+th{color:#9ca3af}
 .good{color:#4ade80}
 .bad{color:#f87171}
 .neutral{color:#fbbf24}
-.big{
-  font-size:30px;
-  font-weight:bold;
-}
-.badge{
-  display:inline-block;
-  padding:6px 10px;
-  border-radius:9px;
-  background:#26304b;
-  margin-top:6px;
-}
 pre{
   white-space:pre-wrap;
   word-break:break-word;
   font-size:12px;
   color:#9ca3af;
+}
+.progress{
+  margin-top:10px;
+  height:8px;
+  background:#27304a;
+  border-radius:8px;
+  overflow:hidden;
+}
+.progressbar{
+  height:100%;
+  width:0%;
+  background:#4ade80;
+  transition:width .3s;
 }
 </style>
 </head>
@@ -102,7 +95,11 @@ pre{
 
 <div class="card">
   <div id="status" class="status loading">Загрузка BTC…</div>
-  <div id="diagnostic" class="small"></div>
+  <div id="diagnostic" class="small">Подготовка…</div>
+
+  <div class="progress">
+    <div id="progressbar" class="progressbar"></div>
+  </div>
 </div>
 
 <div id="app" style="display:none">
@@ -160,8 +157,23 @@ pre{
 
 <script>
 
-const API =
-  "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1500";
+/* =========================================================
+   НАСТРОЙКИ
+   ========================================================= */
+
+const BINANCE_BASE =
+  "https://api.binance.com/api/v3/klines";
+
+const SYMBOL = "BTCUSDT";
+const INTERVAL = "1d";
+
+const REQUEST_LIMIT = 1000;
+
+/* Сколько блоков по 1000 свечей загружаем */
+const HISTORY_REQUESTS = 5;
+
+/* Тайм-аут одного запроса */
+const REQUEST_TIMEOUT = 10000;
 
 const FACTORS = [
   "EMA20 > EMA50",
@@ -174,54 +186,83 @@ const FACTORS = [
   "Volume > average"
 ];
 
-const MIN_N = 50;
+
+/* =========================================================
+   ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+   ========================================================= */
 
 function $(id){
   return document.getElementById(id);
 }
 
-function setStatus(text, cls=""){
+function setStatus(text,cls=""){
   $("status").textContent=text;
   $("status").className="status "+cls;
 }
 
+function setProgress(percent){
+  $("progressbar").style.width =
+    Math.max(0,Math.min(100,percent))+"%";
+}
+
 function fmtPct(x){
   if(!Number.isFinite(x)) return "—";
-  return (x>=0?"+":"") + x.toFixed(2) + "%";
+  return (x>=0?"+":"")+x.toFixed(2)+"%";
 }
 
 function median(arr){
   if(!arr.length) return NaN;
+
   const a=[...arr].sort((x,y)=>x-y);
   const m=Math.floor(a.length/2);
-  return a.length%2 ? a[m] : (a[m-1]+a[m])/2;
+
+  return a.length%2
+    ? a[m]
+    : (a[m-1]+a[m])/2;
 }
 
 function mean(arr){
   if(!arr.length) return NaN;
+
   return arr.reduce((a,b)=>a+b,0)/arr.length;
 }
 
+
+/* =========================================================
+   ИНДИКАТОРЫ
+   ========================================================= */
+
 function ema(values,period){
+
   const out=new Array(values.length).fill(null);
+
   if(values.length<period) return out;
 
   let sum=0;
-  for(let i=0;i<period;i++) sum+=values[i];
+
+  for(let i=0;i<period;i++){
+    sum+=values[i];
+  }
 
   out[period-1]=sum/period;
 
   const k=2/(period+1);
 
   for(let i=period;i<values.length;i++){
-    out[i]=values[i]*k+out[i-1]*(1-k);
+
+    out[i]=
+      values[i]*k+
+      out[i-1]*(1-k);
   }
 
   return out;
 }
 
+
 function rsi(values,period=14){
-  const out=new Array(values.length).fill(null);
+
+  const out=
+    new Array(values.length).fill(null);
 
   if(values.length<=period) return out;
 
@@ -229,7 +270,10 @@ function rsi(values,period=14){
   let losses=0;
 
   for(let i=1;i<=period;i++){
-    const d=values[i]-values[i-1];
+
+    const d=
+      values[i]-values[i-1];
+
     if(d>=0) gains+=d;
     else losses-=d;
   }
@@ -238,34 +282,44 @@ function rsi(values,period=14){
   let avgLoss=losses/period;
 
   out[period]=
-    avgLoss===0 ? 100 :
-    100-(100/(1+avgGain/avgLoss));
+    avgLoss===0
+      ? 100
+      : 100-(100/(1+avgGain/avgLoss));
 
   for(let i=period+1;i<values.length;i++){
 
-    const d=values[i]-values[i-1];
+    const d=
+      values[i]-values[i-1];
 
     const gain=d>0?d:0;
     const loss=d<0?-d:0;
 
-    avgGain=(avgGain*(period-1)+gain)/period;
-    avgLoss=(avgLoss*(period-1)+loss)/period;
+    avgGain=
+      (avgGain*(period-1)+gain)/period;
+
+    avgLoss=
+      (avgLoss*(period-1)+loss)/period;
 
     out[i]=
-      avgLoss===0 ? 100 :
-      100-(100/(1+avgGain/avgLoss));
+      avgLoss===0
+        ? 100
+        : 100-(100/(1+avgGain/avgLoss));
   }
 
   return out;
 }
 
+
 function macd(values){
+
   const e12=ema(values,12);
   const e26=ema(values,26);
 
-  const line=new Array(values.length).fill(null);
+  const line=
+    new Array(values.length).fill(null);
 
   for(let i=0;i<values.length;i++){
+
     if(e12[i]!=null && e26[i]!=null){
       line[i]=e12[i]-e26[i];
     }
@@ -275,35 +329,55 @@ function macd(values){
   const map=[];
 
   for(let i=0;i<line.length;i++){
+
     if(line[i]!=null){
       compact.push(line[i]);
       map.push(i);
     }
   }
 
-  const signalCompact=ema(compact,9);
-  const signal=new Array(values.length).fill(null);
-  const hist=new Array(values.length).fill(null);
+  const signalCompact=
+    ema(compact,9);
+
+  const signal=
+    new Array(values.length).fill(null);
+
+  const hist=
+    new Array(values.length).fill(null);
 
   for(let j=0;j<map.length;j++){
+
     const i=map[j];
 
     if(signalCompact[j]!=null){
+
       signal[i]=signalCompact[j];
-      hist[i]=line[i]-signal[i];
+
+      hist[i]=
+        line[i]-signal[i];
     }
   }
 
-  return {line,signal,hist};
+  return {
+    line,
+    signal,
+    hist
+  };
 }
+
 
 function adx(high,low,close,period=14){
 
   const n=close.length;
 
-  const tr=new Array(n).fill(null);
-  const plusDM=new Array(n).fill(null);
-  const minusDM=new Array(n).fill(null);
+  const tr=
+    new Array(n).fill(null);
+
+  const plusDM=
+    new Array(n).fill(null);
+
+  const minusDM=
+    new Array(n).fill(null);
 
   for(let i=1;i<n;i++){
 
@@ -323,21 +397,38 @@ function adx(high,low,close,period=14){
     const up=h-ph;
     const down=pl-l;
 
-    plusDM[i]=(up>down && up>0)?up:0;
-    minusDM[i]=(down>up && down>0)?down:0;
+    plusDM[i]=
+      (up>down && up>0)
+        ? up
+        : 0;
+
+    minusDM[i]=
+      (down>up && down>0)
+        ? down
+        : 0;
   }
 
-  const atr=new Array(n).fill(null);
-  const pdi=new Array(n).fill(null);
-  const mdi=new Array(n).fill(null);
-  const dx=new Array(n).fill(null);
-  const result=new Array(n).fill(null);
+  const atr=
+    new Array(n).fill(null);
+
+  const pdi=
+    new Array(n).fill(null);
+
+  const mdi=
+    new Array(n).fill(null);
+
+  const dx=
+    new Array(n).fill(null);
+
+  const result=
+    new Array(n).fill(null);
 
   let trSum=0;
   let plusSum=0;
   let minusSum=0;
 
   for(let i=1;i<=period;i++){
+
     trSum+=tr[i]||0;
     plusSum+=plusDM[i]||0;
     minusSum+=minusDM[i]||0;
@@ -348,28 +439,64 @@ function adx(high,low,close,period=14){
   let p=plusSum/period;
   let m=minusSum/period;
 
-  pdi[period]=atr[period]===0?0:100*(p/atr[period]);
-  mdi[period]=atr[period]===0?0:100*(m/atr[period]);
+  pdi[period]=
+    atr[period]===0
+      ? 0
+      : 100*(p/atr[period]);
 
-  let den=pdi[period]+mdi[period];
+  mdi[period]=
+    atr[period]===0
+      ? 0
+      : 100*(m/atr[period]);
 
-  dx[period]=den===0?0:
-    100*Math.abs(pdi[period]-mdi[period])/den;
+  let den=
+    pdi[period]+mdi[period];
+
+  dx[period]=
+    den===0
+      ? 0
+      : 100*Math.abs(
+          pdi[period]-mdi[period]
+        )/den;
 
   for(let i=period+1;i<n;i++){
 
-    atr[i]=(atr[i-1]*(period-1)+(tr[i]||0))/period;
+    atr[i]=
+      (
+        atr[i-1]*(period-1)+
+        (tr[i]||0)
+      )/period;
 
-    p=(p*(period-1)+(plusDM[i]||0))/period;
-    m=(m*(period-1)+(minusDM[i]||0))/period;
+    p=
+      (
+        p*(period-1)+
+        (plusDM[i]||0)
+      )/period;
 
-    pdi[i]=atr[i]===0?0:100*p/atr[i];
-    mdi[i]=atr[i]===0?0:100*m/atr[i];
+    m=
+      (
+        m*(period-1)+
+        (minusDM[i]||0)
+      )/period;
+
+    pdi[i]=
+      atr[i]===0
+        ? 0
+        : 100*p/atr[i];
+
+    mdi[i]=
+      atr[i]===0
+        ? 0
+        : 100*m/atr[i];
 
     den=pdi[i]+mdi[i];
 
-    dx[i]=den===0?0:
-      100*Math.abs(pdi[i]-mdi[i])/den;
+    dx[i]=
+      den===0
+        ? 0
+        : 100*Math.abs(
+            pdi[i]-mdi[i]
+          )/den;
   }
 
   let count=0;
@@ -378,15 +505,23 @@ function adx(high,low,close,period=14){
   for(let i=period;i<n;i++){
 
     if(dx[i]!=null){
+
       if(count<period){
+
         sum+=dx[i];
         count++;
 
         if(count===period){
           result[i]=sum/period;
         }
+
       }else{
-        result[i]=(result[i-1]*(period-1)+dx[i])/period;
+
+        result[i]=
+          (
+            result[i-1]*(period-1)+
+            dx[i]
+          )/period;
       }
     }
   }
@@ -394,24 +529,48 @@ function adx(high,low,close,period=14){
   return result;
 }
 
+
+/* =========================================================
+   ФОРМИРОВАНИЕ ДАННЫХ
+   ========================================================= */
+
 function buildData(raw){
 
-  const close=raw.map(x=>Number(x[4]));
-  const open=raw.map(x=>Number(x[1]));
-  const high=raw.map(x=>Number(x[2]));
-  const low=raw.map(x=>Number(x[3]));
-  const volume=raw.map(x=>Number(x[5]));
-  const time=raw.map(x=>Number(x[0]));
+  const close=
+    raw.map(x=>Number(x[4]));
+
+  const open=
+    raw.map(x=>Number(x[1]));
+
+  const high=
+    raw.map(x=>Number(x[2]));
+
+  const low=
+    raw.map(x=>Number(x[3]));
+
+  const volume=
+    raw.map(x=>Number(x[5]));
+
+  const time=
+    raw.map(x=>Number(x[0]));
 
   const ema20=ema(close,20);
   const ema50=ema(close,50);
   const ema200=ema(close,200);
 
   const RSI=rsi(close,14);
-  const MACD=macd(close);
-  const ADX=adx(high,low,close,14);
 
-  const avgVol=new Array(close.length).fill(null);
+  const MACD=macd(close);
+
+  const ADX=adx(
+    high,
+    low,
+    close,
+    14
+  );
+
+  const avgVol=
+    new Array(close.length).fill(null);
 
   for(let i=20;i<close.length;i++){
 
@@ -429,12 +588,16 @@ function buildData(raw){
   for(let i=0;i<close.length;i++){
 
     data.push({
+
       i,
+
       time:time[i],
+
       open:open[i],
       high:high[i],
       low:low[i],
       close:close[i],
+
       volume:volume[i],
 
       ema20:ema20[i],
@@ -442,17 +605,28 @@ function buildData(raw){
       ema200:ema200[i],
 
       rsi:RSI[i],
+
       macd:MACD.line[i],
-      macdSignal:MACD.signal[i],
-      macdHist:MACD.hist[i],
+
+      macdSignal:
+        MACD.signal[i],
+
+      macdHist:
+        MACD.hist[i],
 
       adx:ADX[i],
+
       avgVol:avgVol[i]
     });
   }
 
   return data;
 }
+
+
+/* =========================================================
+   ФАКТОРЫ
+   ========================================================= */
 
 function factorState(d){
 
@@ -494,19 +668,31 @@ function factorState(d){
   };
 }
 
+
 function futureReturn(data,i){
 
-  if(i+1>=data.length) return null;
+  if(i+1>=data.length)
+    return null;
 
-  const entry=data[i+1].open;
-  const exit=data[i+1].close;
+  const entry=
+    data[i+1].open;
 
-  if(!Number.isFinite(entry) ||
-     !Number.isFinite(exit) ||
-     entry===0) return null;
+  const exit=
+    data[i+1].close;
 
-  return (exit-entry)/entry*100;
+  if(
+    !Number.isFinite(entry) ||
+    !Number.isFinite(exit) ||
+    entry===0
+  ){
+    return null;
+  }
+
+  return (
+    (exit-entry)/entry
+  )*100;
 }
+
 
 function usableRows(data){
 
@@ -523,30 +709,47 @@ function usableRows(data){
       d.rsi==null ||
       d.adx==null ||
       d.avgVol==null
-    ) continue;
+    ){
+      continue;
+    }
 
-    const ret=futureReturn(data,i);
+    const ret=
+      futureReturn(data,i);
 
-    if(ret==null) continue;
+    if(ret==null)
+      continue;
 
     out.push({
+
       ...d,
+
       ret,
-      factors:factorState(d)
+
+      factors:
+        factorState(d)
     });
   }
 
   return out;
 }
 
+
+/* =========================================================
+   СТАТИСТИКА
+   ========================================================= */
+
 function comboMatch(row,combo){
 
-  return combo.every(f=>row.factors[f]);
+  return combo.every(
+    f=>row.factors[f]
+  );
 }
+
 
 function stats(rows){
 
   if(!rows.length){
+
     return {
       n:0,
       avg:NaN,
@@ -557,30 +760,57 @@ function stats(rows){
     };
   }
 
-  const rets=rows.map(x=>x.ret);
+  const rets=
+    rows.map(x=>x.ret);
 
   return {
+
     n:rets.length,
+
     avg:mean(rets),
+
     median:median(rets),
-    win:rets.filter(x=>x>0).length/rets.length*100,
-    plus1:rets.filter(x=>x>1).length/rets.length*100,
-    minus1:rets.filter(x=>x<-1).length/rets.length*100
+
+    win:
+      rets.filter(x=>x>0).length/
+      rets.length*100,
+
+    plus1:
+      rets.filter(x=>x>1).length/
+      rets.length*100,
+
+    minus1:
+      rets.filter(x=>x<-1).length/
+      rets.length*100
   };
 }
 
-function periodBaseline(rows,start,end){
 
-  return stats(rows.slice(start,end));
+function periodBaseline(
+  rows,
+  start,
+  end
+){
+  return stats(
+    rows.slice(start,end)
+  );
 }
 
-function comboStats(rows,combo,start=0,end=rows.length){
+
+function comboStats(
+  rows,
+  combo,
+  start=0,
+  end=rows.length
+){
 
   const selected=[];
 
   for(let i=start;i<end;i++){
 
-    if(comboMatch(rows[i],combo)){
+    if(
+      comboMatch(rows[i],combo)
+    ){
       selected.push(rows[i]);
     }
   }
@@ -588,7 +818,12 @@ function comboStats(rows,combo,start=0,end=rows.length){
   return stats(selected);
 }
 
-function combinations(arr,min,max){
+
+function combinations(
+  arr,
+  min,
+  max
+){
 
   const result=[];
 
@@ -598,11 +833,22 @@ function combinations(arr,min,max){
       result.push([...current]);
     }
 
-    if(current.length===max) return;
+    if(current.length===max)
+      return;
 
-    for(let i=start;i<arr.length;i++){
+    for(
+      let i=start;
+      i<arr.length;
+      i++
+    ){
+
       current.push(arr[i]);
-      rec(i+1,current);
+
+      rec(
+        i+1,
+        current
+      );
+
       current.pop();
     }
   }
@@ -612,148 +858,313 @@ function combinations(arr,min,max){
   return result;
 }
 
+
+/* =========================================================
+   ИНКРЕМЕНТАЛЬНЫЙ АНАЛИЗ
+   ========================================================= */
+
 function incremental(rows){
 
   const pairs=[];
 
-  for(let a=0;a<FACTORS.length;a++){
+  for(
+    let a=0;
+    a<FACTORS.length;
+    a++
+  ){
 
-    const first=[FACTORS[a]];
-    const base=comboStats(rows,first);
+    const first=[
+      FACTORS[a]
+    ];
 
-    if(base.n<100) continue;
+    const base=
+      comboStats(rows,first);
 
-    for(let b=0;b<FACTORS.length;b++){
+    if(base.n<100)
+      continue;
 
-      if(a===b) continue;
+    for(
+      let b=0;
+      b<FACTORS.length;
+      b++
+    ){
 
-      const combo=[FACTORS[a],FACTORS[b]];
-      const after=comboStats(rows,combo);
+      if(a===b)
+        continue;
 
-      if(after.n<50) continue;
+      const combo=[
+        FACTORS[a],
+        FACTORS[b]
+      ];
 
-      const delta=after.avg-base.avg;
+      const after=
+        comboStats(
+          rows,
+          combo
+        );
+
+      if(after.n<50)
+        continue;
+
+      const delta=
+        after.avg-base.avg;
 
       pairs.push({
+
         base,
         after,
-        first:FACTORS[a],
-        second:FACTORS[b],
+
+        first:
+          FACTORS[a],
+
+        second:
+          FACTORS[b],
+
         delta
       });
     }
   }
 
-  pairs.sort((a,b)=>b.delta-a.delta);
+  pairs.sort(
+    (a,b)=>b.delta-a.delta
+  );
 
   return pairs.slice(0,10);
 }
 
-function walkForward(rows,combo){
+
+/* =========================================================
+   WALK FORWARD
+   ========================================================= */
+
+function walkForward(
+  rows,
+  combo
+){
 
   const folds=[];
 
   const n=rows.length;
 
-  const firstTrain=Math.floor(n*0.50);
+  const firstTrain=
+    Math.floor(n*0.50);
 
   const tests=5;
 
-  let trainEnd=firstTrain;
+  let trainEnd=
+    firstTrain;
 
-  const remaining=n-firstTrain;
-  const testSize=Math.floor(remaining/tests);
+  const remaining=
+    n-firstTrain;
 
-  for(let k=0;k<tests;k++){
+  const testSize=
+    Math.floor(
+      remaining/tests
+    );
 
-    const testStart=trainEnd;
+  for(
+    let k=0;
+    k<tests;
+    k++
+  ){
+
+    const testStart=
+      trainEnd;
+
     const testEnd=
-      k===tests-1 ? n :
-      Math.min(n,testStart+testSize);
+      k===tests-1
+        ? n
+        : Math.min(
+            n,
+            testStart+testSize
+          );
 
-    if(testEnd<=testStart) break;
+    if(testEnd<=testStart)
+      break;
 
-    const trainRows=rows.slice(0,trainEnd);
+    const trainRows=
+      rows.slice(
+        0,
+        trainEnd
+      );
 
-    const testRows=rows.slice(testStart,testEnd);
+    const testRows=
+      rows.slice(
+        testStart,
+        testEnd
+      );
 
-    const comboTrain=comboStats(trainRows,combo);
-    const comboTest=comboStats(testRows,combo);
-    const baseTest=periodBaseline(rows,testStart,testEnd);
+    const comboTrain=
+      comboStats(
+        trainRows,
+        combo
+      );
 
-    if(comboTest.n>0 && baseTest.n>0){
+    const comboTest=
+      comboStats(
+        testRows,
+        combo
+      );
+
+    const baseTest=
+      periodBaseline(
+        rows,
+        testStart,
+        testEnd
+      );
+
+    if(
+      comboTest.n>0 &&
+      baseTest.n>0
+    ){
 
       folds.push({
-        trainN:trainRows.length,
-        testN:testRows.length,
-        comboN:comboTest.n,
-        comboAvg:comboTest.avg,
-        btcAvg:baseTest.avg,
-        edge:comboTest.avg-baseTest.avg
+
+        trainN:
+          trainRows.length,
+
+        testN:
+          testRows.length,
+
+        comboN:
+          comboTest.n,
+
+        comboAvg:
+          comboTest.avg,
+
+        btcAvg:
+          baseTest.avg,
+
+        edge:
+          comboTest.avg-
+          baseTest.avg
       });
     }
-
-    trainEnd=testEnd;
   }
 
   return folds;
 }
 
-function scoreWalkForward(folds){
 
-  if(folds.length<4) return 0;
+function scoreWalkForward(
+  folds
+){
 
-  const totalN=folds.reduce((s,x)=>s+x.comboN,0);
+  if(folds.length<4)
+    return 0;
 
-  const edges=folds.map(x=>x.edge);
+  const totalN=
+    folds.reduce(
+      (s,x)=>s+x.comboN,
+      0
+    );
 
-  const positive=edges.filter(x=>x>0).length;
+  const edges=
+    folds.map(
+      x=>x.edge
+    );
 
-  const meanEdge=mean(edges);
-  const medianEdge=median(edges);
-  const worst=Math.min(...edges);
+  const positive=
+    edges.filter(
+      x=>x>0
+    ).length;
+
+  const meanEdge=
+    mean(edges);
+
+  const medianEdge=
+    median(edges);
+
+  const worst=
+    Math.min(...edges);
 
   let score=0;
 
-  if(folds.length>=4) score+=20;
-  if(totalN>=100) score+=20;
-  if(positive/folds.length>=0.75) score+=20;
-  if(meanEdge>0.10) score+=20;
-  if(medianEdge>0) score+=10;
-  if(worst>-0.50) score+=10;
+  if(folds.length>=4)
+    score+=20;
+
+  if(totalN>=100)
+    score+=20;
+
+  if(
+    positive/folds.length>=0.75
+  )
+    score+=20;
+
+  if(meanEdge>0.10)
+    score+=20;
+
+  if(medianEdge>0)
+    score+=10;
+
+  if(worst>-0.50)
+    score+=10;
 
   return score;
 }
 
+
 function statusText(folds){
 
-  const totalN=folds.reduce((s,x)=>s+x.comboN,0);
+  const totalN=
+    folds.reduce(
+      (s,x)=>s+x.comboN,
+      0
+    );
 
-  const edges=folds.map(x=>x.edge);
+  const edges=
+    folds.map(
+      x=>x.edge
+    );
 
-  const positive=edges.filter(x=>x>0).length;
+  const positive=
+    edges.filter(
+      x=>x>0
+    ).length;
 
-  const meanEdge=mean(edges);
-  const med=median(edges);
-  const worst=Math.min(...edges);
+  const meanEdge=
+    mean(edges);
+
+  const med=
+    median(edges);
+
+  const worst=
+    Math.min(...edges);
 
   const confirmed=
+
     folds.length>=4 &&
+
     totalN>=150 &&
+
     positive/folds.length>=0.75 &&
+
     meanEdge>0.10 &&
+
     med>0 &&
+
     worst>-0.50;
 
   return {
+
     confirmed,
+
     totalN,
+
     positive,
+
     meanEdge,
+
     medianEdge:med,
+
     worst
   };
 }
+
+
+/* =========================================================
+   РЕЖИМ
+   ========================================================= */
 
 function regime(d){
 
@@ -770,7 +1181,10 @@ function regime(d){
       d.ema20>d.ema50 &&
       d.macd>0
     ){
-      if(d.adx>=30) return "Strong Bullish";
+
+      if(d.adx>=30)
+        return "Strong Bullish";
+
       return "Bullish";
     }
 
@@ -779,7 +1193,10 @@ function regime(d){
       d.ema20<d.ema50 &&
       d.macd<0
     ){
-      if(d.adx>=30) return "Strong Bearish";
+
+      if(d.adx>=30)
+        return "Strong Bearish";
+
       return "Bearish";
     }
   }
@@ -787,9 +1204,18 @@ function regime(d){
   return "Flat";
 }
 
-function renderTable(headers,rows){
 
-  let html="<table><thead><tr>";
+/* =========================================================
+   ТАБЛИЦА
+   ========================================================= */
+
+function renderTable(
+  headers,
+  rows
+){
+
+  let html=
+    "<table><thead><tr>";
 
   headers.forEach(h=>{
     html+="<th>"+h+"</th>";
@@ -798,9 +1224,10 @@ function renderTable(headers,rows){
   html+="</tr></thead><tbody>";
 
   rows.forEach(row=>{
+
     html+="<tr>";
 
-    row.forEach((cell,j)=>{
+    row.forEach(cell=>{
       html+="<td>"+cell+"</td>";
     });
 
@@ -812,364 +1239,133 @@ function renderTable(headers,rows){
   return html;
 }
 
-async function loadBTC(){
+
+/* =========================================================
+   НОВАЯ ЗАГРУЗКА ИСТОРИИ
+   ========================================================= */
+
+async function fetchOneBatch(
+  endTime,
+  requestNumber
+){
+
+  let url=
+    BINANCE_BASE+
+    "?symbol="+SYMBOL+
+    "&interval="+INTERVAL+
+    "&limit="+REQUEST_LIMIT;
+
+  if(endTime!=null){
+    url+="&endTime="+endTime;
+  }
+
+  $("diagnostic").textContent=
+    "Запрос "+requestNumber+
+    "/"+HISTORY_REQUESTS+
+    "…";
+
+  setStatus(
+    "Загрузка истории "+
+    requestNumber+"/"+HISTORY_REQUESTS+
+    "…",
+    "loading"
+  );
+
+  const controller=
+    new AbortController();
+
+  const timer=
+    setTimeout(
+      ()=>controller.abort(),
+      REQUEST_TIMEOUT
+    );
 
   try{
 
-    setStatus("Подключение к Binance…","loading");
-    $("diagnostic").textContent=
-      "Запрашиваем дневные свечи BTCUSDT…";
-
-    const controller=new AbortController();
-
-    const timeout=setTimeout(
-      ()=>controller.abort(),
-      10000
-    );
-
-    let response;
-
-    try{
-
-      response=await fetch(API,{
-        cache:"no-store",
-        signal:controller.signal
-      });
-
-    }finally{
-
-      clearTimeout(timeout);
-    }
+    const response=
+      await fetch(
+        url,
+        {
+          cache:"no-store",
+          signal:controller.signal
+        }
+      );
 
     if(!response.ok){
+
       throw new Error(
-        "Binance HTTP "+response.status+
-        " "+response.statusText
+        "HTTP "+
+        response.status+
+        " "+
+        response.statusText
       );
     }
 
-    setStatus("Получение данных…","loading");
+    const data=
+      await response.json();
 
-    const raw=await response.json();
+    if(
+      !Array.isArray(data) ||
+      data.length===0
+    ){
 
-    if(!Array.isArray(raw) || raw.length<300){
       throw new Error(
-        "Binance вернул слишком мало данных: "+
-        (Array.isArray(raw)?raw.length:0)
+        "Binance вернул пустой ответ."
       );
     }
 
-    $("diagnostic").textContent=
-      "Binance: получено "+raw.length+
-      " дневных свечей. Расчёт индикаторов…";
-
-    const data=buildData(raw);
-
-    const rows=usableRows(data);
-
-    if(rows.length<250){
-      throw new Error(
-        "Недостаточно пригодных строк после расчёта индикаторов: "+
-        rows.length
-      );
-    }
-
-    $("diagnostic").textContent=
-      "Готово: "+raw.length+
-      " свечей, "+rows.length+
-      " строк для статистики.";
-
-    renderAll(data,rows);
-
-    setStatus("Данные обновлены","success");
-
-    $("app").style.display="block";
+    return data;
 
   }catch(err){
 
-    console.error(err);
-
-    setStatus(
-      "Ошибка загрузки BTC",
-      "error"
-    );
-
     if(err.name==="AbortError"){
 
-      $("diagnostic").textContent=
-        "Binance не ответил за 10 секунд.\n"+
-        "Проверь интернет и попробуй обновить страницу.";
-
-    }else{
-
-      $("diagnostic").textContent=
-        String(err.message || err);
-    }
-  }
-}
-
-function renderAll(data,rows){
-
-  const d=data[data.length-1];
-
-  const r=regime(d);
-
-  $("regime").textContent=r;
-
-  $("regime").className="big "+
-    (
-      r.includes("Bullish") ? "good" :
-      r.includes("Bearish") ? "bad" :
-      "neutral"
-    );
-
-  $("regimeDetails").innerHTML=
-    "BTC: $"+d.close.toLocaleString("en-US",{
-      maximumFractionDigits:0
-    })+
-    " · RSI: "+d.rsi.toFixed(1)+
-    " · ADX: "+d.adx.toFixed(1);
-
-  const f=factorState(d);
-
-  const active=FACTORS.filter(x=>f[x]);
-
-  const inactive=FACTORS.filter(x=>!f[x]);
-
-  $("signal").innerHTML=
-    "<b>Активны:</b> "+
-    (active.length?active.join(" · "):"нет")+
-    "<br><br>"+
-    "<b>Неактивны:</b> "+
-    (inactive.length?inactive.join(" · "):"нет")+
-    "<br><br>"+
-    "<span class='small'>"+
-    "Важно: Score/условия не являются вероятностью роста или падения."
-    +"</span>";
-
-  $("indicators").innerHTML=renderTable(
-    ["Индикатор","Значение"],
-    [
-      ["Цена","$"+d.close.toLocaleString("en-US",{maximumFractionDigits:0})],
-      ["EMA20",d.ema20.toFixed(2)],
-      ["EMA50",d.ema50.toFixed(2)],
-      ["EMA200",d.ema200.toFixed(2)],
-      ["MACD",d.macd.toFixed(4)],
-      ["MACD Histogram",d.macdHist.toFixed(4)],
-      ["RSI",d.rsi.toFixed(2)],
-      ["ADX",d.adx.toFixed(2)],
-      ["Volume / Avg",(
-        d.volume/d.avgVol
-      ).toFixed(2)+"x"]
-    ]
-  );
-
-  renderIncremental(rows);
-
-  renderFactors(rows);
-
-  renderRegimes(rows);
-
-  renderWalkForward(rows);
-}
-
-function renderIncremental(rows){
-
-  const list=incremental(rows);
-
-  $("incremental").innerHTML=renderTable(
-    ["Комбинация","N base","N after","Base","After","Δ"],
-    list.map(x=>[
-      x.first+" → + "+x.second,
-      x.base.n,
-      x.after.n,
-      fmtPct(x.base.avg),
-      fmtPct(x.after.avg),
-      "<span class='"+(
-        x.delta>0?"good":"bad"
-      )+"'>"+
-      fmtPct(x.delta)+
-      "</span>"
-    ])
-  );
-}
-
-function renderFactors(rows){
-
-  const result=[];
-
-  for(const factor of FACTORS){
-
-    const s=comboStats(rows,[factor]);
-
-    result.push([
-      factor,
-      s.n,
-      fmtPct(s.avg),
-      fmtPct(s.median),
-      s.win.toFixed(1)+"%",
-      s.plus1.toFixed(1)+"%",
-      s.minus1.toFixed(1)+"%"
-    ]);
-  }
-
-  $("factors").innerHTML=renderTable(
-    [
-      "Фактор",
-      "N",
-      "Avg",
-      "Median",
-      "Win",
-      ">+1%",
-      "<-1%"
-    ],
-    result
-  );
-}
-
-function renderRegimes(rows){
-
-  const names=[
-    "Flat",
-    "Bullish",
-    "Strong Bullish",
-    "Bearish",
-    "Strong Bearish"
-  ];
-
-  const result=[];
-
-  for(const name of names){
-
-    const selected=rows.filter(
-      x=>regime(x)===name
-    );
-
-    const s=stats(selected);
-
-    result.push([
-      name,
-      s.n,
-      fmtPct(s.avg),
-      fmtPct(s.median),
-      s.n?s.win.toFixed(1)+"%":"—"
-    ]);
-  }
-
-  $("regimes").innerHTML=renderTable(
-    ["Режим","N","Avg","Median","Win"],
-    result
-  );
-}
-
-function renderWalkForward(rows){
-
-  const combos=combinations(FACTORS,2,4);
-
-  const results=[];
-
-  for(const combo of combos){
-
-    const folds=walkForward(rows,combo);
-
-    if(folds.length<4) continue;
-
-    const info=statusText(folds);
-
-    if(info.totalN<80) continue;
-
-    results.push({
-      combo,
-      folds,
-      info,
-      score:scoreWalkForward(folds)
-    });
-  }
-
-  results.sort((a,b)=>{
-
-    if(b.score!==a.score)
-      return b.score-a.score;
-
-    if(b.info.meanEdge!==a.info.meanEdge)
-      return b.info.meanEdge-a.info.meanEdge;
-
-    return b.info.totalN-a.info.totalN;
-  });
-
-  const top=results.slice(0,10);
-
-  $("walkforward").innerHTML=renderTable(
-    [
-      "Комбинация",
-      "N",
-      "Edge",
-      "Median",
-      "Позитивные",
-      "Worst",
-      "Score"
-    ],
-    top.map(x=>[
-      x.combo.join(" + "),
-      x.info.totalN,
-      fmtPct(x.info.meanEdge),
-      fmtPct(x.info.medianEdge),
-      x.info.positive+"/"+x.folds.length,
-      fmtPct(x.info.worst),
-      x.score+"/100"
-    ])
-  );
-
-  if(top.length){
-
-    const best=top[0];
-
-    const info=best.info;
-
-    let status=
-      info.confirmed ?
-      "ПОДТВЕРЖДЕНО" :
-      "ЧАСТИЧНО ПОДТВЕРЖДАЕТСЯ";
-
-    $("best").innerHTML=
-      "<h3>"+best.combo.join(" + ")+"</h3>"+
-      "<div class='badge'>"+status+"</div>"+
-      "<p>"+
-      "<b>Score:</b> "+best.score+"/100<br>"+
-      "<b>Test N:</b> "+info.totalN+"<br>"+
-      "<b>Mean edge:</b> "+fmtPct(info.meanEdge)+"<br>"+
-      "<b>Median edge:</b> "+fmtPct(info.medianEdge)+"<br>"+
-      "<b>Положительных периодов:</b> "+
-      info.positive+"/"+best.folds.length+"<br>"+
-      "<b>Worst period:</b> "+fmtPct(info.worst)+
-      "</p>";
-
-    $("best").innerHTML+=
-      "<h3>Walk-forward</h3>"+
-      renderTable(
-        [
-          "#",
-          "Train",
-          "Test",
-          "Combo",
-          "BTC",
-          "Edge"
-        ],
-        best.folds.map((x,i)=>[
-          i+1,
-          x.trainN,
-          x.testN,
-          fmtPct(x.comboAvg),
-          fmtPct(x.btcAvg),
-          fmtPct(x.edge)
-        ])
+      throw new Error(
+        "Запрос "+requestNumber+
+        " не ответил за "+
+        REQUEST_TIMEOUT/1000+
+        " секунд."
       );
+    }
+
+    throw new Error(
+      "Запрос "+requestNumber+
+      ": "+
+      (err.message || err)
+    );
+
+  }finally{
+
+    clearTimeout(timer);
   }
 }
 
-loadBTC();
 
-</script>
+async function fetchHistory(){
 
-</body>
-</html>
+  let all=[];
+
+  let endTime=null;
+
+  for(
+    let request=1;
+    request<=HISTORY_REQUESTS;
+    request++
+  ){
+
+    const batch=
+      await fetchOneBatch(
+        endTime,
+        request
+      );
+
+    $("diagnostic").textContent=
+      "Запрос "+request+
+      "/"+HISTORY_REQUESTS+
+      " получен: "+
+      batch.length+
+      " свечей.";
+
+    /*
+      Первый запрос = самые свежие свечи.
+      Каждый
