@@ -2,2229 +2,1466 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#111827">
-<link rel="manifest" href="./manifest.webmanifest">
-
-<title>₿ BTC Signal v2.5</title>
+<link rel="manifest" href="manifest.webmanifest">
+<title>₿ BTC Signal v2.6</title>
 
 <style>
 *{box-sizing:border-box}
-
 body{
-    margin:0;
-    background:#0b1020;
-    color:#e5e7eb;
-    font-family:Arial,sans-serif
+  margin:0;
+  background:#0b1020;
+  color:#eef2ff;
+  font-family:Arial,sans-serif;
 }
-
+header{
+  padding:18px 16px;
+  background:#111827;
+  border-bottom:1px solid #26304a;
+}
+h1{margin:0;font-size:22px}
+h2{font-size:17px;margin:0 0 12px}
+h3{font-size:15px;margin:14px 0 8px}
+.sub{color:#94a3b8;font-size:13px;margin-top:5px}
 .container{
-    max-width:950px;
-    margin:auto;
-    padding:15px
+  max-width:900px;
+  margin:auto;
+  padding:12px;
 }
-
-h1{margin:5px 0;font-size:25px}
-h2{margin:4px 0 12px}
-h3{margin:12px 0 8px}
-
-.subtitle{
-    color:#9ca3af;
-    font-size:13px;
-    margin-bottom:15px
-}
-
 .card{
-    background:#111827;
-    border:1px solid #263244;
-    border-radius:14px;
-    padding:15px;
-    margin-bottom:12px
+  background:#111827;
+  border:1px solid #26304a;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
 }
-
-.row{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap
-}
-
-select,button{
-    border:0;
-    border-radius:9px;
-    padding:12px;
-    font-size:15px
-}
-
-select{
-    background:#1f2937;
-    color:#fff;
-    flex:1
-}
-
-button{
-    background:#2563eb;
-    color:#fff;
-    font-weight:bold;
-    flex:1
-}
-
-button:disabled{
-    opacity:.5
-}
-
-.status{
-    background:#0f172a;
-    border-radius:10px;
-    padding:12px;
-    font-size:13px;
-    line-height:1.45;
-    color:#cbd5e1
-}
-
-.big{
-    font-size:25px;
-    font-weight:bold
-}
-
-.score{
-    font-size:38px;
-    font-weight:bold;
-    text-align:center;
-    margin:8px 0
-}
-
-.green{color:#22c55e}
-.red{color:#ef4444}
-.yellow{color:#f59e0b}
-.gray{color:#9ca3af}
-.blue{color:#60a5fa}
-
 .grid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:8px
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
 }
-
-.metric{
-    background:#0f172a;
-    border-radius:10px;
-    padding:10px
+.stat{
+  background:#0f172a;
+  border-radius:10px;
+  padding:10px;
 }
-
-.metric-title{
-    color:#9ca3af;
-    font-size:12px;
-    margin-bottom:4px
+.label{
+  color:#94a3b8;
+  font-size:12px;
 }
-
-.metric-value{
-    font-size:17px;
-    font-weight:bold
+.value{
+  font-size:18px;
+  font-weight:bold;
+  margin-top:4px;
 }
-
+button{
+  width:100%;
+  border:0;
+  border-radius:10px;
+  padding:13px;
+  background:#2563eb;
+  color:white;
+  font-size:16px;
+  font-weight:bold;
+}
+select{
+  width:100%;
+  padding:11px;
+  border-radius:9px;
+  background:#0f172a;
+  color:white;
+  border:1px solid #334155;
+}
 table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:12px
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
 }
-
 th,td{
-    padding:8px 5px;
-    border-bottom:1px solid #263244;
-    text-align:right
+  padding:7px 5px;
+  border-bottom:1px solid #26304a;
+  text-align:left;
 }
-
-th:first-child,
-td:first-child{
-    text-align:left
+th{color:#94a3b8}
+.good{color:#4ade80}
+.bad{color:#f87171}
+.warn{color:#facc15}
+.blue{color:#60a5fa}
+.small{
+  font-size:12px;
+  color:#94a3b8;
+  line-height:1.5;
 }
-
-.note{
-    color:#9ca3af;
-    font-size:12px;
-    line-height:1.5
+.signal{
+  font-size:26px;
+  font-weight:bold;
 }
-
-.badge{
-    display:inline-block;
-    padding:5px 9px;
-    border-radius:20px;
-    background:#1f2937;
-    font-size:12px
+.progress{
+  height:8px;
+  background:#1e293b;
+  border-radius:5px;
+  overflow:hidden;
+  margin-top:8px;
 }
-
-.loader{
-    margin-top:8px;
-    height:4px;
-    background:#1f2937;
-    border-radius:5px;
-    overflow:hidden
+.progress div{
+  height:100%;
+  background:#3b82f6;
 }
-
-.loader div{
-    height:100%;
-    width:35%;
-    background:#3b82f6;
-    animation:load 1.2s infinite
+hr{
+  border:0;
+  border-top:1px solid #26304a;
+  margin:14px 0;
 }
-
-@keyframes load{
-    0%{transform:translateX(-120%)}
-    100%{transform:translateX(350%)}
-}
-
 @media(max-width:600px){
-    table{font-size:11px}
+  .grid{grid-template-columns:1fr 1fr}
+  table{font-size:11px}
+  th,td{padding:6px 3px}
 }
 </style>
 </head>
 
 <body>
 
+<header>
+  <h1>₿ BTC Signal v2.6</h1>
+  <div class="sub">Statistical Signal Engine · 24 часа</div>
+</header>
+
 <div class="container">
 
-<h1>₿ BTC Signal</h1>
-
-<div class="subtitle">
-    v2.5 · Statistical Signal Engine
-</div>
-
 <div class="card">
-
-    <div class="row">
-
-        <select id="interval">
-            <option value="15m">15 минут</option>
-            <option value="1h">1 час</option>
-            <option value="4h">4 часа</option>
-            <option value="1d">1 день</option>
-        </select>
-
-        <button id="runBtn" type="button">
-            Обновить анализ
-        </button>
-
+  <div class="grid">
+    <div>
+      <div class="label">Таймфрейм</div>
+      <select id="tf">
+        <option value="15m">15 минут</option>
+        <option value="1h">1 час</option>
+        <option value="4h">4 часа</option>
+        <option value="1d" selected>1 день</option>
+      </select>
     </div>
-
+    <div style="display:flex;align-items:end">
+      <button onclick="run()">АНАЛИЗИРОВАТЬ BTC</button>
+    </div>
+  </div>
 </div>
 
-<div class="card">
-
-    <div id="status" class="status">
-        Запуск JavaScript...
-    </div>
-
-    <div class="loader" id="loader" style="display:none">
-        <div></div>
-    </div>
-
+<div id="status" class="card">
+  Готов к анализу.
 </div>
 
-<div id="content"></div>
+<div id="app"></div>
 
 </div>
 
 <script>
 
-"use strict";
-
-/* =========================================================
-   ОСНОВНЫЕ НАСТРОЙКИ
-========================================================= */
-
-const API="https://api.binance.com/api/v3/klines";
-const SYMBOL="BTCUSDT";
-
-const HISTORY_DAYS={
-    "15m":90,
-    "1h":365,
-    "4h":730,
-    "1d":1825
+const CONFIG={
+  "15m":{interval:"15m",days:90,h:96},
+  "1h":{interval:"1h",days:365,h:24},
+  "4h":{interval:"4h",days:730,h:6},
+  "1d":{interval:"1d",days:1825,h:1}
 };
 
-const STEP={
-    "15m":15*60*1000,
-    "1h":60*60*1000,
-    "4h":4*60*60*1000,
-    "1d":24*60*60*1000
-};
+const FACTORS=[
+  {id:"ema",name:"EMA20 > EMA50"},
+  {id:"ema200",name:"Цена > EMA200"},
+  {id:"macd",name:"MACD > 0"},
+  {id:"hist",name:"MACD Histogram > 0"},
+  {id:"rsi52",name:"RSI > 52"},
+  {id:"rsi5265",name:"RSI 52–65"},
+  {id:"adx",name:"ADX > 25"},
+  {id:"volume",name:"Объём > среднего"}
+];
 
-/*
-   24 часа в свечах.
-*/
-const H24={
-    "15m":96,
-    "1h":24,
-    "4h":6,
-    "1d":1
-};
-
-const HORIZONS={
-    "15m":[4,16,96],
-    "1h":[1,4,24],
-    "4h":[1,6],
-    "1d":[1]
-};
-
-const statusEl=document.getElementById("status");
-const loaderEl=document.getElementById("loader");
-const contentEl=document.getElementById("content");
-const runBtn=document.getElementById("runBtn");
-
-
-/* =========================================================
-   ДИАГНОСТИКА
-========================================================= */
-
-function setStatus(text){
-    statusEl.textContent=text;
+function n(x){
+  const v=Number(x);
+  return Number.isFinite(v)?v:null;
 }
 
-window.addEventListener("error",function(e){
-
-    loaderEl.style.display="none";
-
-    setStatus(
-        "Ошибка JavaScript: "+
-        (e.message||"неизвестная ошибка")
-    );
-});
-
-window.addEventListener(
-    "unhandledrejection",
-    function(e){
-
-        loaderEl.style.display="none";
-
-        let msg="Неизвестная ошибка";
-
-        if(e.reason){
-            msg=e.reason.message||String(e.reason);
-        }
-
-        setStatus("Ошибка: "+msg);
-    }
-);
-
-
-/* =========================================================
-   ФОРМАТТЕРЫ
-========================================================= */
-
-function finite(x){
-    const n=Number(x);
-    return Number.isFinite(n)?n:null;
+function fmt(x,d=2){
+  const v=n(x);
+  return v===null?"—":v.toFixed(d);
 }
 
 function pct(x){
-
-    const n=Number(x);
-
-    if(!Number.isFinite(n)){
-        return "—";
-    }
-
-    return (n>=0?"+":"")+
-        n.toFixed(2)+"%";
-}
-
-function pct1(x){
-
-    const n=Number(x);
-
-    if(!Number.isFinite(n)){
-        return "—";
-    }
-
-    return (n>=0?"+":"")+
-        n.toFixed(1)+"%";
+  const v=n(x);
+  if(v===null)return "—";
+  return (v>=0?"+":"")+v.toFixed(2)+"%";
 }
 
 function price(x){
-
-    const n=Number(x);
-
-    if(!Number.isFinite(n)){
-        return "—";
-    }
-
-    return n.toFixed(2);
+  const v=n(x);
+  return v===null?"—":v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
-function number2(x){
-
-    const n=Number(x);
-
-    if(!Number.isFinite(n)){
-        return "—";
-    }
-
-    return n.toFixed(2);
+function median(a){
+  if(!a.length)return null;
+  const b=[...a].sort((x,y)=>x-y);
+  const m=Math.floor(b.length/2);
+  return b.length%2?b[m]:(b[m-1]+b[m])/2;
 }
 
-function horizonName(h,interval){
-
-    const minutes={
-        "15m":15,
-        "1h":60,
-        "4h":240,
-        "1d":1440
-    };
-
-    const total=h*minutes[interval];
-
-    if(total>=1440){
-
-        const d=total/1440;
-
-        return d===1?
-            "1 день":
-            d+" дней";
-    }
-
-    if(total>=60){
-
-        const h2=total/60;
-
-        return h2===1?
-            "1 час":
-            h2+" ч";
-    }
-
-    return total+" мин";
+function avg(a){
+  if(!a.length)return null;
+  return a.reduce((s,x)=>s+x,0)/a.length;
 }
 
+function reliability(N){
+  if(N<50)return "Слабая";
+  if(N<100)return "Осторожно";
+  if(N<300)return "Нормальная";
+  if(N<1000)return "Хорошая";
+  return "Очень хорошая";
+}
 
-/* =========================================================
-   BINANCE
-========================================================= */
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
 
-async function fetchWithTimeout(url,timeout=20000){
+async function fetchHistory(interval,days){
 
+  const end=Date.now();
+  const start=end-days*86400000;
+
+  let out=[];
+  let cursor=start;
+
+  for(let page=0;page<15;page++){
+
+    const url=
+      "https://api.binance.com/api/v3/klines"+
+      "?symbol=BTCUSDT"+
+      "&interval="+interval+
+      "&startTime="+cursor+
+      "&endTime="+end+
+      "&limit=1000";
+
+    let data=null;
     let lastError=null;
 
-    for(let attempt=1;attempt<=3;attempt++){
+    for(let attempt=0;attempt<3;attempt++){
 
-        const controller=new AbortController();
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),20000);
 
-        const timer=setTimeout(
-            ()=>controller.abort(),
-            timeout
-        );
+      try{
+        const r=await fetch(url,{
+          cache:"no-store",
+          signal:controller.signal
+        });
 
-        try{
+        clearTimeout(timer);
 
-            const response=await fetch(
-                url,
-                {
-                    method:"GET",
-                    cache:"no-store",
-                    signal:controller.signal
-                }
-            );
+        if(!r.ok)throw new Error("HTTP "+r.status);
 
-            clearTimeout(timer);
+        data=await r.json();
+        break;
 
-            if(!response.ok){
-
-                throw new Error(
-                    "Binance HTTP "+response.status
-                );
-            }
-
-            return await response.json();
-
-        }catch(error){
-
-            clearTimeout(timer);
-            lastError=error;
-
-            if(attempt<3){
-
-                setStatus(
-                    "Повтор подключения к Binance "+
-                    attempt+"/3..."
-                );
-
-                await new Promise(
-                    r=>setTimeout(r,1000)
-                );
-            }
-        }
+      }catch(e){
+        clearTimeout(timer);
+        lastError=e;
+        await new Promise(r=>setTimeout(r,1000*(attempt+1)));
+      }
     }
 
-    throw lastError||
-        new Error("Binance недоступен");
+    if(!data){
+      throw lastError||new Error("Не удалось получить данные Binance");
+    }
+
+    if(!data.length)break;
+
+    out.push(...data);
+
+    if(data.length<1000)break;
+
+    const lastTime=data[data.length-1][0];
+
+    if(lastTime<=cursor)break;
+
+    cursor=lastTime+1;
+
+    if(cursor>=end)break;
+  }
+
+  const map=new Map();
+
+  for(const k of out){
+    map.set(k[0],{
+      time:k[0],
+      open:+k[1],
+      high:+k[2],
+      low:+k[3],
+      close:+k[4],
+      volume:+k[5]
+    });
+  }
+
+  const arr=[...map.values()].sort((a,b)=>a.time-b.time);
+
+  // Используем только закрытые свечи
+  const intervalMs={
+    "15m":900000,
+    "1h":3600000,
+    "4h":14400000,
+    "1d":86400000
+  }[interval];
+
+  const now=Date.now();
+
+  return arr.filter(x=>x.time+intervalMs<=now);
 }
 
+function ema(values,period){
+  const out=new Array(values.length).fill(null);
+  if(values.length<period)return out;
 
-/* =========================================================
-   ИСТОРИЯ
-========================================================= */
+  let sum=0;
 
-async function fetchHistory(interval){
+  for(let i=0;i<period;i++)sum+=values[i];
 
-    const step=STEP[interval];
+  let prev=sum/period;
+  out[period-1]=prev;
 
-    const now=Date.now();
+  const k=2/(period+1);
 
-    const start=
-        now-
-        HISTORY_DAYS[interval]*
-        24*60*60*1000;
+  for(let i=period;i<values.length;i++){
+    prev=values[i]*k+prev*(1-k);
+    out[i]=prev;
+  }
 
-    let cursor=start;
-
-    const all=[];
-
-    const estimated=
-        Math.max(
-            1,
-            Math.ceil(
-                (now-start)/(step*1000)
-            )
-        );
-
-    let request=0;
-
-    while(cursor<now){
-
-        request++;
-
-        setStatus(
-            "Загрузка "+interval+
-            ": запрос "+
-            request+
-            " из ~"+
-            estimated
-        );
-
-        const url=
-            API+
-            "?symbol="+SYMBOL+
-            "&interval="+interval+
-            "&limit=1000"+
-            "&startTime="+cursor+
-            "&endTime="+now;
-
-        const rows=
-            await fetchWithTimeout(url);
-
-        if(!Array.isArray(rows)){
-            throw new Error(
-                "Binance вернул неверный формат данных"
-            );
-        }
-
-        if(rows.length===0){
-            break;
-        }
-
-        for(const c of rows){
-
-            if(!Array.isArray(c)||c.length<6){
-                continue;
-            }
-
-            const item={
-                time:Number(c[0]),
-                open:Number(c[1]),
-                high:Number(c[2]),
-                low:Number(c[3]),
-                close:Number(c[4]),
-                volume:Number(c[5])
-            };
-
-            if(
-                !Number.isFinite(item.time)||
-                !Number.isFinite(item.open)||
-                !Number.isFinite(item.high)||
-                !Number.isFinite(item.low)||
-                !Number.isFinite(item.close)||
-                !Number.isFinite(item.volume)
-            ){
-                continue;
-            }
-
-            /*
-               Не используем незакрытую свечу.
-            */
-            if(item.time+step<=now){
-                all.push(item);
-            }
-        }
-
-        const last=
-            Number(rows[rows.length-1][0]);
-
-        if(!Number.isFinite(last)){
-            break;
-        }
-
-        const next=last+step;
-
-        if(next<=cursor){
-            break;
-        }
-
-        cursor=next;
-
-        if(rows.length<1000){
-            break;
-        }
-    }
-
-    /*
-       Удаляем дубликаты.
-    */
-
-    const map=new Map();
-
-    for(const c of all){
-        map.set(c.time,c);
-    }
-
-    const result=
-        Array.from(map.values())
-        .sort((a,b)=>a.time-b.time);
-
-    if(result.length<250){
-
-        throw new Error(
-            "Недостаточно истории: "+
-            result.length+
-            " свечей"
-        );
-    }
-
-    return result;
+  return out;
 }
 
+function rsi(values,period=14){
 
-/* =========================================================
-   EMA
-========================================================= */
+  const out=new Array(values.length).fill(null);
 
-function EMA(values,period){
+  if(values.length<=period)return out;
 
-    const out=
-        new Array(values.length)
-        .fill(null);
+  let gains=0;
+  let losses=0;
 
-    if(values.length<period){
-        return out;
-    }
+  for(let i=1;i<=period;i++){
+    const d=values[i]-values[i-1];
+    if(d>=0)gains+=d;
+    else losses-=d;
+  }
 
-    let sum=0;
+  let avgGain=gains/period;
+  let avgLoss=losses/period;
 
-    for(let i=0;i<period;i++){
-        sum+=values[i];
-    }
+  out[period]=
+    avgLoss===0?100:
+    100-(100/(1+avgGain/avgLoss));
 
-    let prev=sum/period;
+  for(let i=period+1;i<values.length;i++){
 
-    out[period-1]=prev;
+    const d=values[i]-values[i-1];
+    const gain=Math.max(d,0);
+    const loss=Math.max(-d,0);
 
-    const k=2/(period+1);
+    avgGain=(avgGain*(period-1)+gain)/period;
+    avgLoss=(avgLoss*(period-1)+loss)/period;
 
-    for(let i=period;i<values.length;i++){
+    out[i]=
+      avgLoss===0?100:
+      100-(100/(1+avgGain/avgLoss));
+  }
 
-        prev=
-            values[i]*k+
-            prev*(1-k);
-
-        out[i]=prev;
-    }
-
-    return out;
+  return out;
 }
 
+function macd(values){
 
-/* =========================================================
-   RSI
-========================================================= */
+  const e12=ema(values,12);
+  const e26=ema(values,26);
 
-function RSI(values,period=14){
+  const line=new Array(values.length).fill(null);
 
-    const out=
-        new Array(values.length)
-        .fill(null);
+  for(let i=0;i<values.length;i++){
+    if(e12[i]!==null&&e26[i]!==null)
+      line[i]=e12[i]-e26[i];
+  }
 
-    if(values.length<=period){
-        return out;
+  const valid=[];
+  const idx=[];
+
+  for(let i=0;i<line.length;i++){
+    if(line[i]!==null){
+      valid.push(line[i]);
+      idx.push(i);
     }
+  }
 
-    let gain=0;
-    let loss=0;
+  const sigValid=ema(valid,9);
+  const signal=new Array(values.length).fill(null);
+  const hist=new Array(values.length).fill(null);
 
-    for(let i=1;i<=period;i++){
+  for(let j=0;j<idx.length;j++){
+    const i=idx[j];
 
-        const d=
-            values[i]-values[i-1];
-
-        if(d>0){
-            gain+=d;
-        }else{
-            loss-=d;
-        }
+    if(sigValid[j]!==null){
+      signal[i]=sigValid[j];
+      hist[i]=line[i]-signal[i];
     }
+  }
 
-    let avgGain=gain/period;
-    let avgLoss=loss/period;
-
-    out[period]=
-        avgLoss===0?
-        100:
-        100-
-        100/(1+avgGain/avgLoss);
-
-    for(let i=period+1;i<values.length;i++){
-
-        const d=
-            values[i]-values[i-1];
-
-        const g=d>0?d:0;
-        const l=d<0?-d:0;
-
-        avgGain=
-            ((avgGain*(period-1))+g)/period;
-
-        avgLoss=
-            ((avgLoss*(period-1))+l)/period;
-
-        out[i]=
-            avgLoss===0?
-            100:
-            100-
-            100/(1+avgGain/avgLoss);
-    }
-
-    return out;
+  return {line,signal,hist};
 }
 
+function adx(high,low,close,period=14){
 
-/* =========================================================
-   MACD
-========================================================= */
+  const len=close.length;
+  const tr=new Array(len).fill(null);
+  const plusDM=new Array(len).fill(null);
+  const minusDM=new Array(len).fill(null);
 
-function MACD(values){
+  for(let i=1;i<len;i++){
 
-    const e12=EMA(values,12);
-    const e26=EMA(values,26);
+    const up=high[i]-high[i-1];
+    const down=low[i-1]-low[i];
 
-    const macd=
-        new Array(values.length)
-        .fill(null);
+    plusDM[i]=(up>down&&up>0)?up:0;
+    minusDM[i]=(down>up&&down>0)?down:0;
 
-    for(let i=0;i<values.length;i++){
+    tr[i]=Math.max(
+      high[i]-low[i],
+      Math.abs(high[i]-close[i-1]),
+      Math.abs(low[i]-close[i-1])
+    );
+  }
 
-        if(
-            e12[i]!==null&&
-            e26[i]!==null
-        ){
-            macd[i]=
-                e12[i]-e26[i];
-        }
+  const out=new Array(len).fill(null);
+
+  if(len<period*2+1)return out;
+
+  let atr=0,pdm=0,mdm=0;
+
+  for(let i=1;i<=period;i++){
+    atr+=tr[i]||0;
+    pdm+=plusDM[i]||0;
+    mdm+=minusDM[i]||0;
+  }
+
+  let dxs=[];
+
+  for(let i=period;i<len;i++){
+
+    if(i>period){
+      atr=atr-(atr/period)+(tr[i]||0);
+      pdm=pdm-(pdm/period)+(plusDM[i]||0);
+      mdm=mdm-(mdm/period)+(minusDM[i]||0);
     }
 
-    const clean=
-        macd.map(
-            x=>x===null?0:x
-        );
+    const pdi=atr?(100*pdm/atr):0;
+    const mdi=atr?(100*mdm/atr):0;
 
-    const signal=EMA(clean,9);
+    const dx=(pdi+mdi)===0?0:
+      100*Math.abs(pdi-mdi)/(pdi+mdi);
 
-    const hist=
-        new Array(values.length)
-        .fill(null);
+    dxs.push(dx);
 
-    for(let i=0;i<values.length;i++){
+    if(dxs.length>=period){
 
-        if(
-            macd[i]!==null&&
-            signal[i]!==null
-        ){
-            hist[i]=
-                macd[i]-signal[i];
-        }
+      if(dxs.length===period){
+        out[i]=avg(dxs);
+      }else{
+        out[i]=((out[i-1]*(period-1))+dx)/period;
+      }
     }
+  }
 
-    return {
-        macd,
-        signal,
-        hist
-    };
+  return out;
 }
-
-
-/* =========================================================
-   ADX
-========================================================= */
-
-function ADX(data,period=14){
-
-    const n=data.length;
-
-    const out=
-        new Array(n)
-        .fill(null);
-
-    if(n<=period*2){
-        return out;
-    }
-
-    const tr=new Array(n).fill(0);
-    const plus=new Array(n).fill(0);
-    const minus=new Array(n).fill(0);
-
-    for(let i=1;i<n;i++){
-
-        const h=data[i].high;
-        const l=data[i].low;
-
-        const ph=data[i-1].high;
-        const pl=data[i-1].low;
-        const pc=data[i-1].close;
-
-        tr[i]=Math.max(
-            h-l,
-            Math.abs(h-pc),
-            Math.abs(l-pc)
-        );
-
-        const up=h-ph;
-        const down=pl-l;
-
-        if(up>down&&up>0){
-            plus[i]=up;
-        }
-
-        if(down>up&&down>0){
-            minus[i]=down;
-        }
-    }
-
-    let atr=0;
-    let p=0;
-    let m=0;
-
-    for(let i=1;i<=period;i++){
-
-        atr+=tr[i];
-        p+=plus[i];
-        m+=minus[i];
-    }
-
-    atr/=period;
-    p/=period;
-    m/=period;
-
-    const dx=
-        new Array(n).fill(null);
-
-    for(let i=period;i<n;i++){
-
-        if(i>period){
-
-            atr=
-                ((atr*(period-1))+tr[i])/
-                period;
-
-            p=
-                ((p*(period-1))+plus[i])/
-                period;
-
-            m=
-                ((m*(period-1))+minus[i])/
-                period;
-        }
-
-        if(atr===0){
-            continue;
-        }
-
-        const pdi=100*p/atr;
-        const mdi=100*m/atr;
-
-        if(pdi+mdi===0){
-            continue;
-        }
-
-        dx[i]=
-            100*Math.abs(pdi-mdi)/
-            (pdi+mdi);
-    }
-
-    let count=0;
-    let sum=0;
-
-    for(let i=period;i<n;i++){
-
-        if(dx[i]!==null){
-
-            sum+=dx[i];
-            count++;
-        }
-
-        if(count===period){
-
-            let adx=sum/period;
-
-            out[i]=adx;
-
-            for(let j=i+1;j<n;j++){
-
-                if(dx[j]===null){
-                    continue;
-                }
-
-                adx=
-                    ((adx*(period-1))+dx[j])/
-                    period;
-
-                out[j]=adx;
-            }
-
-            break;
-        }
-    }
-
-    return out;
-}
-
-
-/* =========================================================
-   ИНДИКАТОРЫ
-========================================================= */
 
 function indicators(data){
 
-    const close=data.map(x=>x.close);
+  const close=data.map(x=>x.close);
+  const high=data.map(x=>x.high);
+  const low=data.map(x=>x.low);
 
-    const macd=MACD(close);
+  const e20=ema(close,20);
+  const e50=ema(close,50);
+  const e200=ema(close,200);
+  const rs=rsi(close,14);
+  const mc=macd(close);
+  const ax=adx(high,low,close,14);
 
-    return {
-        close,
-        ema20:EMA(close,20),
-        ema50:EMA(close,50),
-        ema200:EMA(close,200),
-        rsi:RSI(close,14),
-        macd:macd.macd,
-        macdSignal:macd.signal,
-        macdHist:macd.hist,
-        adx:ADX(data,14)
-    };
+  const volumeAvg=new Array(data.length).fill(null);
+
+  let sum=0;
+  const vp=20;
+
+  for(let i=0;i<data.length;i++){
+
+    sum+=data[i].volume;
+
+    if(i>=vp)sum-=data[i-vp].volume;
+
+    if(i>=vp-1)
+      volumeAvg[i]=sum/vp;
+  }
+
+  return {
+    e20,e50,e200,
+    rsi:rs,
+    macd:mc.line,
+    macdHist:mc.hist,
+    adx:ax,
+    volumeAvg
+  };
 }
-
-
-/* =========================================================
-   СОСТОЯНИЕ РЫНКА
-========================================================= */
 
 function regime(ind,i){
 
-    const p=ind.close[i];
-    const e20=ind.ema20[i];
-    const e50=ind.ema50[i];
-    const e200=ind.ema200[i];
-    const r=ind.rsi[i];
-    const a=ind.adx[i];
+  const e20=ind.e20[i];
+  const e50=ind.e50[i];
+  const e200=ind.e200[i];
+  const r=ind.rsi[i];
+  const a=ind.adx[i];
+  const m=ind.macd[i];
 
-    if(
-        e20===null||
-        e50===null||
-        e200===null||
-        r===null
-    ){
-        return "Не определён";
-    }
+  if(
+    e20===null||e50===null||
+    e200===null||r===null||
+    a===null||m===null
+  )return "Неизвестно";
 
-    const strong=
-        a!==null&&a>=25;
+  let score=0;
 
-    if(
-        e20>e50&&
-        e50>e200&&
-        r>=52&&
-        strong
-    ){
-        return "Сильный бычий";
-    }
+  if(e20>e50)score++;
+  if(dataGlobal[i].close>e200)score++;
+  if(m>0)score++;
+  if(r>52)score++;
+  if(a>25)score++;
 
-    if(
-        e20>e50&&
-        p>e200
-    ){
-        return "Бычий";
-    }
-
-    if(
-        e20<e50&&
-        e50<e200&&
-        r<=48&&
-        strong
-    ){
-        return "Сильный медвежий";
-    }
-
-    if(
-        e20<e50&&
-        p<e200
-    ){
-        return "Медвежий";
-    }
-
-    return "Боковик";
+  if(score>=5)return "Сильный бычий";
+  if(score>=3)return "Бычий";
+  if(score===2)return "Боковик";
+  if(score===1)return "Медвежий";
+  return "Сильный медвежий";
 }
 
+function factorState(ind,i){
 
-/* =========================================================
-   БАЗОВЫЙ СИГНАЛ
-========================================================= */
+  const x=dataGlobal[i];
 
-function basicSignal(ind,data,i){
-
-    if(
-        i<200||
-        ind.ema20[i]===null||
-        ind.ema50[i]===null||
-        ind.ema200[i]===null||
-        ind.rsi[i]===null
-    ){
-        return {
-            score:0,
-            signal:"Недостаточно данных"
-        };
-    }
-
-    let score=0;
-
-    const p=ind.close[i];
-
-    if(p>ind.ema20[i]) score++;
-    else score--;
-
-    if(ind.ema20[i]>ind.ema50[i]) score++;
-    else score--;
-
-    if(p>ind.ema200[i]) score++;
-    else score--;
-
-    if(
-        ind.macdHist[i]!==null
-    ){
-        if(ind.macdHist[i]>0) score++;
-        else score--;
-    }
-
-    if(ind.rsi[i]>52) score++;
-    if(ind.rsi[i]<48) score--;
-
-    if(ind.adx[i]!==null&&ind.adx[i]>25){
-
-        if(score>0) score++;
-        if(score<0) score--;
-    }
-
-    let signal="НЕЙТРАЛЬНО";
-
-    if(score>=4)
-        signal="СИЛЬНАЯ ПОКУПКА";
-    else if(score>=2)
-        signal="ПОКУПКА";
-    else if(score<=-4)
-        signal="СИЛЬНАЯ ПРОДАЖА";
-    else if(score<=-2)
-        signal="ПРОДАЖА";
-
-    return {score,signal};
+  return {
+    ema:ind.e20[i]!==null&&ind.e50[i]!==null&&ind.e20[i]>ind.e50[i],
+    ema200:ind.e200[i]!==null&&x.close>ind.e200[i],
+    macd:ind.macd[i]!==null&&ind.macd[i]>0,
+    hist:ind.macdHist[i]!==null&&ind.macdHist[i]>0,
+    rsi52:ind.rsi[i]!==null&&ind.rsi[i]>52,
+    rsi5265:ind.rsi[i]!==null&&ind.rsi[i]>=52&&ind.rsi[i]<=65,
+    adx:ind.adx[i]!==null&&ind.adx[i]>25,
+    volume:ind.volumeAvg[i]!==null&&x.volume>ind.volumeAvg[i]
+  };
 }
-
-
-/* =========================================================
-   ВОЗВРАТ
-========================================================= */
 
 function futureReturn(data,i,h){
 
-    const entry=i+1;
-    const exit=i+1+h;
+  if(i+1+h>=data.length)return null;
 
-    if(
-        entry>=data.length||
-        exit>=data.length
-    ){
-        return null;
-    }
+  const entry=data[i+1].open;
+  const exit=data[i+1+h].close;
 
-    const e=data[entry].open;
-    const x=data[exit].close;
+  if(!Number.isFinite(entry)||!Number.isFinite(exit)||entry<=0)
+    return null;
 
-    if(
-        !Number.isFinite(e)||
-        !Number.isFinite(x)||
-        e===0
-    ){
-        return null;
-    }
-
-    return (x-e)/e*100;
+  return (exit/entry-1)*100;
 }
 
+function statsForIndices(data,indices,h){
 
-/* =========================================================
-   СТАТИСТИКА
-========================================================= */
+  const returns=[];
 
-function calcStats(values){
+  for(const i of indices){
 
-    if(!values.length){
+    const r=futureReturn(data,i,h);
 
-        return {
-            n:0,
-            win:null,
-            avg:null,
-            median:null,
-            best:null,
-            worst:null,
-            plus1:null,
-            minus1:null
-        };
-    }
+    if(r!==null&&Number.isFinite(r))
+      returns.push(r);
+  }
 
-    let wins=0;
-    let plus1=0;
-    let minus1=0;
-    let sum=0;
-
-    let best=-Infinity;
-    let worst=Infinity;
-
-    for(const r of values){
-
-        if(r>0) wins++;
-
-        if(r>1) plus1++;
-
-        if(r<-1) minus1++;
-
-        sum+=r;
-
-        best=Math.max(best,r);
-        worst=Math.min(worst,r);
-    }
-
-    const sorted=
-        values.slice().sort(
-            (a,b)=>a-b
-        );
-
-    const mid=
-        Math.floor(sorted.length/2);
-
-    const median=
-        sorted.length%2?
-        sorted[mid]:
-        (sorted[mid-1]+sorted[mid])/2;
-
+  if(!returns.length){
     return {
-        n:values.length,
-        win:wins/values.length*100,
-        avg:sum/values.length,
-        median,
-        best,
-        worst,
-        plus1:plus1/values.length*100,
-        minus1:minus1/values.length*100
+      N:0,
+      win:null,
+      avg:null,
+      median:null,
+      plus1:null,
+      minus1:null
     };
+  }
+
+  return {
+    N:returns.length,
+    win:100*returns.filter(x=>x>0).length/returns.length,
+    avg:avg(returns),
+    median:median(returns),
+    plus1:100*returns.filter(x=>x>1).length/returns.length,
+    minus1:100*returns.filter(x=>x<-1).length/returns.length
+  };
 }
 
+function baselineStats(data,h,start,end){
 
-/* =========================================================
-   РЕЖИМЫ — 24 ЧАСА
-========================================================= */
+  const indices=[];
 
-function regimeStats(
-    data,
-    ind,
-    interval
-){
+  for(let i=start;i<end-h-1;i++)
+    indices.push(i);
 
-    const h=H24[interval];
-
-    const names=[
-        "Сильный бычий",
-        "Бычий",
-        "Боковик",
-        "Медвежий",
-        "Сильный медвежий"
-    ];
-
-    const result={};
-
-    for(const name of names){
-        result[name]=[];
-    }
-
-    const max=
-        data.length-h-2;
-
-    for(
-        let i=200;
-        i<=max;
-        i++
-    ){
-
-        const r=regime(ind,i);
-
-        const ret=
-            futureReturn(data,i,h);
-
-        if(
-            ret!==null&&
-            result[r]
-        ){
-            result[r].push(ret);
-        }
-    }
-
-    const stats={};
-
-    for(const name of names){
-        stats[name]=
-            calcStats(result[name]);
-    }
-
-    return stats;
+  return statsForIndices(data,indices,h);
 }
 
+function combinationStats(data,ind,h,combo,start,end){
 
-/* =========================================================
-   УСЛОВИЯ ФАКТОРОВ
-========================================================= */
+  const indices=[];
 
-function factorsAt(ind,i){
+  for(let i=Math.max(200,start);i<end-h-1;i++){
 
-    return {
+    const f=factorState(ind,i);
 
-        ema:
-            ind.ema20[i]!==null&&
-            ind.ema50[i]!==null&&
-            ind.ema20[i]>ind.ema50[i],
+    if(combo.every(x=>f[x]))
+      indices.push(i);
+  }
 
-        above200:
-            ind.ema200[i]!==null&&
-            ind.close[i]>ind.ema200[i],
-
-        macd:
-            ind.macd[i]!==null&&
-            ind.macd[i]>0,
-
-        hist:
-            ind.macdHist[i]!==null&&
-            ind.macdHist[i]>0,
-
-        rsi:
-            ind.rsi[i]!==null&&
-            ind.rsi[i]>52,
-
-        rsiSafe:
-            ind.rsi[i]!==null&&
-            ind.rsi[i]>=52&&
-            ind.rsi[i]<=65,
-
-        adx:
-            ind.adx[i]!==null&&
-            ind.adx[i]>25,
-
-        volume:
-            true
-    };
+  return statsForIndices(data,indices,h);
 }
 
+function scoreCombination(s,baseline){
 
-/* =========================================================
-   ОБЪЁМНЫЙ ФАКТОР
-========================================================= */
+  if(!s||s.N<50||!baseline)return -999;
 
-function volumeCondition(data,i){
+  const edgeAvg=s.avg-baseline.avg;
+  const edgeMedian=s.median-baseline.median;
+  const edgeWin=s.win-baseline.win;
 
-    if(i<20){
-        return false;
-    }
+  // Умеренное ранжирование:
+  // доходность важнее процента выигрышных,
+  // но N тоже существенно влияет.
+  let score=50;
 
-    let sum=0;
+  score+=edgeAvg*25;
+  score+=edgeMedian*15;
+  score+=edgeWin*0.25;
 
-    for(let j=i-20;j<i;j++){
-        sum+=data[j].volume;
-    }
+  const reliability=Math.min(1,s.N/300);
+  score*=0.65+0.35*reliability;
 
-    const avg=sum/20;
-
-    return data[i].volume>avg;
+  return score;
 }
 
-
-/* =========================================================
-   КОМБИНАЦИЯ ФАКТОРОВ
-========================================================= */
-
-function combinationStats(
-    data,
-    ind,
-    interval
-){
-
-    const h=H24[interval];
-
-    const sets=[
-        {
-            name:"EMA20 > EMA50",
-            test:f=>f.ema
-        },
-        {
-            name:"Цена > EMA200",
-            test:f=>f.above200
-        },
-        {
-            name:"MACD > 0",
-            test:f=>f.macd
-        },
-        {
-            name:"MACD Histogram > 0",
-            test:f=>f.hist
-        },
-        {
-            name:"RSI > 52",
-            test:f=>f.rsi
-        },
-        {
-            name:"RSI 52–65",
-            test:f=>f.rsiSafe
-        },
-        {
-            name:"ADX > 25",
-            test:f=>f.adx
-        },
-        {
-            name:"Объём > среднего",
-            test:f=>f.volume
-        }
-    ];
-
-    const result=[];
-
-    /*
-       Ограничиваем последними 6000 точками.
-       Для статистики этого достаточно и
-       телефон не будет перегружаться.
-    */
-
-    const start=
-        Math.max(
-            200,
-            data.length-6000
-        );
-
-    for(const set of sets){
-
-        const values=[];
-
-        for(
-            let i=start;
-            i<=data.length-h-2;
-            i++
-        ){
-
-            const f=factorsAt(ind,i);
-
-            if(set.name==="Объём > среднего"){
-                f.volume=
-                    volumeCondition(data,i);
-            }
-
-            if(!set.test(f)){
-                continue;
-            }
-
-            const ret=
-                futureReturn(data,i,h);
-
-            if(ret!==null){
-                values.push(ret);
-            }
-        }
-
-        result.push({
-            name:set.name,
-            stats:calcStats(values)
-        });
-    }
-
-    /*
-       Теперь комбинация из основных факторов.
-    */
-
-    const comboValues=[];
-
-    for(
-        let i=start;
-        i<=data.length-h-2;
-        i++
-    ){
-
-        const f=factorsAt(ind,i);
-
-        f.volume=
-            volumeCondition(data,i);
-
-        if(
-            f.ema&&
-            f.above200&&
-            f.macd&&
-            f.hist&&
-            f.rsiSafe&&
-            f.adx
-        ){
-
-            const ret=
-                futureReturn(data,i,h);
-
-            if(ret!==null){
-                comboValues.push(ret);
-            }
-        }
-    }
-
-    return {
-        factors:result,
-        combo:calcStats(comboValues)
-    };
+function comboName(combo){
+  return combo.map(id=>{
+    const x=FACTORS.find(f=>f.id===id);
+    return x?x.name:id;
+  }).join(" + ");
 }
 
+function combinations(arr,size){
 
-/* =========================================================
-   РЕЙТИНГ ТЕКУЩЕГО СИГНАЛА
-========================================================= */
+  const result=[];
 
-function statisticalScore(
-    current,
-    regimeStat,
-    combo
-){
+  function rec(start,current){
 
-    /*
-       Базовый рейтинг.
-       Это НЕ вероятность и не гарантия.
-       Это удобный статистический балл.
-    */
-
-    let score=50;
-
-    if(
-        current.signal==="СИЛЬНАЯ ПОКУПКА"
-    ){
-        score+=12;
-    }else if(
-        current.signal==="ПОКУПКА"
-    ){
-        score+=7;
-    }else if(
-        current.signal==="ПРОДАЖА"
-    ){
-        score-=7;
-    }else if(
-        current.signal==="СИЛЬНАЯ ПРОДАЖА"
-    ){
-        score-=12;
+    if(current.length===size){
+      result.push([...current]);
+      return;
     }
 
-    const rs=
-        regimeStat[
-            current.regime
-        ];
-
-    if(
-        rs&&
-        rs.n>=50&&
-        rs.win!==null
-    ){
-
-        score+=
-            (rs.win-50)*0.35;
+    for(let i=start;i<arr.length;i++){
+      current.push(arr[i]);
+      rec(i+1,current);
+      current.pop();
     }
+  }
 
-    if(
-        combo&&
-        combo.n>=50&&
-        combo.win!==null
-    ){
+  rec(0,[]);
 
-        score+=
-            (combo.win-50)*0.25;
-    }
+  return result;
+}
 
-    return Math.max(
-        0,
-        Math.min(100,score)
+function findBestCombos(data,ind,h,start,end,baseline){
+
+  const all=[];
+
+  for(let size=2;size<=4;size++){
+
+    const combos=combinations(
+      FACTORS.map(x=>x.id),
+      size
     );
+
+    for(const combo of combos){
+
+      const s=combinationStats(
+        data,ind,h,combo,start,end
+      );
+
+      if(s.N<50)continue;
+
+      const score=scoreCombination(s,baseline);
+
+      all.push({
+        combo,
+        size,
+        ...s,
+        score
+      });
+    }
+  }
+
+  all.sort((a,b)=>b.score-a.score);
+
+  return all;
 }
 
+function currentFactors(ind,i){
 
-/* =========================================================
-   КЛАСС НАДЁЖНОСТИ
-========================================================= */
+  const f=factorState(ind,i);
 
-function reliability(n){
-
-    if(n<50){
-        return "Слабая выборка";
-    }
-
-    if(n<100){
-        return "Осторожно";
-    }
-
-    if(n<300){
-        return "Нормальная";
-    }
-
-    if(n<1000){
-        return "Хорошая";
-    }
-
-    return "Очень хорошая";
+  return FACTORS.filter(x=>f[x.id]);
 }
 
+function currentComboStats(data,ind,h,combo){
 
-/* =========================================================
-   ТЕКУЩИЙ СТАТИСТИЧЕСКИЙ ПРОГНОЗ
-========================================================= */
+  if(!combo.length)return null;
 
-function renderStatisticalSignal(
+  return combinationStats(
     data,
     ind,
-    interval,
-    regimeStatsData,
-    combo
-){
-
-    const i=data.length-1;
-
-    const currentBasic=
-        basicSignal(ind,data,i);
-
-    const currentRegime=
-        regime(ind,i);
-
-    const rs=
-        regimeStatsData[
-            currentRegime
-        ];
-
-    const score=
-        statisticalScore(
-            {
-                signal:currentBasic.signal,
-                regime:currentRegime
-            },
-            regimeStatsData,
-            combo
-        );
-
-    let scoreClass="yellow";
-
-    if(score>=65){
-        scoreClass="green";
-    }else if(score<=35){
-        scoreClass="red";
-    }
-
-    let interpretation="Нейтрально";
-
-    if(score>=75){
-        interpretation=
-            "Сильное статистическое преимущество вверх";
-    }else if(score>=65){
-        interpretation=
-            "Умеренное преимущество вверх";
-    }else if(score<=25){
-        interpretation=
-            "Сильное статистическое преимущество вниз";
-    }else if(score<=35){
-        interpretation=
-            "Умеренное преимущество вниз";
-    }
-
-    contentEl.innerHTML+=`
-
-<div class="card">
-
-<h2>📊 Статистический сигнал · 24 часа</h2>
-
-<div class="score ${scoreClass}">
-${score.toFixed(0)}/100
-</div>
-
-<div style="text-align:center">
-<span class="badge">${interpretation}</span>
-</div>
-
-<br>
-
-<div class="grid">
-
-<div class="metric">
-<div class="metric-title">Базовый сигнал</div>
-<div class="metric-value">
-${currentBasic.signal}
-</div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Режим</div>
-<div class="metric-value">
-${currentRegime}
-</div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Исторический N</div>
-<div class="metric-value">
-${rs?rs.n:0}
-</div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Исторический рост</div>
-<div class="metric-value">
-${rs?pct1(rs.win):"—"}
-</div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Средняя доходность</div>
-<div class="metric-value">
-${rs?pct(rs.avg):"—"}
-</div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Медиана</div>
-<div class="metric-value">
-${rs?pct(rs.median):"—"}
-</div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Рост > +1%</div>
-<div class="metric-value">
-${rs?pct1(rs.plus1):"—"}
-</div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Падение < −1%</div>
-<div class="metric-value">
-${rs?pct1(rs.minus1):"—"}
-</div>
-</div>
-
-</div>
-
-<p class="note">
-Надёжность выборки:
-<b>${rs?reliability(rs.n):"—"}</b>
-</p>
-
-<p class="note">
-Текущая цена:
-<b>${price(ind.close[i])}</b>
-</p>
-
-</div>
-`;
+    h,
+    combo.map(x=>x.id),
+    0,
+    data.length
+  );
 }
 
+function statTableRow(name,s){
 
-/* =========================================================
-   ТАБЛИЦА РЕЖИМОВ
-========================================================= */
-
-function renderRegimeTable(
-    regimeData,
-    interval
-){
-
-    const names=[
-        "Сильный бычий",
-        "Бычий",
-        "Боковик",
-        "Медвежий",
-        "Сильный медвежий"
-    ];
-
-    let html=`
-
-<div class="card">
-
-<h2>История режимов · 24 часа</h2>
-
-<table>
-
-<thead>
-<tr>
-<th>Режим</th>
-<th>N</th>
-<th>Рост</th>
-<th>Средн.</th>
-<th>Медиана</th>
-<th>>+1%</th>
-<th><−1%</th>
-</tr>
-</thead>
-
-<tbody>
-`;
-
-    for(const name of names){
-
-        const s=regimeData[name];
-
-        html+=`
-
-<tr>
-
-<td>${name}</td>
-
-<td>${s.n}</td>
-
-<td>${pct1(s.win)}</td>
-
-<td>${pct(s.avg)}</td>
-
-<td>${pct(s.median)}</td>
-
-<td>${pct1(s.plus1)}</td>
-
-<td>${pct1(s.minus1)}</td>
-
-</tr>
-`;
-    }
-
-    html+=`
-
-</tbody>
-</table>
-
-<p class="note">
-«Рост» означает долю случаев, когда BTC
-оказался выше цены входа через 24 часа.
-</p>
-
-</div>
-`;
-
-    contentEl.innerHTML+=html;
+  return `
+  <tr>
+    <td>${escapeHtml(name)}</td>
+    <td>${s.N}</td>
+    <td>${pct(s.win-100)}</td>
+    <td>${pct(s.avg)}</td>
+    <td>${pct(s.median)}</td>
+    <td>${pct(s.plus1)}</td>
+    <td>${pct(s.minus1)}</td>
+  </tr>`;
 }
 
+function renderBasic(data,ind,h){
 
-/* =========================================================
-   ФАКТОРЫ
-========================================================= */
+  const i=data.length-1;
 
-function renderFactors(
-    combination,
-    interval
-){
+  const current={
+    price:data[i].close,
+    rsi:ind.rsi[i],
+    adx:ind.adx[i],
+    e20:ind.e20[i],
+    e50:ind.e50[i],
+    e200:ind.e200[i],
+    macd:ind.macd[i],
+    hist:ind.macdHist[i]
+  };
 
-    let html=`
+  const regimeNow=regime(ind,i);
 
-<div class="card">
+  let regimeScore=0;
 
-<h2>Факторы · 24 часа</h2>
+  if(current.e20>current.e50)regimeScore++;
+  if(current.price>current.e200)regimeScore++;
+  if(current.macd>0)regimeScore++;
+  if(current.rsi>52)regimeScore++;
+  if(current.adx>25)regimeScore++;
 
-<table>
+  const signal=
+    regimeScore>=4?"СИЛЬНАЯ ПОКУПКА":
+    regimeScore>=3?"ПОКУПКА":
+    regimeScore===2?"НЕЙТРАЛЬНО":
+    regimeScore===1?"ПРОДАЖА":
+    "СИЛЬНАЯ ПРОДАЖА";
 
-<thead>
-<tr>
-<th>Условие</th>
-<th>N</th>
-<th>Рост</th>
-<th>Средн.</th>
-<th>Медиана</th>
-<th>>+1%</th>
-</tr>
-</thead>
+  return `
+  <div class="card">
+    <h2>📈 Текущий рынок</h2>
 
-<tbody>
-`;
+    <div class="grid">
 
-    for(const item of combination.factors){
+      <div class="stat">
+        <div class="label">BTC</div>
+        <div class="value">${price(current.price)}</div>
+      </div>
 
-        const s=item.stats;
+      <div class="stat">
+        <div class="label">RSI</div>
+        <div class="value">${fmt(current.rsi)}</div>
+      </div>
 
-        html+=`
+      <div class="stat">
+        <div class="label">ADX</div>
+        <div class="value">${fmt(current.adx)}</div>
+      </div>
 
-<tr>
+      <div class="stat">
+        <div class="label">Режим</div>
+        <div class="value">${regimeNow}</div>
+      </div>
 
-<td>${item.name}</td>
+      <div class="stat">
+        <div class="label">EMA20</div>
+        <div class="value">${price(current.e20)}</div>
+      </div>
 
-<td>${s.n}</td>
+      <div class="stat">
+        <div class="label">EMA50</div>
+        <div class="value">${price(current.e50)}</div>
+      </div>
 
-<td>${pct1(s.win)}</td>
+      <div class="stat">
+        <div class="label">EMA200</div>
+        <div class="value">${price(current.e200)}</div>
+      </div>
 
-<td>${pct(s.avg)}</td>
+      <div class="stat">
+        <div class="label">MACD</div>
+        <div class="value">${fmt(current.macd)}</div>
+      </div>
 
-<td>${pct(s.median)}</td>
+      <div class="stat">
+        <div class="label">MACD Histogram</div>
+        <div class="value">${fmt(current.hist)}</div>
+      </div>
 
-<td>${pct1(s.plus1)}</td>
+    </div>
 
-</tr>
-`;
-    }
+    <hr>
 
-    html+=`
+    <div class="label">Базовый сигнал</div>
+    <div class="signal">${signal}</div>
 
-</tbody>
-</table>
+    <div class="progress">
+      <div style="width:${regimeScore*20}%"></div>
+    </div>
 
-</div>
-`;
-
-    contentEl.innerHTML+=html;
-
-
-    const c=combination.combo;
-
-    let comboClass="yellow";
-
-    if(c.n>=50&&c.win>=60){
-        comboClass="green";
-    }else if(c.n>=50&&c.win<45){
-        comboClass="red";
-    }
-
-    contentEl.innerHTML+=`
-
-<div class="card">
-
-<h2>🔥 Комбинация сильных факторов</h2>
-
-<p class="note">
-EMA20 > EMA50 + Цена > EMA200 +
-MACD > 0 + Histogram > 0 +
-RSI 52–65 + ADX > 25
-</p>
-
-<div class="grid">
-
-<div class="metric">
-<div class="metric-title">Количество случаев</div>
-<div class="metric-value">
-${c.n}
-</div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Рост через 24ч</div>
-<div class="metric-value ${comboClass}">
-${pct1(c.win)}
-</div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Средняя доходность</div>
-<div class="metric-value">
-${pct(c.avg)}
-</div>
-</div>
-
-<div class="metric">
-<div class="metric-title">Медиана</div>
-<div class="metric-value">
-${pct(c.median)}
-</div>
-</div>
-
-</div>
-
-<p class="note">
-Надёжность:
-<b>${reliability(c.n)}</b>
-</p>
-
-</div>
-`;
+    <div class="small">
+      Сработало факторов: ${regimeScore}/5
+    </div>
+  </div>`;
 }
 
+function renderFactors(data,ind,h){
 
-/* =========================================================
-   БЭКТЕСТ РАЗНЫХ ГОРИЗОНТОВ
-========================================================= */
+  const rows=[];
 
-function renderHorizons(
+  const end=data.length-h-2;
+
+  for(const factor of FACTORS){
+
+    const indices=[];
+
+    for(let i=200;i<end;i++){
+
+      const f=factorState(ind,i);
+
+      if(f[factor.id])indices.push(i);
+    }
+
+    const s=statsForIndices(data,indices,h);
+
+    rows.push(statTableRow(factor.name,s));
+  }
+
+  return `
+  <div class="card">
+    <h2>📊 Факторы · 24 часа</h2>
+
+    <div style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>Условие</th>
+          <th>N</th>
+          <th>Рост</th>
+          <th>Средн.</th>
+          <th>Медиана</th>
+          <th>>+1%</th>
+          <th><−1%</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.join("")}
+      </tbody>
+    </table>
+    </div>
+  </div>`;
+}
+
+function renderRegimes(data,ind,h){
+
+  const names=[
+    "Сильный бычий",
+    "Бычий",
+    "Боковик",
+    "Медвежий",
+    "Сильный медвежий"
+  ];
+
+  const end=data.length-h-2;
+
+  const rows=[];
+
+  for(const name of names){
+
+    const indices=[];
+
+    for(let i=200;i<end;i++){
+
+      if(regime(ind,i)===name)
+        indices.push(i);
+    }
+
+    const s=statsForIndices(data,indices,h);
+
+    rows.push(statTableRow(name,s));
+  }
+
+  return `
+  <div class="card">
+    <h2>📚 История режимов · 24 часа</h2>
+
+    <div style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>Режим</th>
+          <th>N</th>
+          <th>Рост</th>
+          <th>Средн.</th>
+          <th>Медиана</th>
+          <th>>+1%</th>
+          <th><−1%</th>
+        </tr>
+      </thead>
+      <tbody>${rows.join("")}</tbody>
+    </table>
+    </div>
+  </div>`;
+}
+
+function renderSearch(data,ind,h,baseline){
+
+  const split=Math.floor(data.length*0.7);
+
+  const combos=findBestCombos(
     data,
     ind,
-    interval
-){
+    h,
+    200,
+    split,
+    baseline
+  );
 
-    const horizons=
-        HORIZONS[interval];
+  const top=combos.slice(0,10);
 
-    let html=`
+  const rows=top.map(x=>{
 
-<div class="card">
+    const edge=x.avg-baseline.avg;
 
-<h2>Результаты по горизонтам</h2>
+    return `
+    <tr>
+      <td>${escapeHtml(comboName(x.combo))}</td>
+      <td>${x.N}</td>
+      <td>${pct(x.win)}</td>
+      <td>${pct(x.avg)}</td>
+      <td>${pct(x.median)}</td>
+      <td>${pct(edge)}</td>
+      <td>${fmt(x.score)}</td>
+    </tr>`;
+  });
 
-<table>
+  return `
+  <div class="card">
+    <h2>🔥 Автопоиск лучших комбинаций</h2>
 
-<thead>
-<tr>
-<th>Горизонт</th>
-<th>N</th>
-<th>Рост</th>
-<th>Средн.</th>
-<th>Медиана</th>
-</tr>
-</thead>
+    <div class="small">
+      Перебраны комбинации из 2–4 факторов.
+      Минимум N=50. Поиск выполнен на первых 70% истории.
+    </div>
 
-<tbody>
-`;
-
-    for(const h of horizons){
-
-        const values=[];
-
-        for(
-            let i=200;
-            i<=data.length-h-2;
-            i++
-        ){
-
-            const s=
-                basicSignal(ind,data,i);
-
-            /*
-               Для общей статистики берём
-               только покупки.
-            */
-
-            if(
-                s.signal!=="ПОКУПКА"&&
-                s.signal!=="СИЛЬНАЯ ПОКУПКА"
-            ){
-                continue;
-            }
-
-            const r=
-                futureReturn(data,i,h);
-
-            if(r!==null){
-                values.push(r);
-            }
-        }
-
-        const s=calcStats(values);
-
-        html+=`
-
-<tr>
-
-<td>${horizonName(h,interval)}</td>
-
-<td>${s.n}</td>
-
-<td>${pct1(s.win)}</td>
-
-<td>${pct(s.avg)}</td>
-
-<td>${pct(s.median)}</td>
-
-</tr>
-`;
-    }
-
-    html+=`
-
-</tbody>
-</table>
-
-</div>
-`;
-
-    contentEl.innerHTML+=html;
+    <div style="overflow-x:auto;margin-top:10px">
+    <table>
+      <thead>
+        <tr>
+          <th>Комбинация</th>
+          <th>N</th>
+          <th>Рост</th>
+          <th>Средн.</th>
+          <th>Медиана</th>
+          <th>Преимущество</th>
+          <th>Рейтинг</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.length?rows.join(""):
+        `<tr><td colspan="7">Недостаточно статистики</td></tr>`}
+      </tbody>
+    </table>
+    </div>
+  </div>`;
 }
 
+function renderValidation(data,ind,h,baseline){
 
-/* =========================================================
-   ТЕКУЩИЕ ИНДИКАТОРЫ
-========================================================= */
+  const split=Math.floor(data.length*0.7);
 
-function renderIndicators(
+  const train=findBestCombos(
     data,
-    ind
-){
+    ind,
+    h,
+    200,
+    split,
+    baseline
+  );
 
-    const i=data.length-1;
+  const best=train[0];
 
-    contentEl.innerHTML+=`
+  if(!best){
 
-<div class="card">
+    return `
+    <div class="card">
+      <h2>🧪 Проверка устойчивости</h2>
+      <div class="warn">Недостаточно данных для проверки.</div>
+    </div>`;
+  }
 
-<h2>Текущие показатели</h2>
+  const test=combinationStats(
+    data,
+    ind,
+    h,
+    best.combo,
+    split,
+    data.length
+  );
 
-<div class="grid">
+  const trainAvg=best.avg;
+  const testAvg=test.avg;
 
-<div class="metric">
-<div class="metric-title">BTC</div>
-<div class="metric-value">
-${price(ind.close[i])}
-</div>
-</div>
+  const stable=
+    trainAvg!==null&&
+    testAvg!==null&&
+    trainAvg>0&&
+    testAvg>0;
 
-<div class="metric">
-<div class="metric-title">RSI</div>
-<div class="metric-value">
-${number2(ind.rsi[i])}
-</div>
-</div>
+  return `
+  <div class="card">
+    <h2>🧪 Проверка 70/30</h2>
 
-<div class="metric">
-<div class="metric-title">ADX</div>
-<div class="metric-value">
-${number2(ind.adx[i])}
-</div>
-</div>
+    <div class="small">
+      Лучшая комбинация сначала ищется на 70% истории,
+      затем проверяется на последних 30%.
+    </div>
 
-<div class="metric">
-<div class="metric-title">EMA20</div>
-<div class="metric-value">
-${price(ind.ema20[i])}
-</div>
-</div>
+    <h3>${escapeHtml(comboName(best.combo))}</h3>
 
-<div class="metric">
-<div class="metric-title">EMA50</div>
-<div class="metric-value">
-${price(ind.ema50[i])}
-</div>
-</div>
+    <div class="grid">
 
-<div class="metric">
-<div class="metric-title">EMA200</div>
-<div class="metric-value">
-${price(ind.ema200[i])}
-</div>
-</div>
+      <div class="stat">
+        <div class="label">Обучение N</div>
+        <div class="value">${best.N}</div>
+      </div>
 
-<div class="metric">
-<div class="metric-title">MACD</div>
-<div class="metric-value">
-${number2(ind.macd[i])}
-</div>
-</div>
+      <div class="stat">
+        <div class="label">Обучение средн.</div>
+        <div class="value">${pct(trainAvg)}</div>
+      </div>
 
-<div class="metric">
-<div class="metric-title">MACD Histogram</div>
-<div class="metric-value">
-${number2(ind.macdHist[i])}
-</div>
-</div>
+      <div class="stat">
+        <div class="label">Проверка N</div>
+        <div class="value">${test.N}</div>
+      </div>
 
-</div>
+      <div class="stat">
+        <div class="label">Проверка средн.</div>
+        <div class="value">${pct(testAvg)}</div>
+      </div>
 
-</div>
-`;
+      <div class="stat">
+        <div class="label">Проверка медиана</div>
+        <div class="value">${pct(test.median)}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Статус</div>
+        <div class="value ${stable?"good":"warn"}">
+          ${stable?"УСТОЙЧИВО":"НЕ ПОДТВЕРЖДЕНО"}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="small" style="margin-top:10px">
+      Важно: 70/30 — диагностическая проверка,
+      а не гарантия будущей доходности.
+    </div>
+  </div>`;
 }
 
+function renderCurrentCombination(data,ind,h){
 
-/* =========================================================
-   ЗАПУСК
-========================================================= */
+  const i=data.length-1;
 
-async function runAnalysis(){
+  const active=currentFactors(ind,i);
 
-    runBtn.disabled=true;
-    loaderEl.style.display="block";
-    contentEl.innerHTML="";
+  if(active.length<2){
 
-    const interval=
-        document.getElementById(
-            "interval"
-        ).value;
+    return `
+    <div class="card">
+      <h2>🎯 Текущая комбинация</h2>
+      <div class="warn">
+        Сейчас недостаточно активных факторов для статистической комбинации.
+      </div>
+    </div>`;
+  }
 
-    try{
+  const bestCombos=[];
 
-        setStatus(
-            "JavaScript работает ✓. "+
-            "Загружаем историю "+interval+"..."
-        );
+  for(let size=2;size<=Math.min(4,active.length);size++){
 
-        await new Promise(
-            r=>setTimeout(r,50)
-        );
+    const combos=combinations(
+      active.map(x=>x.id),
+      size
+    );
 
-        const data=
-            await fetchHistory(interval);
+    for(const combo of combos){
 
-        setStatus(
-            "Получено "+
-            data.length+
-            " свечей. Рассчитываем индикаторы..."
-        );
+      const s=combinationStats(
+        data,
+        ind,
+        h,
+        combo,
+        200,
+        data.length
+      );
 
-        await new Promise(
-            r=>setTimeout(r,50)
-        );
+      if(s.N>=50){
 
-        const ind=
-            indicators(data);
-
-        const last=data.length-1;
-
-        if(
-            ind.ema200[last]===null||
-            ind.rsi[last]===null
-        ){
-
-            throw new Error(
-                "Недостаточно данных для EMA200/RSI"
-            );
-        }
-
-        setStatus(
-            "Строим статистику 24 часа..."
-        );
-
-        await new Promise(
-            r=>setTimeout(r,50)
-        );
-
-        const regimeData=
-            regimeStats(
-                data,
-                ind,
-                interval
-            );
-
-        setStatus(
-            "Проверяем комбинации факторов..."
-        );
-
-        await new Promise(
-            r=>setTimeout(r,50)
-        );
-
-        const combo=
-            combinationStats(
-                data,
-                ind,
-                interval
-            );
-
-        /*
-           Основной статистический сигнал.
-        */
-
-        renderStatisticalSignal(
-            data,
-            ind,
-            interval,
-            regimeData,
-            combo
-        );
-
-        renderIndicators(
-            data,
-            ind
-        );
-
-        renderRegimeTable(
-            regimeData,
-            interval
-        );
-
-        renderFactors(
-            combo,
-            interval
-        );
-
-        renderHorizons(
-            data,
-            ind,
-            interval
-        );
-
-        setStatus(
-            "Анализ завершён ✓ · "+
-            data.length+
-            " свечей · 24ч статистика рассчитана"
-        );
-
-    }catch(error){
-
-        console.error(error);
-
-        contentEl.innerHTML=`
-
-<div class="card">
-
-<h2 class="red">
-Ошибка анализа
-</h2>
-
-<p>
-${error&&error.message?
-    error.message:
-    String(error)}
-</p>
-
-<p class="note">
-Если ошибка повторится, пришли мне её
-точный текст или скриншот.
-</p>
-
-</div>
-`;
-
-        setStatus(
-            "Ошибка: "+
-            (
-                error&&error.message?
-                error.message:
-                String(error)
-            )
-        );
-
-    }finally{
-
-        loaderEl.style.display="none";
-        runBtn.disabled=false;
+        bestCombos.push({
+          combo,
+          ...s
+        });
+      }
     }
+  }
+
+  bestCombos.sort((a,b)=>
+    (b.avg??-999)-(a.avg??-999)
+  );
+
+  const top=bestCombos.slice(0,5);
+
+  return `
+  <div class="card">
+    <h2>🎯 Что работает при текущем состоянии</h2>
+
+    <div class="small">
+      Сейчас активны:
+      ${active.map(x=>escapeHtml(x.name)).join(" · ")}
+    </div>
+
+    <hr>
+
+    ${
+      top.length?
+      `<div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Комбинация</th>
+            <th>N</th>
+            <th>Рост</th>
+            <th>Средн.</th>
+            <th>Медиана</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${top.map(x=>`
+          <tr>
+            <td>${escapeHtml(comboName(x.combo))}</td>
+            <td>${x.N}</td>
+            <td>${pct(x.win)}</td>
+            <td>${pct(x.avg)}</td>
+            <td>${pct(x.median)}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+      </div>`
+      :
+      `<div class="warn">
+        Для текущего сочетания факторов пока недостаточно исторических случаев N≥50.
+      </div>`
+    }
+  </div>`;
 }
 
+function renderStatSignal(data,ind,h,baseline){
 
-/* =========================================================
-   КНОПКА
-========================================================= */
+  const i=data.length-1;
 
-runBtn.addEventListener(
-    "click",
-    runAnalysis
-);
+  const reg=regime(ind,i);
 
+  const regimeIndices=[];
 
-/* =========================================================
-   ГОТОВ
-========================================================= */
+  for(let j=200;j<data.length-h-2;j++){
 
-setStatus(
-    "JavaScript работает ✓. "+
-    "Выберите таймфрейм и нажмите «Обновить анализ»."
-);
+    if(regime(ind,j)===reg)
+      regimeIndices.push(j);
+  }
+
+  const rs=statsForIndices(
+    data,
+    regimeIndices,
+    h
+  );
+
+  const active=currentFactors(ind,i);
+
+  let comboBest=null;
+
+  for(let size=2;size<=Math.min(4,active.length);size++){
+
+    const combos=combinations(
+      active.map(x=>x.id),
+      size
+    );
+
+    for(const combo of combos){
+
+      const s=combinationStats(
+        data,
+        ind,
+        h,
+        combo,
+        200,
+        data.length
+      );
+
+      if(s.N<50)continue;
+
+      if(
+        !comboBest||
+        (s.avg??-999)>(comboBest.avg??-999)
+      ){
+        comboBest={combo,...s};
+      }
+    }
+  }
+
+  let score=50;
+
+  if(baseline.avg!==null&&rs.avg!==null)
+    score+=(rs.avg-baseline.avg)*25;
+
+  if(baseline.median!==null&&rs.median!==null)
+    score+=(rs.median-baseline.median)*15;
+
+  if(comboBest){
+
+    if(comboBest.avg!==null&&baseline.avg!==null)
+      score+=(comboBest.avg-baseline.avg)*15;
+
+    if(comboBest.win!==null&&baseline.win!==null)
+      score+=(comboBest.win-baseline.win)*0.15;
+  }
+
+  score=Math.max(0,Math.min(100,score));
+
+  const evaluation=
+    score>=75?"Сильный сигнал":
+    score>=65?"Умеренно бычий":
+    score>=55?"Нейтрально / осторожно":
+    score>=45?"Нейтрально":
+    score>=35?"Умеренно медвежий":
+    "Слабый сигнал";
+
+  return `
+  <div class="card">
+    <h2>📊 Статистический сигнал · 24 часа</h2>
+
+    <div class="grid">
+
+      <div class="stat">
+        <div class="label">Оценка</div>
+        <div class="signal">${fmt(score,0)}/100</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Интерпретация</div>
+        <div class="value">${evaluation}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Режим</div>
+        <div class="value">${reg}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Исторический N</div>
+        <div class="value">${rs.N}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Исторический рост</div>
+        <div class="value">${pct(rs.avg)}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Медиана</div>
+        <div class="value">${pct(rs.median)}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">База BTC</div>
+        <div class="value">${pct(baseline.avg)}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Преимущество режима</div>
+        <div class="value">${pct(
+          rs.avg!==null&&baseline.avg!==null
+          ?rs.avg-baseline.avg:null
+        )}</div>
+      </div>
+
+    </div>
+
+    <div class="small" style="margin-top:10px">
+      Оценка 0–100 — это рейтинговый показатель силы сигнала,
+      а не вероятность роста BTC.
+    </div>
+  </div>`;
+}
+
+function renderBaseline(baseline){
+
+  return `
+  <div class="card">
+    <h2>⚖️ Базовая доходность BTC · 24 часа</h2>
+
+    <div class="grid">
+
+      <div class="stat">
+        <div class="label">N</div>
+        <div class="value">${baseline.N}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Рост</div>
+        <div class="value">${pct(baseline.win)}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Средняя</div>
+        <div class="value">${pct(baseline.avg)}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Медиана</div>
+        <div class="value">${pct(baseline.median)}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">> +1%</div>
+        <div class="value">${pct(baseline.plus1)}</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">< −1%</div>
+        <div class="value">${pct(baseline.minus1)}</div>
+      </div>
+
+    </div>
+
+    <div class="small">
+      Это контрольная группа: результат обычного 24-часового движения BTC
+      без фильтров индикаторов.
+    </div>
+  </div>`;
+}
+
+async function run(){
+
+  const tf=document.getElementById("tf").value;
+  const cfg=CONFIG[tf];
+
+  const status=document.getElementById("status");
+
+  status.innerHTML=
+    "⏳ Загружаю историю Binance...";
+
+  document.getElementById("app").innerHTML="";
+
+  try{
+
+    const data=await fetchHistory(
+      cfg.interval,
+      cfg.days
+    );
+
+    if(data.length<300)
+      throw new Error(
+        "Недостаточно исторических данных: "+data.length
+      );
+
+    dataGlobal=data;
+
+    status.innerHTML=
+      `✓ Загружено ${data.length} закрытых свечей. Расчёт статистики...`;
+
+    const ind=indicators(data);
+
+    const h=cfg.h;
+
+    const baseline=baselineStats(
+      data,
+      h,
+      200,
+      data.length
+    );
+
+    const html=
+      renderBasic(data,ind,h)+
+      renderStatSignal(data,ind,h,baseline)+
+      renderBaseline(baseline)+
+      renderFactors(data,ind,h)+
+      renderRegimes(data,ind,h)+
+      renderCurrentCombination(data,ind,h)+
+      renderSearch(data,ind,h,baseline)+
+      renderValidation(data,ind,h,baseline);
+
+    document.getElementById("app").innerHTML=html;
+
+    status.innerHTML=
+      `Анализ завершён ✓ ${data.length} свечей · горизонт 24ч · v2.6`;
+
+  }catch(e){
+
+    console.error(e);
+
+    status.innerHTML=
+      `<span class="bad">Ошибка: ${escapeHtml(e.message||String(e))}</span>`;
+  }
+}
+
+let dataGlobal=[];
 
 </script>
 
