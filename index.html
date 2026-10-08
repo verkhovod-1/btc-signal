@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.webmanifest">
-<title>₿ BTC Signal v3.2</title>
+<title>₿ BTC Signal v3.3</title>
 
 <style>
 body{
@@ -26,18 +26,24 @@ h2{font-size:18px;margin:22px 0 10px}
 .good{color:#4ade80}
 .warn{color:#fbbf24}
 .bad{color:#f87171}
-.small{font-size:13px;color:#9ca3af}
+.small{
+  font-size:13px;
+  color:#9ca3af;
+  line-height:1.45;
+}
 table{
   width:100%;
   border-collapse:collapse;
   font-size:12px;
 }
 th,td{
-  padding:7px 4px;
+  padding:7px 3px;
   border-bottom:1px solid #374151;
   text-align:right;
 }
-th:first-child,td:first-child{text-align:left}
+th:first-child,td:first-child{
+  text-align:left;
+}
 button{
   width:100%;
   padding:13px;
@@ -53,7 +59,7 @@ button{
 <body>
 
 <h1>₿ BTC Signal</h1>
-<div class="small">v3.2 · проверка горизонтов</div>
+<div class="small">v3.3 · честный baseline · 24/48/72h</div>
 
 <div class="card" id="status">
   Загрузка BTC…
@@ -63,17 +69,27 @@ button{
 
 <div class="card">
   <h2>⏱ Сравнение горизонтов</h2>
+
   <div class="small">
-    Сигнал: EMA20 > EMA50 + ADX >25 + Volume > average
+    Сигнал: EMA20 &gt; EMA50 + ADX &gt;25 + Volume &gt; average
   </div>
+
+  <div class="small" style="margin-top:8px">
+    Edge = средняя доходность при сигнале − средняя доходность BTC
+    на том же историческом участке.
+  </div>
+
   <div id="horizon"></div>
 </div>
 
 <div class="card">
   <h2>🔒 Финальный независимый тест</h2>
+
   <div class="small">
     Последние 10% данных полностью исключены из разработки.
+    Сигнал фиксирован заранее.
   </div>
+
   <div id="holdout"></div>
 </div>
 
@@ -86,81 +102,144 @@ const API="https://api.binance.com/api/v3/klines";
 let candles=[];
 let rows=[];
 
+
+/* =========================
+   ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+========================= */
+
 function fmt(x){
   if(!Number.isFinite(x)) return "—";
   return (x>=0?"+":"")+x.toFixed(2)+"%";
 }
 
 function median(arr){
-  if(!arr.length)return NaN;
+
+  if(!arr.length) return NaN;
+
   const a=[...arr].sort((x,y)=>x-y);
   const m=Math.floor(a.length/2);
-  return a.length%2?a[m]:(a[m-1]+a[m])/2;
+
+  return a.length%2
+    ? a[m]
+    : (a[m-1]+a[m])/2;
 }
 
 function maxLosingStreak(arr){
-  let cur=0,max=0;
+
+  let cur=0;
+  let max=0;
+
   for(const x of arr){
+
     if(x<0){
       cur++;
-      if(cur>max)max=cur;
-    }else cur=0;
+
+      if(cur>max)
+        max=cur;
+
+    }else{
+      cur=0;
+    }
   }
+
   return max;
 }
 
+
+/* =========================
+   EMA
+========================= */
+
 function ema(values,period){
+
   const out=new Array(values.length).fill(null);
-  if(values.length<period)return out;
+
+  if(values.length<period)
+    return out;
 
   let sum=0;
-  for(let i=0;i<period;i++)sum+=values[i];
+
+  for(let i=0;i<period;i++)
+    sum+=values[i];
 
   out[period-1]=sum/period;
 
   const k=2/(period+1);
 
   for(let i=period;i<values.length;i++){
-    out[i]=values[i]*k+out[i-1]*(1-k);
+
+    out[i]=
+      values[i]*k+
+      out[i-1]*(1-k);
   }
 
   return out;
 }
 
-function calcRSI(values,period=14){
-  const out=new Array(values.length).fill(null);
-  if(values.length<=period)return out;
 
-  let gain=0,loss=0;
+/* =========================
+   RSI
+========================= */
+
+function calcRSI(values,period=14){
+
+  const out=new Array(values.length).fill(null);
+
+  if(values.length<=period)
+    return out;
+
+  let gain=0;
+  let loss=0;
 
   for(let i=1;i<=period;i++){
+
     const d=values[i]-values[i-1];
-    if(d>=0)gain+=d;
-    else loss-=d;
+
+    if(d>=0)
+      gain+=d;
+    else
+      loss-=d;
   }
 
   let avgGain=gain/period;
   let avgLoss=loss/period;
 
-  out[period]=avgLoss===0?100:100-(100/(1+avgGain/avgLoss));
+  out[period]=
+    avgLoss===0
+      ? 100
+      : 100-(100/(1+avgGain/avgLoss));
 
   for(let i=period+1;i<values.length;i++){
+
     const d=values[i]-values[i-1];
+
     const g=Math.max(d,0);
     const l=Math.max(-d,0);
 
-    avgGain=(avgGain*(period-1)+g)/period;
-    avgLoss=(avgLoss*(period-1)+l)/period;
+    avgGain=
+      (avgGain*(period-1)+g)/period;
 
-    out[i]=avgLoss===0?100:100-(100/(1+avgGain/avgLoss));
+    avgLoss=
+      (avgLoss*(period-1)+l)/period;
+
+    out[i]=
+      avgLoss===0
+        ? 100
+        : 100-(100/(1+avgGain/avgLoss));
   }
 
   return out;
 }
 
+
+/* =========================
+   ADX
+========================= */
+
 function calcADX(high,low,close,period=14){
 
   const n=close.length;
+
   const tr=new Array(n).fill(null);
   const plusDM=new Array(n).fill(0);
   const minusDM=new Array(n).fill(0);
@@ -176,15 +255,25 @@ function calcADX(high,low,close,period=14){
       Math.abs(low[i]-close[i-1])
     );
 
-    plusDM[i]=(up>down && up>0)?up:0;
-    minusDM[i]=(down>up && down>0)?down:0;
+    plusDM[i]=
+      (up>down && up>0)
+        ? up
+        : 0;
+
+    minusDM[i]=
+      (down>up && down>0)
+        ? down
+        : 0;
   }
 
   const adx=new Array(n).fill(null);
 
-  let atr=0,pdm=0,mdm=0;
+  let atr=0;
+  let pdm=0;
+  let mdm=0;
 
   for(let i=1;i<=period;i++){
+
     atr+=tr[i]||0;
     pdm+=plusDM[i];
     mdm+=minusDM[i];
@@ -199,32 +288,62 @@ function calcADX(high,low,close,period=14){
   for(let i=period;i<n;i++){
 
     if(i>period){
-      atr=(atr*(period-1)+(tr[i]||0))/period;
-      pdm=(pdm*(period-1)+plusDM[i])/period;
-      mdm=(mdm*(period-1)+minusDM[i])/period;
+
+      atr=
+        (atr*(period-1)+(tr[i]||0))
+        /period;
+
+      pdm=
+        (pdm*(period-1)+plusDM[i])
+        /period;
+
+      mdm=
+        (mdm*(period-1)+minusDM[i])
+        /period;
     }
 
-    const pdi=atr?100*pdm/atr:0;
-    const mdi=atr?100*mdm/atr:0;
+    const pdi=
+      atr ? 100*pdm/atr : 0;
 
-    const d=pdi+mdi===0?0:100*Math.abs(pdi-mdi)/(pdi+mdi);
+    const mdi=
+      atr ? 100*mdm/atr : 0;
+
+    const d=
+      pdi+mdi===0
+        ? 0
+        : 100*Math.abs(pdi-mdi)/(pdi+mdi);
 
     dx.push({i,d});
 
     if(dx.length===period){
+
       let s=0;
-      for(const x of dx)s+=x.d;
+
+      for(const x of dx)
+        s+=x.d;
+
       adx[i]=s/period;
     }
 
     if(dx.length>period){
+
       const prev=adx[i-1];
-      if(prev!=null)adx[i]=(prev*(period-1)+d)/period;
+
+      if(prev!=null){
+
+        adx[i]=
+          (prev*(period-1)+d)/period;
+      }
     }
   }
 
   return adx;
 }
+
+
+/* =========================
+   ИНДИКАТОРЫ
+========================= */
 
 function buildIndicators(){
 
@@ -237,52 +356,38 @@ function buildIndicators(){
   const e50=ema(close,50);
   const e200=ema(close,200);
 
-  const e12=ema(close,12);
-  const e26=ema(close,26);
-
-  const macd=e12.map((x,i)=>{
-    if(x==null||e26[i]==null)return null;
-    return x-e26[i];
-  });
-
-  const signal=ema(
-    macd.map(x=>x==null?0:x),
-    9
-  );
-
-  const hist=macd.map((x,i)=>{
-    if(x==null||signal[i]==null)return null;
-    return x-signal[i];
-  });
-
   const rsi=calcRSI(close,14);
   const adx=calcADX(high,low,close,14);
 
-  const volAvg=new Array(volume.length).fill(null);
+  const volAvg=
+    new Array(volume.length).fill(null);
 
   for(let i=19;i<volume.length;i++){
+
     let s=0;
-    for(let j=i-19;j<=i;j++)s+=volume[j];
+
+    for(let j=i-19;j<=i;j++)
+      s+=volume[j];
+
     volAvg[i]=s/20;
   }
 
   rows=[];
 
   /*
-    Один row соответствует закрытой дневной свече.
+    ВАЖНО:
 
-    ret12/24/48/72:
-    доходность от открытия следующей свечи
-    до закрытия через соответствующее количество часов.
+    signalIndex = свеча, на закрытии которой
+    принимается решение.
 
-    Поскольку данные дневные:
-    24h = следующая дневная свеча.
-    48h = две дневные свечи.
-    72h = три дневные свечи.
+    Вход = OPEN следующей дневной свечи.
 
-    Для 12h используем половину дневного диапазона
-    как приближение. Это НЕ реальная внутридневная
-    доходность, поэтому 12h помечается отдельно.
+    24h = close следующей свечи.
+    48h = close через 2 свечи.
+    72h = close через 3 свечи.
+
+    baseline для каждого сигнала рассчитывается
+    отдельно для того же самого входа.
   */
 
   for(let i=200;i<candles.length-3;i++){
@@ -291,81 +396,109 @@ function buildIndicators(){
       e20[i]==null ||
       e50[i]==null ||
       e200[i]==null ||
-      macd[i]==null ||
-      hist[i]==null ||
-      rsi[i]==null ||
       adx[i]==null ||
       volAvg[i]==null
-    )continue;
+    ){
+      continue;
+    }
 
-    const signalActive=
+    const active=
       e20[i]>e50[i] &&
       adx[i]>25 &&
       volume[i]>volAvg[i];
 
-    const next=candles[i+1];
-
-    const open1=+next[1];
-
-    const close1=+candles[i+1][4];
-    const close2=+candles[i+2][4];
-    const close3=+candles[i+3][4];
-
-    const ret24=(close1-open1)/open1*100;
-    const ret48=(close2-open1)/open1*100;
-    const ret72=(close3-open1)/open1*100;
-
-    /*
-      12h approximation:
-      midpoint between open and close of next day.
-      Это только ориентир.
-    */
-    const mid12=(open1+close1)/2;
-    const ret12=(mid12-open1)/open1*100;
-
     rows.push({
+
       i,
-      active:signalActive,
-      ret12,
-      ret24,
-      ret48,
-      ret72,
-      baseline12:ret12,
-      baseline24:ret24,
-      baseline48:ret48,
-      baseline72:ret72
+
+      active,
+
+      ret24:
+        (+candles[i+1][4]-
+         +candles[i+1][1])
+        /+candles[i+1][1]*100,
+
+      ret48:
+        (+candles[i+2][4]-
+         +candles[i+1][1])
+        /+candles[i+1][1]*100,
+
+      ret72:
+        (+candles[i+3][4]-
+         +candles[i+1][1])
+        /+candles[i+1][1]*100
     });
   }
 }
 
-function stats(data,key,baseKey){
 
-  if(!data.length){
+/* =========================
+   СТАТИСТИКА
+========================= */
+
+function calcStats(signalRows,allRows,key){
+
+  if(!signalRows.length){
+
     return {
-      n:0,avg:NaN,med:NaN,win:NaN,
-      gt1:NaN,lt1:NaN,streak:0,
-      base:NaN,edge:NaN
+      n:0,
+      avg:NaN,
+      base:NaN,
+      edge:NaN,
+      med:NaN,
+      win:NaN,
+      gt1:NaN,
+      lt1:NaN,
+      streak:0
     };
   }
 
-  const vals=data.map(x=>x[key]);
-  const base=data.map(x=>x[baseKey]);
+  const signalValues=
+    signalRows.map(x=>x[key]);
 
-  const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
-  const baseAvg=base.reduce((a,b)=>a+b,0)/base.length;
+  const allValues=
+    allRows.map(x=>x[key]);
+
+  const avg=
+    signalValues.reduce((a,b)=>a+b,0)
+    /signalValues.length;
+
+  const base=
+    allValues.reduce((a,b)=>a+b,0)
+    /allValues.length;
 
   return {
-    n:vals.length,
+
+    n:signalValues.length,
+
     avg,
-    med:median(vals),
-    win:vals.filter(x=>x>0).length/vals.length*100,
-    gt1:vals.filter(x=>x>1).length/vals.length*100,
-    lt1:vals.filter(x=>x<-1).length/vals.length*100,
-    streak:maxLosingStreak(vals),
-    base:baseAvg,
-    edge:avg-baseAvg
+
+    base,
+
+    edge:avg-base,
+
+    med:median(signalValues),
+
+    win:
+      signalValues.filter(x=>x>0).length
+      /signalValues.length*100,
+
+    gt1:
+      signalValues.filter(x=>x>1).length
+      /signalValues.length*100,
+
+    lt1:
+      signalValues.filter(x=>x<-1).length
+      /signalValues.length*100,
+
+    streak:maxLosingStreak(signalValues)
   };
 }
+
+
+/* =========================
+   СТРОКА ТАБЛИЦЫ
+========================= */
 
 function statRow(label,s){
 
@@ -375,61 +508,37 @@ function statRow(label,s){
     <td>${s.n}</td>
     <td>${fmt(s.avg)}</td>
     <td>${fmt(s.base)}</td>
-    <td>${fmt(s.edge)}</td>
+    <td class="${s.edge>0?"good":s.edge<0?"bad":""}">
+      ${fmt(s.edge)}
+    </td>
     <td>${fmt(s.med)}</td>
     <td>${s.win.toFixed(1)}%</td>
     <td>${s.streak}</td>
   </tr>`;
 }
 
+
+/* =========================
+   ОБЩЕЕ СРАВНЕНИЕ
+========================= */
+
 function renderHorizons(){
 
-  const active=rows.filter(x=>x.active);
+  const active=
+    rows.filter(x=>x.active);
 
   const horizons=[
-    ["12h","ret12","baseline12"],
-    ["24h","ret24","baseline24"],
-    ["48h","ret48","baseline48"],
-    ["72h","ret72","baseline72"]
+
+    ["24h","ret24"],
+    ["48h","ret48"],
+    ["72h","ret72"]
+
   ];
 
   let html=`
+
   <table>
-  <tr>
-    <th>Горизонт</th>
-    <th>N</th>
-    <th>Signal</th>
-    <th>BTC</th>
-    <th>Edge</th>
-    <th>Median</th>
-    <th>Win</th>
-    <th>Loss streak</th>
-  </tr>`;
 
-  for(const h of horizons){
-    html+=statRow(h[0],stats(active,h[1],h[2]));
-  }
-
-  html+="</table>";
-
-  document.getElementById("horizon").innerHTML=html;
-}
-
-function renderHoldout(){
-
-  const split=Math.floor(rows.length*0.90);
-
-  const finalRows=rows.slice(split).filter(x=>x.active);
-
-  const horizons=[
-    ["12h","ret12","baseline12"],
-    ["24h","ret24","baseline24"],
-    ["48h","ret48","baseline48"],
-    ["72h","ret72","baseline72"]
-  ];
-
-  let html=`
-  <table>
   <tr>
     <th>Горизонт</th>
     <th>N</th>
@@ -439,15 +548,79 @@ function renderHoldout(){
     <th>Median</th>
     <th>Win</th>
     <th>Loss</th>
-  </tr>`;
+  </tr>
+  `;
 
   for(const h of horizons){
 
-    const s=stats(
-      finalRows,
-      h[1],
-      h[2]
-    );
+    const s=
+      calcStats(
+        active,
+        rows,
+        h[1]
+      );
+
+    html+=statRow(h[0],s);
+  }
+
+  html+="</table>";
+
+  document.getElementById("horizon").innerHTML=html;
+}
+
+
+/* =========================
+   ФИНАЛЬНЫЙ HOLDOUT
+========================= */
+
+function renderHoldout(){
+
+  /*
+    Последние 10% строк rows.
+    Эти строки не участвуют в разработке.
+  */
+
+  const split=
+    Math.floor(rows.length*0.90);
+
+  const finalRows=
+    rows.slice(split);
+
+  const finalSignals=
+    finalRows.filter(x=>x.active);
+
+  const horizons=[
+
+    ["24h","ret24"],
+    ["48h","ret48"],
+    ["72h","ret72"]
+
+  ];
+
+  let html=`
+
+  <table>
+
+  <tr>
+    <th>Горизонт</th>
+    <th>N</th>
+    <th>Signal</th>
+    <th>BTC</th>
+    <th>Edge</th>
+    <th>Median</th>
+    <th>Win</th>
+    <th>Loss</th>
+  </tr>
+  `;
+
+  for(const h of horizons){
+
+    const s=
+      calcStats(
+        finalSignals,
+        finalRows,
+        h[1]
+      );
 
     html+=statRow(h[0],s);
   }
@@ -455,36 +628,60 @@ function renderHoldout(){
   html+="</table>";
 
   html+=`
+
   <p class="small">
-  Финальный участок: ${finalRows.length} сигналов.
-  Сигнал выбран заранее и не подбирался по этому участку.
-  </p>`;
+    Финальный участок: ${finalRows.length} наблюдений.<br>
+    Сигналов: ${finalSignals.length}.<br><br>
+
+    BTC baseline рассчитан по всем доступным
+    наблюдениям соответствующего финального участка,
+    а Signal — только по моментам появления сигнала.
+  </p>
+  `;
 
   document.getElementById("holdout").innerHTML=html;
 }
 
+
+/* =========================
+   ТЕКУЩИЙ СИГНАЛ
+========================= */
+
 function renderCurrent(){
 
-  const last=candles[candles.length-1];
+  const close=
+    +candles.at(-1)[4];
 
-  const close=+last[4];
+  const closes=
+    candles.map(x=>+x[4]);
 
-  const closes=candles.map(x=>+x[4]);
-  const highs=candles.map(x=>+x[2]);
-  const lows=candles.map(x=>+x[3]);
+  const highs=
+    candles.map(x=>+x[2]);
+
+  const lows=
+    candles.map(x=>+x[3]);
+
+  const volume=
+    candles.map(x=>+x[5]);
 
   const e20=ema(closes,20);
   const e50=ema(closes,50);
-  const e200=ema(closes,200);
-  const rsi=calcRSI(closes,14);
-  const adx=calcADX(highs,lows,closes,14);
-
-  const volume=candles.map(x=>+x[5]);
+  const adx=calcADX(
+    highs,
+    lows,
+    closes,
+    14
+  );
 
   let vs=0;
 
-  for(let i=volume.length-20;i<volume.length;i++)
+  for(
+    let i=volume.length-20;
+    i<volume.length;
+    i++
+  ){
     vs+=volume[i];
+  }
 
   const va=vs/20;
 
@@ -498,49 +695,86 @@ function renderCurrent(){
   <h2>📡 Текущий сигнал</h2>
 
   <b class="${active?"good":"warn"}">
-    ${active?"🟢 SIGNAL LONG":"⚪ NO SIGNAL"}
+
+    ${active
+      ?"🟢 SIGNAL LONG"
+      :"⚪ NO SIGNAL"}
+
   </b>
 
-  <p>BTC: $${close.toLocaleString("en-US",{maximumFractionDigits:0})}</p>
+  <p>
+    BTC:
+    $${close.toLocaleString(
+      "en-US",
+      {maximumFractionDigits:0}
+    )}
+  </p>
 
   <p>
-  EMA20 ${e20.at(-1)>e50.at(-1)?"✓":"✗"}
-  · ADX ${adx.at(-1).toFixed(1)}
-  ${adx.at(-1)>25?"✓":"✗"}
-  · Volume ${(volume.at(-1)/va).toFixed(2)}x
-  ${volume.at(-1)>va?"✓":"✗"}
-  </p>`;
+    EMA20
+    ${e20.at(-1)>e50.at(-1)?"✓":"✗"}
+
+    · ADX
+    ${adx.at(-1).toFixed(1)}
+    ${adx.at(-1)>25?"✓":"✗"}
+
+    · Volume
+    ${(volume.at(-1)/va).toFixed(2)}x
+    ${volume.at(-1)>va?"✓":"✗"}
+  </p>
+  `;
 }
+
+
+/* =========================
+   BINANCE
+========================= */
 
 async function fetchBatch(endTime){
 
   const url=
     API+
-    "?symbol=BTCUSDT&interval=1d&limit=1000"+
-    (endTime?("&endTime="+endTime):"");
+    "?symbol=BTCUSDT"+
+    "&interval=1d"+
+    "&limit=1000"+
+    (endTime
+      ? "&endTime="+endTime
+      : "");
 
-  const controller=new AbortController();
+  const controller=
+    new AbortController();
 
-  const timer=setTimeout(
-    ()=>controller.abort(),
-    10000
-  );
+  const timer=
+    setTimeout(
+      ()=>controller.abort(),
+      10000
+    );
 
   try{
 
-    const r=await fetch(url,{
-      signal:controller.signal
-    });
+    const r=
+      await fetch(
+        url,
+        {signal:controller.signal}
+      );
 
     if(!r.ok)
-      throw new Error("HTTP "+r.status);
+      throw new Error(
+        "HTTP "+r.status
+      );
 
     return await r.json();
 
   }finally{
+
     clearTimeout(timer);
   }
 }
+
+
+/* =========================
+   ЗАГРУЗКА ИСТОРИИ
+========================= */
 
 async function loadHistory(){
 
@@ -549,18 +783,24 @@ async function loadHistory(){
 
   for(let n=1;n<=5;n++){
 
-    document.getElementById("status").innerHTML=
+    document.getElementById(
+      "status"
+    ).innerHTML=
       `Загрузка BTC… запрос ${n}/5`;
 
-    const batch=await fetchBatch(endTime);
+    const batch=
+      await fetchBatch(endTime);
 
-    if(!batch.length)break;
+    if(!batch.length)
+      break;
 
     all=all.concat(batch);
 
-    endTime=batch[0][0]-1;
+    endTime=
+      batch[0][0]-1;
 
-    if(batch.length<1000)break;
+    if(batch.length<1000)
+      break;
   }
 
   const map=new Map();
@@ -568,14 +808,24 @@ async function loadHistory(){
   for(const c of all)
     map.set(c[0],c);
 
-  candles=[...map.values()]
+  candles=
+    [...map.values()]
     .sort((a,b)=>a[0]-b[0]);
 
   buildIndicators();
 
-  document.getElementById("status").innerHTML=`
-    <b class="good">Данные обновлены</b><br>
-    ${candles.length} свечей · ${rows.length} строк для статистики
+  document.getElementById(
+    "status"
+  ).innerHTML=`
+
+  <b class="good">
+    Данные обновлены
+  </b>
+  <br>
+
+  ${candles.length} свечей ·
+  ${rows.length} строк для статистики
+
   `;
 
   renderCurrent();
@@ -583,9 +833,17 @@ async function loadHistory(){
   renderHoldout();
 }
 
+
+/* =========================
+   START
+========================= */
+
 loadHistory().catch(e=>{
 
-  document.getElementById("status").innerHTML=
+  document.getElementById(
+    "status"
+  ).innerHTML=
+
     `<span class="bad">
       Ошибка загрузки: ${e.message}
     </span>`;
