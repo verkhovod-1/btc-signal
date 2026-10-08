@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BTC Signal v2.4</title>
+<title>BTC Signal v2.4.1</title>
 <link rel="manifest" href="manifest.webmanifest">
 
 <style>
@@ -141,6 +141,10 @@ button:disabled{
  color:#9aa7b5
 }
 
+.error{
+ color:#ff7182
+}
+
 table{
  width:100%;
  border-collapse:collapse;
@@ -190,7 +194,7 @@ hr{
 <h1>₿ BTC Signal</h1>
 
 <div class="version">
-v2.4 — Market Regime + ADX Diagnostics
+v2.4.1 — Market Regime + ADX Diagnostics
 </div>
 
 <div class="card">
@@ -242,6 +246,25 @@ const HORIZONS={
 
 
 /* =========================
+   ИСТОРИЯ
+========================= */
+
+/*
+  Сколько истории загружаем
+  для каждого таймфрейма.
+
+  1d = 5 лет.
+*/
+
+const HISTORY_DAYS={
+ "15m":90,
+ "1h":365,
+ "4h":730,
+ "1d":1825
+};
+
+
+/* =========================
    HELPERS
 ========================= */
 
@@ -252,24 +275,43 @@ function sleep(ms){
 
 function pct(x){
 
- if(!isFinite(x))
+ if(
+  x===null ||
+  x===undefined ||
+  !Number.isFinite(Number(x))
+ )
   return "—";
 
- return (x>=0?"+":"")+x.toFixed(2)+"%";
+ const n=Number(x);
+
+ return (
+  n>=0?"+":""
+ )+
+ n.toFixed(2)+
+ "%";
 }
 
 
 function num(x){
 
- return x==null||!isFinite(x)
-  ?"—"
-  :Number(x).toFixed(2);
+ if(
+  x==null||
+  !Number.isFinite(Number(x))
+ )
+  return "—";
+
+ return Number(x).toFixed(2);
 }
 
 
 function fmtPrice(x){
 
- return Number(x).toLocaleString(
+ const n=Number(x);
+
+ if(!Number.isFinite(n))
+  return "—";
+
+ return n.toLocaleString(
   "en-US",
   {
    maximumFractionDigits:2
@@ -319,7 +361,11 @@ function calcEMA(values,period){
 
  const k=2/(period+1);
 
- for(let i=period;i<values.length;i++){
+ for(
+  let i=period;
+  i<values.length;
+  i++
+ ){
 
   ema=
    values[i]*k+
@@ -366,7 +412,11 @@ function calcRSI(values,period=14){
    ?100
    :100-(100/(1+avgGain/avgLoss));
 
- for(let i=period+1;i<values.length;i++){
+ for(
+  let i=period+1;
+  i<values.length;
+  i++
+ ){
 
   const d=
    values[i]-values[i-1];
@@ -552,13 +602,19 @@ function calcADX(data,period=14){
   if(i>period){
 
    atr=
-    ((atr*(period-1))+tr[i])/period;
+    (
+     atr*(period-1)+tr[i]
+    )/period;
 
    pDM=
-    ((pDM*(period-1))+plusDM[i])/period;
+    (
+     pDM*(period-1)+plusDM[i]
+    )/period;
 
    mDM=
-    ((mDM*(period-1))+minusDM[i])/period;
+    (
+     mDM*(period-1)+minusDM[i]
+    )/period;
   }
 
   if(atr===0)
@@ -583,14 +639,13 @@ function calcADX(data,period=14){
   }
  }
 
- /*
-  Инициализация ADX через
-  среднее первых 14 значений DX.
- */
-
  const cleanDX=[];
 
- for(let i=period;i<n;i++){
+ for(
+  let i=period;
+  i<n;
+  i++
+ ){
 
   if(dx[i]!=null){
 
@@ -628,7 +683,7 @@ function calcADX(data,period=14){
 
    adx[idx]=
     (
-     (adx[prevIdx]??cleanDX[j].v)*
+     adx[prevIdx]*
      (period-1)+
      cleanDX[j].v
     )/period;
@@ -808,6 +863,7 @@ function getSignal(ind,i){
   if(e20>e50){
 
    bull+=20;
+
    reasons.push(
     "EMA20 > EMA50"
    );
@@ -815,6 +871,7 @@ function getSignal(ind,i){
   }else{
 
    bear+=20;
+
    reasons.push(
     "EMA20 < EMA50"
    );
@@ -826,6 +883,7 @@ function getSignal(ind,i){
   if(price>e200){
 
    bull+=20;
+
    reasons.push(
     "Цена выше EMA200"
    );
@@ -833,6 +891,7 @@ function getSignal(ind,i){
   }else{
 
    bear+=20;
+
    reasons.push(
     "Цена ниже EMA200"
    );
@@ -1097,7 +1156,11 @@ function directionalReturn(
  const p2=
   data[exit].open;
 
- if(!p1||!p2)
+ if(
+  !Number.isFinite(p1)||
+  !Number.isFinite(p2)||
+  p1<=0
+ )
   return null;
 
  const raw=
@@ -1197,7 +1260,7 @@ function renderBacktest(
  <div class="card">
 
  <div class="sectionTitle">
-  📊 Годовой бэктест
+  📊 Исторический бэктест
  </div>
 
  <div class="small">
@@ -1248,7 +1311,11 @@ function renderBacktest(
    <td>BUY</td>
    <td>${buy.n}</td>
    <td>
-    ${buy.accuracy?.toFixed(1)??"—"}%
+    ${
+     buy.accuracy==null
+      ?"—"
+      :buy.accuracy.toFixed(1)+"%"
+    }
    </td>
    <td>${pct(buy.avg)}</td>
    <td>${pct(buy.best)}</td>
@@ -1259,7 +1326,11 @@ function renderBacktest(
    <td>SELL</td>
    <td>${sell.n}</td>
    <td>
-    ${sell.accuracy?.toFixed(1)??"—"}%
+    ${
+     sell.accuracy==null
+      ?"—"
+      :sell.accuracy.toFixed(1)+"%"
+    }
    </td>
    <td>${pct(sell.avg)}</td>
    <td>${pct(sell.best)}</td>
@@ -1293,6 +1364,10 @@ function renderBacktest(
  формировании сигнала
  не используются.
 
+ Для 1D один горизонт
+ равен одной дневной свече,
+ то есть примерно 24 часа.
+
  </div>
 
  </details>
@@ -1309,17 +1384,6 @@ function renderBacktest(
 /* =========================
    REGIME TEST
 ========================= */
-
-/*
- ВАЖНО:
- factorFn — это функция.
- Раньше сюда передавалось factor.name,
- то есть строка. Именно это вызывало:
-
- "factor is not a function"
-
- Теперь передаётся factor.fn.
-*/
 
 function regimeFactorStats(
  data,
@@ -1345,10 +1409,7 @@ function regimeFactorStats(
   )
    continue;
 
-  const factorResult=
-   factorFn(i);
-
-  if(!factorResult)
+  if(!factorFn(i))
    continue;
 
   const r=
@@ -1400,12 +1461,6 @@ function renderRegimeDiagnostics(
   "FLAT",
   "TRANSITION"
  ];
-
- /*
-  ВАЖНО:
-  У каждого фактора есть fn —
-  настоящая функция проверки.
- */
 
  const factors=[
 
@@ -1480,16 +1535,13 @@ function renderRegimeDiagnostics(
  <div class="small">
 
  Здесь ADX пока НЕ влияет
- на сигнал.
+ на основной сигнал.
 
- Мы только проверяем,
- меняется ли качество
- существующих факторов
- в разных состояниях рынка.
+ Проверяем, меняется ли качество
+ факторов в разных состояниях рынка.
 
  </div>
  `;
-
 
  for(
   const h of HORIZONS[tf]
@@ -1503,7 +1555,6 @@ function renderRegimeDiagnostics(
    Горизонт ${formatHorizon(h,tf)}
   </div>
   `;
-
 
   for(
    const regime of regimes
@@ -1527,13 +1578,6 @@ function renderRegimeDiagnostics(
    </tr>
    `;
 
-
-   /*
-    ГЛАВНОЕ ИСПРАВЛЕНИЕ:
-    передаём factor.fn,
-    а не factor.name.
-   */
-
    for(
     const factor of factors
    ){
@@ -1547,7 +1591,6 @@ function renderRegimeDiagnostics(
       factor.direction,
       h
      );
-
 
     html+=`
 
@@ -1577,7 +1620,6 @@ function renderRegimeDiagnostics(
     `;
    }
 
-
    html+=`
 
    </table>
@@ -1587,13 +1629,12 @@ function renderRegimeDiagnostics(
   }
  }
 
-
  html+=`
 
  <hr>
 
  <div class="sectionTitle">
-  🧪 Специальный тест силы тренда
+  🧪 Сила тренда
  </div>
 
  <table>
@@ -1625,7 +1666,6 @@ function renderRegimeDiagnostics(
 
  </table>
 
-
  <details>
 
  <summary>
@@ -1637,29 +1677,17 @@ function renderRegimeDiagnostics(
   style="padding:10px"
  >
 
- Если, например, EMA показывает:
+ Если EMA показывает 49–50%
+ во всём рынке, но 56–58%
+ при ADX >25, EMA может быть
+ полезным только в трендовом рынке.
 
- <br><br>
-
- 49–50% во всём рынке,
- <br>
- но 56–58% при ADX >25,
-
- то EMA может быть полезным
- <b>только в трендовом рынке</b>.
-
- <br><br>
-
- Если RSI показывает
- 53–55% именно во флэте,
- возможно, RSI лучше использовать
+ Если RSI показывает 53–55%
+ именно во флэте, возможно,
+ RSI лучше использовать
  для торговли отскоков.
 
- <br><br>
-
- Наша цель — не найти красивый
- показатель на небольшом количестве
- сделок, а найти устойчивое
+ Цель — найти устойчивое
  преимущество на большом количестве
  наблюдений.
 
@@ -1669,7 +1697,6 @@ function renderRegimeDiagnostics(
 
  </div>
  `;
-
 
  document.getElementById(
   "regimeDiagnostics"
@@ -1696,7 +1723,12 @@ async function fetchBatch(
   "&endTime="+end;
 
  const response=
-  await fetch(url);
+  await fetch(
+   url,
+   {
+    cache:"no-store"
+   }
+  );
 
  if(!response.ok){
 
@@ -1717,9 +1749,17 @@ async function fetchHistory(
  const now=
   Date.now();
 
+ /*
+  Главное изменение:
+  история зависит от таймфрейма.
+ */
+
+ const days=
+  HISTORY_DAYS[interval] || 365;
+
  const start=
   now-
-  365*24*60*60*1000;
+  days*24*60*60*1000;
 
  const step=
   TF[interval];
@@ -1728,11 +1768,29 @@ async function fetchHistory(
 
  let all=[];
 
+ const estimated=
+  Math.ceil(
+   (now-start)/
+   (step*1000)
+  );
+
+ let requestNo=0;
 
  while(cursor<now){
 
-  let data=null;
+  requestNo++;
 
+  document.getElementById(
+   "status"
+  ).innerText=
+   "Загрузка "+
+   interval+
+   ": запрос "+
+   requestNo+
+   " / примерно "+
+   estimated;
+
+  let data=null;
 
   for(
    let attempt=0;
@@ -1756,12 +1814,16 @@ async function fetchHistory(
     if(attempt===3)
      throw e;
 
+    document.getElementById(
+     "status"
+    ).innerText=
+     "Ошибка соединения. Повтор...";
+
     await sleep(
      1000*(attempt+1)
     );
    }
   }
-
 
   if(
    !data||
@@ -1769,14 +1831,13 @@ async function fetchHistory(
   )
    break;
 
-
   for(
    const k of data
   ){
 
    all.push({
 
-    time:k[0],
+    time:Number(k[0]),
 
     open:Number(k[1]),
 
@@ -1791,33 +1852,36 @@ async function fetchHistory(
    });
   }
 
-
   const last=
-   data[data.length-1][0];
+   Number(
+    data[data.length-1][0]
+   );
 
-  cursor=
+  const next=
    last+step;
 
+  if(next<=cursor)
+   break;
+
+  cursor=next;
 
   document.getElementById(
    "status"
   ).innerText=
-   "Загрузка: "+
+   "Загружено "+
    all.length+
-   " свечей";
-
+   " свечей ("+
+   interval+
+   ")";
 
   await sleep(120);
-
 
   if(data.length<1000)
    break;
  }
 
-
  const unique=
   new Map();
-
 
  for(
   const c of all
@@ -1828,7 +1892,6 @@ async function fetchHistory(
    c
   );
  }
-
 
  return[
   ...unique.values()
@@ -1857,21 +1920,17 @@ async function runAnalysis(){
 
  btn.disabled=true;
 
-
  document.getElementById(
   "live"
  ).innerHTML="";
-
 
  document.getElementById(
   "backtest"
  ).innerHTML="";
 
-
  document.getElementById(
   "regimeDiagnostics"
  ).innerHTML="";
-
 
  try{
 
@@ -1880,80 +1939,72 @@ async function runAnalysis(){
     "timeframe"
    ).value;
 
-
   status.innerText=
    "Загружаем историю Binance...";
-
 
   const data=
    await fetchHistory(tf);
 
-
   if(data.length<300){
 
    throw new Error(
-    "Недостаточно данных"
+    "Недостаточно данных: "+
+    data.length+
+    " свечей"
    );
   }
-
 
   status.innerText=
    "Рассчитываем индикаторы...";
 
+  await sleep(50);
 
   const ind=
    buildIndicators(data);
 
-
   const last=
    data.length-1;
-
 
   renderLive(
    ind,
    last
   );
 
-
   status.innerText=
    "Бэктест...";
 
-
   await sleep(50);
-
 
   renderBacktest(
    data,
    ind
   );
 
-
   status.innerText=
    "Анализ режимов рынка...";
 
-
   await sleep(50);
-
 
   renderRegimeDiagnostics(
    data,
    ind
   );
 
-
   status.innerText=
-   "Готово • BTC Signal v2.4";
-
+   "Готово • BTC Signal v2.4.1";
 
  }catch(e){
 
   console.error(e);
 
+  status.className="loader error";
 
   status.innerText=
    "Ошибка: "+
-   e.message;
-
+   (
+    e.message||
+    String(e)
+   );
 
  }finally{
 
