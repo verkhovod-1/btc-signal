@@ -1,143 +1,63 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BTC Signal v2.3</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BTC Signal v2.4</title>
 <link rel="manifest" href="manifest.webmanifest">
 
 <style>
 *{box-sizing:border-box}
 body{
-  margin:0;
-  background:#0b0f14;
-  color:#e8edf3;
-  font-family:Arial,sans-serif;
+ margin:0;background:#0b0f14;color:#e8edf3;
+ font-family:Arial,sans-serif
 }
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:15px;
-}
-h1{
-  text-align:center;
-  margin:8px 0 3px;
-}
-.version{
-  text-align:center;
-  color:#7f8b99;
-  font-size:13px;
-  margin-bottom:15px;
-}
+.container{max-width:950px;margin:auto;padding:15px}
+h1{text-align:center;margin:8px 0 3px}
+.version{text-align:center;color:#7f8b99;font-size:13px;margin-bottom:15px}
 .card{
-  background:#121821;
-  border:1px solid #202b38;
-  border-radius:14px;
-  padding:15px;
-  margin-bottom:14px;
+ background:#121821;border:1px solid #202b38;border-radius:14px;
+ padding:15px;margin-bottom:14px
 }
-.row{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
+.row{display:flex;gap:8px;flex-wrap:wrap}
 button,select{
-  background:#1a2430;
-  color:#fff;
-  border:1px solid #344353;
-  border-radius:9px;
-  padding:10px 12px;
-  font-size:14px;
+ background:#1a2430;color:#fff;border:1px solid #344353;
+ border-radius:9px;padding:10px 12px;font-size:14px
 }
-button{
-  cursor:pointer;
-}
-button.active{
-  background:#315b8a;
-}
-.price{
-  font-size:30px;
-  font-weight:bold;
-  text-align:center;
-  margin:10px 0;
-}
+button{cursor:pointer}
+button:disabled{opacity:.5}
+.price{text-align:center;font-size:30px;font-weight:bold;margin:10px}
 .signal{
-  text-align:center;
-  font-size:30px;
-  font-weight:bold;
-  padding:15px;
-  border-radius:12px;
-  margin:10px 0;
+ text-align:center;font-size:30px;font-weight:bold;
+ padding:15px;border-radius:12px;margin:10px 0
 }
 .buy{background:#123c2a;color:#51e39b}
 .sell{background:#451c25;color:#ff7182}
 .hold{background:#403515;color:#ffd45a}
-
-.score{
-  text-align:center;
-  font-size:42px;
-  font-weight:bold;
-}
+.score{text-align:center;font-size:42px;font-weight:bold}
 .meter{
-  height:12px;
-  background:#222c37;
-  border-radius:10px;
-  overflow:hidden;
-  margin:10px 0;
+ height:12px;background:#222c37;border-radius:10px;
+ overflow:hidden;margin:10px 0
 }
-.meterFill{
-  height:100%;
-  width:0%;
-  background:#4e9cff;
-}
-.small{
-  color:#8d99a7;
-  font-size:13px;
-}
-.reason{
-  padding:7px 0;
-  border-bottom:1px solid #202b38;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
-}
-th,td{
-  padding:7px 5px;
-  border-bottom:1px solid #25303b;
-  text-align:right;
-}
-th:first-child,td:first-child{
-  text-align:left;
-}
-.sectionTitle{
-  font-size:18px;
-  font-weight:bold;
-  margin-bottom:10px;
-}
-.good{color:#51e39b}
-.bad{color:#ff7182}
-.warn{color:#ffd45a}
+.meterFill{height:100%;background:#4e9cff}
+.small{color:#8d99a7;font-size:13px}
+.reason{padding:7px 0;border-bottom:1px solid #202b38}
+.sectionTitle{font-size:18px;font-weight:bold;margin-bottom:10px}
 .center{text-align:center}
-.loader{
-  text-align:center;
-  padding:20px;
-  color:#9aa7b5;
+.loader{text-align:center;padding:20px;color:#9aa7b5}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{
+ padding:7px 5px;border-bottom:1px solid #25303b;
+ text-align:right
 }
-details{
-  margin-top:10px;
-}
-summary{
-  cursor:pointer;
-  color:#75b7ff;
-  padding:5px;
-}
-hr{
-  border:0;
-  border-top:1px solid #26313d;
-  margin:14px 0;
+th:first-child,td:first-child{text-align:left}
+details{margin-top:10px}
+summary{cursor:pointer;color:#75b7ff;padding:7px}
+hr{border:0;border-top:1px solid #26313d;margin:14px 0}
+.regime{
+ padding:9px;border-radius:8px;margin:5px 0;
+ background:#19222d
 }
 </style>
 </head>
@@ -147,26 +67,36 @@ hr{
 <div class="container">
 
 <h1>₿ BTC Signal</h1>
-<div class="version">v2.3 — Factor Diagnostics + Correct MACD</div>
+<div class="version">
+v2.4 — Market Regime + ADX Diagnostics
+</div>
 
 <div class="card">
-  <div class="row">
-    <select id="timeframe">
-      <option value="15m">15 минут</option>
-      <option value="1h" selected>1 час</option>
-      <option value="4h">4 часа</option>
-      <option value="1d">1 день</option>
-    </select>
 
-    <button id="runBtn" onclick="runAnalysis()">Обновить анализ</button>
-  </div>
+ <div class="row">
 
-  <div id="status" class="loader">Нажмите «Обновить анализ»</div>
+  <select id="timeframe">
+   <option value="15m">15 минут</option>
+   <option value="1h" selected>1 час</option>
+   <option value="4h">4 часа</option>
+   <option value="1d">1 день</option>
+  </select>
+
+  <button id="runBtn" onclick="runAnalysis()">
+   Обновить анализ
+  </button>
+
+ </div>
+
+ <div id="status" class="loader">
+  Нажмите «Обновить анализ»
+ </div>
+
 </div>
 
 <div id="live"></div>
 <div id="backtest"></div>
-<div id="diagnostics"></div>
+<div id="regimeDiagnostics"></div>
 
 </div>
 
@@ -175,43 +105,55 @@ hr{
 const API="https://api.binance.com/api/v3/klines";
 
 const TF={
-  "15m":900000,
-  "1h":3600000,
-  "4h":14400000,
-  "1d":86400000
+ "15m":900000,
+ "1h":3600000,
+ "4h":14400000,
+ "1d":86400000
 };
 
 const HORIZONS={
-  "15m":[4,16,96],
-  "1h":[1,4,24],
-  "4h":[1,6],
-  "1d":[1]
+ "15m":[4,16,96],
+ "1h":[1,4,24],
+ "4h":[1,6],
+ "1d":[1]
 };
-
-let candles=[];
 
 
 /* =========================
-   UTILITY
+   HELPERS
 ========================= */
 
 function sleep(ms){
-  return new Promise(r=>setTimeout(r,ms));
+ return new Promise(r=>setTimeout(r,ms));
 }
 
 function pct(x){
-  if(!isFinite(x)) return "—";
-  return (x>=0?"+":"")+x.toFixed(2)+"%";
+ if(!isFinite(x))return "—";
+ return (x>=0?"+":"")+x.toFixed(2)+"%";
 }
 
 function num(x){
-  return Number(x).toFixed(2);
+ return x==null||!isFinite(x)?"—":Number(x).toFixed(2);
 }
 
 function fmtPrice(x){
-  return Number(x).toLocaleString("en-US",{
-    maximumFractionDigits:2
-  });
+ return Number(x).toLocaleString("en-US",{
+  maximumFractionDigits:2
+ });
+}
+
+function formatHorizon(h,tf){
+
+ const minutes=h*(
+  tf==="15m"?15:
+  tf==="1h"?60:
+  tf==="4h"?240:1440
+ );
+
+ if(minutes<60)return minutes+" мин";
+ if(minutes%1440===0)return minutes/1440+" дн";
+
+ return minutes/60+" ч";
 }
 
 
@@ -221,27 +163,26 @@ function fmtPrice(x){
 
 function calcEMA(values,period){
 
-  const result=new Array(values.length).fill(null);
+ const out=new Array(values.length).fill(null);
 
-  if(values.length<period) return result;
+ if(values.length<period)return out;
 
-  let sum=0;
+ let sum=0;
 
-  for(let i=0;i<period;i++){
-    sum+=values[i];
-  }
+ for(let i=0;i<period;i++)sum+=values[i];
 
-  let ema=sum/period;
-  result[period-1]=ema;
+ let ema=sum/period;
 
-  const k=2/(period+1);
+ out[period-1]=ema;
 
-  for(let i=period;i<values.length;i++){
-    ema=values[i]*k+ema*(1-k);
-    result[i]=ema;
-  }
+ const k=2/(period+1);
 
-  return result;
+ for(let i=period;i<values.length;i++){
+  ema=values[i]*k+ema*(1-k);
+  out[i]=ema;
+ }
+
+ return out;
 }
 
 
@@ -251,104 +192,231 @@ function calcEMA(values,period){
 
 function calcRSI(values,period=14){
 
-  const result=new Array(values.length).fill(null);
+ const out=new Array(values.length).fill(null);
 
-  if(values.length<=period) return result;
+ if(values.length<=period)return out;
 
-  let gain=0;
-  let loss=0;
+ let gain=0,loss=0;
 
-  for(let i=1;i<=period;i++){
-    const d=values[i]-values[i-1];
+ for(let i=1;i<=period;i++){
 
-    if(d>=0) gain+=d;
-    else loss-=d;
-  }
+  const d=values[i]-values[i-1];
 
-  let avgGain=gain/period;
-  let avgLoss=loss/period;
+  if(d>=0)gain+=d;
+  else loss-=d;
+ }
 
-  result[period]=
-    avgLoss===0 ? 100 :
-    100-(100/(1+avgGain/avgLoss));
+ let avgGain=gain/period;
+ let avgLoss=loss/period;
 
-  for(let i=period+1;i<values.length;i++){
+ out[period]=
+  avgLoss===0?100:
+  100-(100/(1+avgGain/avgLoss));
 
-    const d=values[i]-values[i-1];
+ for(let i=period+1;i<values.length;i++){
 
-    const g=Math.max(d,0);
-    const l=Math.max(-d,0);
+  const d=values[i]-values[i-1];
 
-    avgGain=(avgGain*(period-1)+g)/period;
-    avgLoss=(avgLoss*(period-1)+l)/period;
+  const g=Math.max(d,0);
+  const l=Math.max(-d,0);
 
-    result[i]=
-      avgLoss===0 ? 100 :
-      100-(100/(1+avgGain/avgLoss));
-  }
+  avgGain=(avgGain*(period-1)+g)/period;
+  avgLoss=(avgLoss*(period-1)+l)/period;
 
-  return result;
+  out[i]=
+   avgLoss===0?100:
+   100-(100/(1+avgGain/avgLoss));
+ }
+
+ return out;
 }
 
 
 /* =========================
-   CORRECT MACD
-   EMA12 / EMA26
-   Signal EMA9
-   Histogram
+   MACD
 ========================= */
 
 function calcMACD(values){
 
-  const ema12=calcEMA(values,12);
-  const ema26=calcEMA(values,26);
+ const ema12=calcEMA(values,12);
+ const ema26=calcEMA(values,26);
 
-  const macd=new Array(values.length).fill(null);
+ const macd=new Array(values.length).fill(null);
 
-  for(let i=0;i<values.length;i++){
+ for(let i=0;i<values.length;i++){
 
-    if(
-      ema12[i]!==null &&
-      ema26[i]!==null
-    ){
-      macd[i]=ema12[i]-ema26[i];
-    }
+  if(ema12[i]!=null&&ema26[i]!=null){
+   macd[i]=ema12[i]-ema26[i];
+  }
+ }
+
+ const temp=[];
+ const indexes=[];
+
+ for(let i=0;i<macd.length;i++){
+
+  if(macd[i]!=null){
+   temp.push(macd[i]);
+   indexes.push(i);
+  }
+ }
+
+ const sigTemp=calcEMA(temp,9);
+
+ const signal=new Array(values.length).fill(null);
+ const histogram=new Array(values.length).fill(null);
+
+ for(let j=0;j<sigTemp.length;j++){
+
+  if(sigTemp[j]!=null){
+
+   const i=indexes[j];
+
+   signal[i]=sigTemp[j];
+   histogram[i]=macd[i]-signal[i];
+  }
+ }
+
+ return{
+  macd,
+  signal,
+  histogram
+ };
+}
+
+
+/* =========================
+   ADX
+========================= */
+
+function calcADX(data,period=14){
+
+ const n=data.length;
+
+ const tr=new Array(n).fill(null);
+ const plusDM=new Array(n).fill(null);
+ const minusDM=new Array(n).fill(null);
+
+ for(let i=1;i<n;i++){
+
+  const high=data[i].high;
+  const low=data[i].low;
+
+  const prevHigh=data[i-1].high;
+  const prevLow=data[i-1].low;
+  const prevClose=data[i-1].close;
+
+  tr[i]=Math.max(
+   high-low,
+   Math.abs(high-prevClose),
+   Math.abs(low-prevClose)
+  );
+
+  const up=high-prevHigh;
+  const down=prevLow-low;
+
+  plusDM[i]=(up>down&&up>0)?up:0;
+  minusDM[i]=(down>up&&down>0)?down:0;
+ }
+
+ const adx=new Array(n).fill(null);
+ const plusDI=new Array(n).fill(null);
+ const minusDI=new Array(n).fill(null);
+ const dx=new Array(n).fill(null);
+
+ let atr=0;
+ let pDM=0;
+ let mDM=0;
+
+ for(let i=1;i<=period;i++){
+
+  atr+=tr[i];
+  pDM+=plusDM[i];
+  mDM+=minusDM[i];
+ }
+
+ atr/=period;
+ pDM/=period;
+ mDM/=period;
+
+ let firstDX=null;
+
+ for(let i=period;i<n;i++){
+
+  if(i>period){
+
+   atr=((atr*(period-1))+tr[i])/period;
+   pDM=((pDM*(period-1))+plusDM[i])/period;
+   mDM=((mDM*(period-1))+minusDM[i])/period;
   }
 
-  const macdForSignal=[];
-  const macdIndexes=[];
+  if(atr===0)continue;
 
-  for(let i=0;i<macd.length;i++){
-    if(macd[i]!==null){
-      macdForSignal.push(macd[i]);
-      macdIndexes.push(i);
-    }
+  plusDI[i]=100*(pDM/atr);
+  minusDI[i]=100*(mDM/atr);
+
+  const sum=plusDI[i]+minusDI[i];
+
+  if(sum>0){
+
+   dx[i]=100*
+    Math.abs(plusDI[i]-minusDI[i])/sum;
+
+   if(firstDX===null){
+
+    firstDX=i;
+    adx[i]=dx[i];
+
+   }else{
+
+    adx[i]=
+     ((adx[i-1]??dx[i])* (period-1)+dx[i])/period;
+   }
   }
+ }
 
-  const signalValues=calcEMA(macdForSignal,9);
+ /*
+  Более стабильная и простая повторная
+  инициализация ADX через DX.
+ */
 
-  const signal=new Array(values.length).fill(null);
-  const histogram=new Array(values.length).fill(null);
+ const cleanDX=[];
 
-  for(let j=0;j<signalValues.length;j++){
+ for(let i=period;i<n;i++){
 
-    const originalIndex=macdIndexes[j];
+  if(dx[i]!=null)cleanDX.push({
+   i,
+   v:dx[i]
+  });
+ }
 
-    if(signalValues[j]!==null){
+ for(let j=period-1;j<cleanDX.length;j++){
 
-      signal[originalIndex]=signalValues[j];
-      histogram[originalIndex]=
-        macd[originalIndex]-signalValues[j];
-    }
+  const idx=cleanDX[j].i;
+
+  if(j===period-1){
+
+   let sum=0;
+
+   for(let k=0;k<period;k++){
+    sum+=cleanDX[k].v;
+   }
+
+   adx[idx]=sum/period;
+
+  }else{
+
+   adx[idx]=
+    ((adx[cleanDX[j-1].i]??cleanDX[j].v)*
+     (period-1)+cleanDX[j].v)/period;
   }
+ }
 
-  return {
-    ema12,
-    ema26,
-    macd,
-    signal,
-    histogram
-  };
+ return{
+  adx,
+  plusDI,
+  minusDI
+ };
 }
 
 
@@ -358,305 +426,205 @@ function calcMACD(values){
 
 function buildIndicators(data){
 
-  const close=data.map(x=>x.close);
-  const volume=data.map(x=>x.volume);
+ const close=data.map(x=>x.close);
+ const volume=data.map(x=>x.volume);
 
-  const ema20=calcEMA(close,20);
-  const ema50=calcEMA(close,50);
-  const ema200=calcEMA(close,200);
-  const rsi=calcRSI(close,14);
-  const macd=calcMACD(close);
+ const ema20=calcEMA(close,20);
+ const ema50=calcEMA(close,50);
+ const ema200=calcEMA(close,200);
+ const rsi=calcRSI(close,14);
+ const macd=calcMACD(close);
+ const adx=calcADX(data,14);
 
-  const volumeRatio=new Array(close.length).fill(null);
+ const volumeRatio=
+  new Array(close.length).fill(null);
 
-  for(let i=20;i<close.length;i++){
+ for(let i=20;i<close.length;i++){
 
-    let sum=0;
+  let sum=0;
 
-    for(let j=i-20;j<i;j++){
-      sum+=volume[j];
-    }
-
-    const avg=sum/20;
-
-    if(avg>0){
-      volumeRatio[i]=volume[i]/avg;
-    }
+  for(let j=i-20;j<i;j++){
+   sum+=volume[j];
   }
 
-  return {
-    close,
-    volume,
-    ema20,
-    ema50,
-    ema200,
-    rsi,
-    macd,
-    volumeRatio
-  };
+  const avg=sum/20;
+
+  if(avg>0)
+   volumeRatio[i]=volume[i]/avg;
+ }
+
+ return{
+  close,
+  volume,
+  ema20,
+  ema50,
+  ema200,
+  rsi,
+  macd,
+  adx,
+  volumeRatio
+ };
 }
 
 
 /* =========================
-   SCORE
-   Сохраняем текущую логику
+   MARKET REGIME
+========================= */
+
+function getRegime(ind,i){
+
+ const adx=ind.adx.adx[i];
+ const plus=ind.adx.plusDI[i];
+ const minus=ind.adx.minusDI[i];
+
+ if(adx==null||plus==null||minus==null)
+  return "UNKNOWN";
+
+ /*
+  ADX:
+  <20 = слабый тренд / флэт
+  20–25 = переход
+  >=25 = выраженный тренд
+ */
+
+ if(adx<20)
+  return "FLAT";
+
+ if(adx<25)
+  return "TRANSITION";
+
+ if(plus>minus)
+  return "BULL";
+
+ return "BEAR";
+}
+
+
+function regimeName(r){
+
+ if(r==="BULL")return "🟢 Сильный бычий тренд";
+ if(r==="BEAR")return "🔴 Сильный медвежий тренд";
+ if(r==="FLAT")return "🟡 Флэт / слабый тренд";
+ if(r==="TRANSITION")return "⚪ Переходный рынок";
+
+ return "—";
+}
+
+
+/* =========================
+   SIGNAL
 ========================= */
 
 function getSignal(ind,i){
 
-  let bull=0;
-  let bear=0;
-  const reasons=[];
+ let bull=0;
+ let bear=0;
+ const reasons=[];
 
-  const price=ind.close[i];
-  const e20=ind.ema20[i];
-  const e50=ind.ema50[i];
-  const e200=ind.ema200[i];
-  const rsi=ind.rsi[i];
-  const macd=ind.macd.macd[i];
-  const vr=ind.volumeRatio[i];
+ const price=ind.close[i];
+ const e20=ind.ema20[i];
+ const e50=ind.ema50[i];
+ const e200=ind.ema200[i];
+ const rsi=ind.rsi[i];
+ const macd=ind.macd.macd[i];
+ const vr=ind.volumeRatio[i];
 
-  if(
-    e20!==null &&
-    e50!==null
-  ){
+ if(e20!=null&&e50!=null){
 
-    if(e20>e50){
-      bull+=20;
-      reasons.push("EMA20 > EMA50: бычий тренд");
-    }else{
-      bear+=20;
-      reasons.push("EMA20 < EMA50: медвежий тренд");
-    }
+  if(e20>e50){
+   bull+=20;
+   reasons.push("EMA20 > EMA50");
+  }else{
+   bear+=20;
+   reasons.push("EMA20 < EMA50");
   }
+ }
 
-  if(
-    e200!==null
-  ){
+ if(e200!=null){
 
-    if(price>e200){
-      bull+=20;
-      reasons.push("Цена выше EMA200");
-    }else{
-      bear+=20;
-      reasons.push("Цена ниже EMA200");
-    }
+  if(price>e200){
+   bull+=20;
+   reasons.push("Цена выше EMA200");
+  }else{
+   bear+=20;
+   reasons.push("Цена ниже EMA200");
   }
+ }
 
-  if(rsi!==null){
+ if(rsi!=null){
 
-    if(rsi>=52 && rsi<=68){
-      bull+=20;
-      reasons.push("RSI 52–68: сильная бычья зона");
-    }
-    else if(rsi>75){
-      bear+=10;
-      reasons.push("RSI >75: перекупленность");
-    }
-    else if(rsi<30){
-      bull+=10;
-      reasons.push("RSI <30: возможный отскок");
-    }
-    else if(rsi<45){
-      bear+=15;
-      reasons.push("RSI <45: слабость");
-    }
-    else{
-      bull+=10;
-      bear+=10;
-      reasons.push("RSI нейтральный");
-    }
+  if(rsi>=52&&rsi<=68){
+   bull+=20;
+   reasons.push("RSI 52–68");
   }
-
-  /*
-    ВАЖНО:
-    Для сохранения сопоставимости с v2.2
-    решение использует MACD LINE > 0.
-    Но теперь MACD рассчитан корректно.
-  */
-
-  if(macd!==null){
-
-    if(macd>0){
-      bull+=20;
-      reasons.push("MACD > 0");
-    }else{
-      bear+=20;
-      reasons.push("MACD < 0");
-    }
+  else if(rsi>75){
+   bear+=10;
+   reasons.push("RSI >75");
   }
-
-  if(vr!==null){
-
-    if(vr>=1.25){
-
-      if(price>e20){
-        bull+=20;
-        reasons.push("Объём выше среднего + цена выше EMA20");
-      }else{
-        bear+=20;
-        reasons.push("Объём выше среднего + цена ниже EMA20");
-      }
-
-    }else{
-      bull+=10;
-      bear+=10;
-      reasons.push("Объём без сильного подтверждения");
-    }
+  else if(rsi<30){
+   bull+=10;
+   reasons.push("RSI <30");
   }
-
-  const score=
-    Math.max(
-      0,
-      Math.min(
-        100,
-        50+(bull-bear)/2
-      )
-    );
-
-  let signal="HOLD";
-
-  if(score>=70) signal="BUY";
-  else if(score<=30) signal="SELL";
-
-  return {
-    score,
-    signal,
-    bull,
-    bear,
-    reasons
-  };
-}
-
-
-/* =========================
-   SCORE BAND
-========================= */
-
-function scoreBand(score,signal){
-
-  if(signal==="BUY"){
-
-    if(score>=90) return "90–100";
-    if(score>=85) return "85–90";
-    if(score>=80) return "80–85";
-    if(score>=75) return "75–80";
-    return "70–75";
+  else if(rsi<45){
+   bear+=15;
+   reasons.push("RSI <45");
   }
-
-  if(signal==="SELL"){
-
-    if(score<=10) return "0–10";
-    if(score<=15) return "10–15";
-    if(score<=20) return "15–20";
-    if(score<=25) return "20–25";
-    return "25–30";
+  else{
+   bull+=10;
+   bear+=10;
   }
+ }
 
-  return "HOLD";
-}
+ if(macd!=null){
 
-
-/* =========================
-   BINANCE DATA
-========================= */
-
-async function fetchBatch(start,end,interval){
-
-  const url=
-    API+
-    "?symbol=BTCUSDT"+
-    "&interval="+interval+
-    "&limit=1000"+
-    "&startTime="+start+
-    "&endTime="+end;
-
-  const response=await fetch(url);
-
-  if(!response.ok){
-    throw new Error(
-      "Binance HTTP "+response.status
-    );
+  if(macd>0){
+   bull+=20;
+   reasons.push("MACD >0");
+  }else{
+   bear+=20;
+   reasons.push("MACD <0");
   }
+ }
 
-  return await response.json();
-}
+ if(vr!=null){
 
+  if(vr>=1.25){
 
-async function fetchHistory(interval){
+   if(price>e20){
+    bull+=20;
+    reasons.push("Высокий объём + цена выше EMA20");
+   }else{
+    bear+=20;
+    reasons.push("Высокий объём + цена ниже EMA20");
+   }
 
-  const now=Date.now();
+  }else{
 
-  const oneYear=365*24*60*60*1000;
-
-  const start=now-oneYear;
-
-  const step=TF[interval];
-
-  let all=[];
-
-  let cursor=start;
-
-  while(cursor<now){
-
-    let data=null;
-
-    for(let attempt=0;attempt<4;attempt++){
-
-      try{
-
-        data=await fetchBatch(
-          cursor,
-          now,
-          interval
-        );
-
-        break;
-
-      }catch(e){
-
-        if(attempt===3) throw e;
-
-        await sleep(1000*(attempt+1));
-      }
-    }
-
-    if(!data || data.length===0) break;
-
-    for(const k of data){
-
-      all.push({
-        time:k[0],
-        open:Number(k[1]),
-        high:Number(k[2]),
-        low:Number(k[3]),
-        close:Number(k[4]),
-        volume:Number(k[5])
-      });
-    }
-
-    const last=data[data.length-1][0];
-
-    cursor=last+step;
-
-    document.getElementById("status").innerText=
-      "Загрузка истории: "+
-      all.length+
-      " свечей";
-
-    await sleep(120);
-
-    if(data.length<1000) break;
+   bull+=10;
+   bear+=10;
   }
+ }
 
-  const map=new Map();
+ const score=Math.max(
+  0,
+  Math.min(
+   100,
+   50+(bull-bear)/2
+  )
+ );
 
-  for(const x of all){
-    map.set(x.time,x);
-  }
+ let signal="HOLD";
 
-  return [...map.values()]
-    .sort((a,b)=>a.time-b.time);
+ if(score>=70)signal="BUY";
+ else if(score<=30)signal="SELL";
+
+ return{
+  score,
+  signal,
+  bull,
+  bear,
+  reasons
+ };
 }
 
 
@@ -666,727 +634,641 @@ async function fetchHistory(interval){
 
 function renderLive(ind,i){
 
+ const s=getSignal(ind,i);
+ const regime=getRegime(ind,i);
+
+ const cls=
+  s.signal==="BUY"?"buy":
+  s.signal==="SELL"?"sell":"hold";
+
+ let html=`
+
+ <div class="card">
+
+  <div class="small center">
+   Текущий сигнал
+  </div>
+
+  <div class="price">
+   $${fmtPrice(ind.close[i])}
+  </div>
+
+  <div class="signal ${cls}">
+   ${s.signal}
+  </div>
+
+  <div class="score">
+   ${s.score.toFixed(0)}
+  </div>
+
+  <div class="small center">
+   Signal Score — не вероятность
+  </div>
+
+  <div class="meter">
+   <div class="meterFill"
+    style="width:${s.score}%">
+   </div>
+  </div>
+
+  <div class="regime">
+   <b>Режим рынка:</b>
+   ${regimeName(regime)}
+  </div>
+
+  <div class="small">
+   ADX: ${num(ind.adx.adx[i])}<br>
+   +DI: ${num(ind.adx.plusDI[i])}<br>
+   -DI: ${num(ind.adx.minusDI[i])}
+  </div>
+
+  <hr>
+
+  <div class="sectionTitle">
+   Разбор сигнала
+  </div>
+ `;
+
+ for(const r of s.reasons){
+  html+=`<div class="reason">${r}</div>`;
+ }
+
+ html+=`
+
+ <hr>
+
+ <div class="small">
+ EMA20: ${num(ind.ema20[i])}<br>
+ EMA50: ${num(ind.ema50[i])}<br>
+ EMA200: ${num(ind.ema200[i])}<br>
+ RSI: ${num(ind.rsi[i])}<br>
+ MACD: ${num(ind.macd.macd[i])}<br>
+ MACD Signal: ${num(ind.macd.signal[i])}<br>
+ MACD Histogram: ${num(ind.macd.histogram[i])}<br>
+ Volume ratio: ${num(ind.volumeRatio[i])}
+ </div>
+
+ </div>
+ `;
+
+ document.getElementById("live").innerHTML=html;
+}
+
+
+/* =========================
+   RETURN
+========================= */
+
+function directionalReturn(
+ data,i,horizon,direction
+){
+
+ const entry=i+1;
+ const exit=i+1+horizon;
+
+ if(
+  entry>=data.length||
+  exit>=data.length
+ )return null;
+
+ const p1=data[entry].open;
+ const p2=data[exit].open;
+
+ if(!p1||!p2)return null;
+
+ const raw=(p2-p1)/p1*100;
+
+ return direction==="BUY"?raw:-raw;
+}
+
+
+/* =========================
+   SIGNAL STATS
+========================= */
+
+function signalStats(
+ data,
+ ind,
+ signal,
+ horizon
+){
+
+ let n=0;
+ let wins=0;
+ let sum=0;
+ let best=-Infinity;
+ let worst=Infinity;
+
+ for(
+  let i=200;
+  i<data.length-horizon-2;
+  i++
+ ){
+
   const s=getSignal(ind,i);
 
-  const price=ind.close[i];
+  if(s.signal!==signal)continue;
 
-  const cls=
-    s.signal==="BUY" ? "buy" :
-    s.signal==="SELL" ? "sell" :
-    "hold";
+  const r=
+   directionalReturn(
+    data,i,horizon,signal
+   );
 
-  let html=`
+  if(r==null)continue;
 
-  <div class="card">
+  n++;
 
-    <div class="small center">
-      Текущий сигнал
-    </div>
+  if(r>0)wins++;
 
-    <div class="price">
-      $${fmtPrice(price)}
-    </div>
+  sum+=r;
+  best=Math.max(best,r);
+  worst=Math.min(worst,r);
+ }
 
-    <div class="signal ${cls}">
-      ${s.signal}
-    </div>
-
-    <div class="score">
-      ${s.score.toFixed(0)}
-    </div>
-
-    <div class="small center">
-      Signal Score — не вероятность
-    </div>
-
-    <div class="meter">
-      <div
-        class="meterFill"
-        style="width:${s.score}%"
-      ></div>
-    </div>
-
-    <hr>
-
-    <div class="sectionTitle">
-      Разбор сигнала
-    </div>
-  `;
-
-  for(const r of s.reasons){
-
-    html+=`
-      <div class="reason">${r}</div>
-    `;
-  }
-
-  html+=`
-    <hr>
-
-    <div class="small">
-      EMA20: ${num(ind.ema20[i])}<br>
-      EMA50: ${num(ind.ema50[i])}<br>
-      EMA200: ${num(ind.ema200[i])}<br>
-      RSI: ${num(ind.rsi[i])}<br>
-      MACD: ${num(ind.macd.macd[i])}<br>
-      Signal: ${num(ind.macd.signal[i])}<br>
-      Histogram: ${num(ind.macd.histogram[i])}<br>
-      Volume ratio: ${num(ind.volumeRatio[i])}
-    </div>
-
-  </div>
-  `;
-
-  document.getElementById("live").innerHTML=html;
+ return{
+  n,
+  accuracy:n?wins/n*100:null,
+  avg:n?sum/n:null,
+  best:n?best:null,
+  worst:n?worst:null
+ };
 }
 
 
 /* =========================
-   BACKTEST HELPERS
+   BACKTEST
 ========================= */
 
-function directionalReturn(data,i,horizon,direction){
+function renderBacktest(data,ind){
 
-  const entryIndex=i+1;
-  const exitIndex=i+1+horizon;
+ const tf=document.getElementById("timeframe").value;
 
-  if(
-    entryIndex>=data.length ||
-    exitIndex>=data.length
-  ){
-    return null;
-  }
+ let html=`
 
-  const entry=data[entryIndex].open;
-  const exit=data[exitIndex].open;
+ <div class="card">
 
-  if(
-    !isFinite(entry) ||
-    !isFinite(exit) ||
-    entry<=0
-  ){
-    return null;
-  }
+ <div class="sectionTitle">
+  📊 Годовой бэктест
+ </div>
 
-  const raw=(exit-entry)/entry*100;
+ <div class="small">
+  Свечей: ${data.length.toLocaleString()}
+ </div>
+ `;
 
-  return direction==="BUY" ? raw : -raw;
-}
+ for(const h of HORIZONS[tf]){
 
-
-function calcSignalStats(
-  data,
-  ind,
-  signalName,
-  horizon
-){
-
-  let n=0;
-  let wins=0;
-  let sum=0;
-  let best=-Infinity;
-  let worst=Infinity;
-
-  for(
-    let i=200;
-    i<data.length-horizon-2;
-    i++
-  ){
-
-    const s=getSignal(ind,i);
-
-    if(s.signal!==signalName) continue;
-
-    const r=
-      directionalReturn(
-        data,
-        i,
-        horizon,
-        signalName
-      );
-
-    if(r===null) continue;
-
-    n++;
-
-    if(r>0) wins++;
-
-    sum+=r;
-
-    best=Math.max(best,r);
-    worst=Math.min(worst,r);
-  }
-
-  return {
-    n,
-    accuracy:n ? wins/n*100 : null,
-    avg:n ? sum/n : null,
-    best:n ? best : null,
-    worst:n ? worst : null
-  };
-}
-
-
-/* =========================
-   SCORE DIAGNOSTICS
-========================= */
-
-function scoreDiagnostics(
-  data,
-  ind,
-  signalName,
-  horizon
-){
-
-  const bands=
-    signalName==="BUY"
-      ? ["70–75","75–80","80–85","85–90","90–100"]
-      : ["25–30","20–25","15–20","10–15","0–10"];
-
-  const stats={};
-
-  for(const b of bands){
-    stats[b]={
-      n:0,
-      wins:0,
-      sum:0
-    };
-  }
-
-  for(
-    let i=200;
-    i<data.length-horizon-2;
-    i++
-  ){
-
-    const s=getSignal(ind,i);
-
-    if(s.signal!==signalName) continue;
-
-    const b=scoreBand(
-      s.score,
-      signalName
-    );
-
-    const r=
-      directionalReturn(
-        data,
-        i,
-        horizon,
-        signalName
-      );
-
-    if(r===null) continue;
-
-    stats[b].n++;
-
-    if(r>0) stats[b].wins++;
-
-    stats[b].sum+=r;
-  }
-
-  return {
-    bands,
-    stats
-  };
-}
-
-
-/* =========================
-   FACTOR DIAGNOSTICS
-========================= */
-
-function factorCondition(ind,i){
-
-  const rsi=ind.rsi[i];
-
-  return {
-
-    EMA:
-      ind.ema20[i]!==null &&
-      ind.ema50[i]!==null &&
-      ind.ema20[i]>ind.ema50[i],
-
-    EMA200:
-      ind.ema200[i]!==null &&
-      ind.close[i]>ind.ema200[i],
-
-    MACD:
-      ind.macd.macd[i]!==null &&
-      ind.macd.macd[i]>0,
-
-    MACD_HIST:
-      ind.macd.histogram[i]!==null &&
-      ind.macd.histogram[i]>0,
-
-    RSI:
-      rsi!==null &&
-      rsi>=52 &&
-      rsi<=68,
-
-    VOLUME:
-      ind.volumeRatio[i]!==null &&
-      ind.volumeRatio[i]>=1.25
-  };
-}
-
-
-function factorTest(
-  data,
-  ind,
-  horizon,
-  condition,
-  direction
-){
-
-  let n=0;
-  let wins=0;
-  let sum=0;
-
-  for(
-    let i=200;
-    i<data.length-horizon-2;
-    i++
-  ){
-
-    if(!condition(i)) continue;
-
-    const r=
-      directionalReturn(
-        data,
-        i,
-        horizon,
-        direction
-      );
-
-    if(r===null) continue;
-
-    n++;
-
-    if(r>0) wins++;
-
-    sum+=r;
-  }
-
-  return {
-    n,
-    accuracy:n ? wins/n*100 : null,
-    avg:n ? sum/n : null
-  };
-}
-
-
-function combinationTest(
-  data,
-  ind,
-  horizon,
-  conditions,
-  direction
-){
-
-  return factorTest(
-    data,
-    ind,
-    horizon,
-    i=>{
-      const f=factorCondition(ind,i);
-
-      return conditions.every(x=>f[x]);
-    },
-    direction
+  const buy=signalStats(
+   data,ind,"BUY",h
   );
-}
 
-
-/* =========================
-   DIAGNOSTICS RENDER
-========================= */
-
-function renderDiagnostics(
-  data,
-  ind
-){
-
-  const tf=
-    document.getElementById("timeframe").value;
-
-  const horizons=HORIZONS[tf];
-
-  let html=`
-
-  <div class="card">
-
-    <div class="sectionTitle">
-      🔬 Диагностика факторов
-    </div>
-
-    <div class="small">
-      Проверяем каждый фактор отдельно.
-      Это НЕ меняет текущий сигнал.
-      Результат показывает, действительно ли
-      фактор помогает прогнозировать направление.
-    </div>
-
-  `;
-
-  for(const h of horizons){
-
-    html+=`
-
-    <hr>
-
-    <div class="sectionTitle">
-      Горизонт ${formatHorizon(h,tf)}
-    </div>
-
-    <table>
-      <tr>
-        <th>Фактор</th>
-        <th>N</th>
-        <th>Успех</th>
-        <th>Средн.</th>
-      </tr>
-    `;
-
-    const factors=[
-      ["EMA20 > EMA50","EMA","BUY"],
-      ["Цена > EMA200","EMA200","BUY"],
-      ["MACD > 0","MACD","BUY"],
-      ["MACD Histogram > 0","MACD_HIST","BUY"],
-      ["RSI 52–68","RSI","BUY"],
-      ["Объём ≥1.25","VOLUME","BUY"]
-    ];
-
-    for(const [name,key,direction] of factors){
-
-      const r=factorTest(
-        data,
-        ind,
-        h,
-        i=>factorCondition(ind,i)[key],
-        direction
-      );
-
-      html+=`
-      <tr>
-        <td>${name}</td>
-        <td>${r.n}</td>
-        <td>${r.accuracy===null?"—":r.accuracy.toFixed(1)+"%"}</td>
-        <td>${r.avg===null?"—":pct(r.avg)}</td>
-      </tr>
-      `;
-    }
-
-    html+=`</table>`;
-
-    html+=`
-
-    <div class="small" style="margin-top:10px">
-      Комбинации факторов:
-    </div>
-
-    <table>
-
-      <tr>
-        <th>Комбинация</th>
-        <th>N</th>
-        <th>Успех</th>
-        <th>Средн.</th>
-      </tr>
-    `;
-
-    const combos=[
-      ["EMA + EMA200",["EMA","EMA200"]],
-      ["EMA + MACD",["EMA","MACD"]],
-      ["EMA200 + MACD",["EMA200","MACD"]],
-      ["EMA + EMA200 + MACD",["EMA","EMA200","MACD"]],
-      ["EMA + EMA200 + MACD + RSI",
-        ["EMA","EMA200","MACD","RSI"]],
-      ["Все факторы",
-        ["EMA","EMA200","MACD","RSI","VOLUME"]]
-    ];
-
-    for(const [name,keys] of combos){
-
-      const r=
-        combinationTest(
-          data,
-          ind,
-          h,
-          keys,
-          "BUY"
-        );
-
-      html+=`
-      <tr>
-        <td>${name}</td>
-        <td>${r.n}</td>
-        <td>${r.accuracy===null?"—":r.accuracy.toFixed(1)+"%"}</td>
-        <td>${r.avg===null?"—":pct(r.avg)}</td>
-      </tr>
-      `;
-    }
-
-    html+=`</table>`;
-
-  }
+  const sell=signalStats(
+   data,ind,"SELL",h
+  );
 
   html+=`
 
-    <details>
-      <summary>Что означают результаты?</summary>
+  <hr>
 
-      <div class="small" style="padding:10px">
-
-        <p>
-        <b>Успех</b> — процент случаев,
-        когда движение цены совпало
-        с предполагаемым направлением.
-        </p>
-
-        <p>
-        <b>Средн.</b> — средняя доходность
-        в предполагаемом направлении.
-        </p>
-
-        <p>
-        Если фактор стабильно показывает
-        около 50%, он практически не помогает.
-        </p>
-
-        <p>
-        Если фактор показывает 53–55%+
-        на большом количестве наблюдений,
-        его уже стоит изучать подробнее.
-        </p>
-
-        <p>
-        Особенно важна комбинация:
-        рост точности + достаточно большое N.
-        Например, 58% на 40 случаях хуже
-        для исследования, чем 54% на 3000 случаях.
-        </p>
-
-      </div>
-    </details>
-
+  <div class="sectionTitle">
+   ${formatHorizon(h,tf)}
   </div>
-  `;
 
-  document.getElementById("diagnostics").innerHTML=html;
+  <table>
+
+  <tr>
+   <th></th>
+   <th>N</th>
+   <th>Успех</th>
+   <th>Средн.</th>
+   <th>Лучший</th>
+   <th>Худший</th>
+  </tr>
+
+  <tr>
+   <td>BUY</td>
+   <td>${buy.n}</td>
+   <td>${buy.accuracy?.toFixed(1)??"—"}%</td>
+   <td>${pct(buy.avg)}</td>
+   <td>${pct(buy.best)}</td>
+   <td>${pct(buy.worst)}</td>
+  </tr>
+
+  <tr>
+   <td>SELL</td>
+   <td>${sell.n}</td>
+   <td>${sell.accuracy?.toFixed(1)??"—"}%</td>
+   <td>${pct(sell.avg)}</td>
+   <td>${pct(sell.best)}</td>
+   <td>${pct(sell.worst)}</td>
+  </tr>
+
+  </table>
+  `;
+ }
+
+ html+=`
+
+ <details>
+ <summary>О методике</summary>
+
+ <div class="small" style="padding:10px">
+ Сигнал формируется на закрытии свечи.
+ Вход происходит на открытии следующей свечи.
+ Будущие данные при формировании сигнала
+ не используются.
+ </div>
+
+ </details>
+
+ </div>
+ `;
+
+ document.getElementById("backtest").innerHTML=html;
 }
 
 
 /* =========================
-   HORIZON TEXT
+   REGIME TEST
 ========================= */
 
-function formatHorizon(h,tf){
+function regimeFactorStats(
+ data,
+ ind,
+ regime,
+ factor,
+ direction,
+ horizon
+){
 
-  const minutes=
-    h*(
-      tf==="15m" ? 15 :
-      tf==="1h" ? 60 :
-      tf==="4h" ? 240 :
-      1440
+ let n=0;
+ let wins=0;
+ let sum=0;
+
+ for(
+  let i=200;
+  i<data.length-horizon-2;
+  i++
+ ){
+
+  if(getRegime(ind,i)!==regime)
+   continue;
+
+  const f=factor(i);
+
+  if(!f)continue;
+
+  const r=
+   directionalReturn(
+    data,i,horizon,direction
+   );
+
+  if(r==null)continue;
+
+  n++;
+
+  if(r>0)wins++;
+
+  sum+=r;
+ }
+
+ return{
+  n,
+  accuracy:n?wins/n*100:null,
+  avg:n?sum/n:null
+ };
+}
+
+
+/* =========================
+   REGIME COMBINATIONS
+========================= */
+
+function renderRegimeDiagnostics(
+ data,
+ ind
+){
+
+ const tf=document.getElementById("timeframe").value;
+
+ const regimes=[
+  "BULL",
+  "BEAR",
+  "FLAT",
+  "TRANSITION"
+ ];
+
+ const factors=[
+  {
+   name:"EMA20 > EMA50",
+   direction:"BUY",
+   fn:i=>
+    ind.ema20[i]!=null&&
+    ind.ema50[i]!=null&&
+    ind.ema20[i]>ind.ema50[i]
+  },
+  {
+   name:"Цена > EMA200",
+   direction:"BUY",
+   fn:i=>
+    ind.ema200[i]!=null&&
+    ind.close[i]>ind.ema200[i]
+  },
+  {
+   name:"MACD > 0",
+   direction:"BUY",
+   fn:i=>
+    ind.macd.macd[i]!=null&&
+    ind.macd.macd[i]>0
+  },
+  {
+   name:"MACD Histogram > 0",
+   direction:"BUY",
+   fn:i=>
+    ind.macd.histogram[i]!=null&&
+    ind.macd.histogram[i]>0
+  },
+  {
+   name:"RSI 52–68",
+   direction:"BUY",
+   fn:i=>
+    ind.rsi[i]!=null&&
+    ind.rsi[i]>=52&&
+    ind.rsi[i]<=68
+  },
+  {
+   name:"Объём ≥1.25",
+   direction:"BUY",
+   fn:i=>
+    ind.volumeRatio[i]!=null&&
+    ind.volumeRatio[i]>=1.25
+  }
+ ];
+
+ let html=`
+
+ <div class="card">
+
+ <div class="sectionTitle">
+  🔬 Market Regime Diagnostics
+ </div>
+
+ <div class="small">
+  Здесь ADX пока НЕ влияет на сигнал.
+  Мы только проверяем, меняется ли качество
+  существующих факторов в разных состояниях рынка.
+ </div>
+ `;
+
+ for(const h of HORIZONS[tf]){
+
+  html+=`
+
+  <hr>
+
+  <div class="sectionTitle">
+   Горизонт ${formatHorizon(h,tf)}
+  </div>
+  `;
+
+  for(const regime of regimes){
+
+   html+=`
+
+   <details>
+   <summary>
+    ${regimeName(regime)}
+   </summary>
+
+   <table>
+
+   <tr>
+    <th>Фактор</th>
+    <th>N</th>
+    <th>Успех</th>
+    <th>Средн.</th>
+   </tr>
+   `;
+
+   for(const factor of factors){
+
+    const r=
+     regimeFactorStats(
+      data,
+      ind,
+      regime,
+      factor.name,
+      factor.direction,
+      h
+     );
+
+    html+=`
+
+    <tr>
+     <td>${factor.name}</td>
+     <td>${r.n}</td>
+     <td>
+      ${r.accuracy==null?
+       "—":
+       r.accuracy.toFixed(1)+"%"}
+     </td>
+     <td>${pct(r.avg)}</td>
+    </tr>
+    `;
+   }
+
+   html+=`
+
+   </table>
+
+   </details>
+   `;
+  }
+ }
+
+ html+=`
+
+ <hr>
+
+ <div class="sectionTitle">
+  🧪 Специальный тест силы тренда
+ </div>
+
+ <table>
+
+ <tr>
+  <th>ADX</th>
+  <th>Описание</th>
+ </tr>
+
+ <tr>
+  <td>&lt;20</td>
+  <td>Флэт</td>
+ </tr>
+
+ <tr>
+  <td>20–25</td>
+  <td>Переход</td>
+ </tr>
+
+ <tr>
+  <td>&gt;25 + DI+</td>
+  <td>Бычий тренд</td>
+ </tr>
+
+ <tr>
+  <td>&gt;25 + DI-</td>
+  <td>Медвежий тренд</td>
+ </tr>
+
+ </table>
+
+ <details>
+ <summary>Что ищем?</summary>
+
+ <div class="small" style="padding:10px">
+
+ Если, например, EMA показывает:
+
+ <br><br>
+
+ 49–50% во всём рынке,<br>
+ но 56–58% при ADX >25,
+
+ то EMA может быть полезным
+ <b>только в трендовом рынке</b>.
+
+ <br><br>
+
+ Если RSI показывает 53–55%
+ именно во флэте,
+ возможно, RSI лучше использовать
+ для торговли отскоков.
+
+ <br><br>
+
+ Наша цель — не найти красивый
+ показатель на небольшом количестве
+ сделок, а найти устойчивое преимущество
+ на большом количестве наблюдений.
+
+ </div>
+
+ </details>
+
+ </div>
+ `;
+
+ document.getElementById(
+  "regimeDiagnostics"
+ ).innerHTML=html;
+}
+
+
+/* =========================
+   DOWNLOAD HISTORY
+========================= */
+
+async function fetchBatch(
+ start,
+ end,
+ interval
+){
+
+ const url=
+  API+
+  "?symbol=BTCUSDT"+
+  "&interval="+interval+
+  "&limit=1000"+
+  "&startTime="+start+
+  "&endTime="+end;
+
+ const response=await fetch(url);
+
+ if(!response.ok)
+  throw new Error(
+   "Binance HTTP "+response.status
+  );
+
+ return await response.json();
+}
+
+
+async function fetchHistory(interval){
+
+ const now=Date.now();
+ const start=
+  now-365*24*60*60*1000;
+
+ const step=TF[interval];
+
+ let cursor=start;
+ let all=[];
+
+ while(cursor<now){
+
+  let data=null;
+
+  for(let attempt=0;attempt<4;attempt++){
+
+   try{
+
+    data=await fetchBatch(
+     cursor,
+     now,
+     interval
     );
 
-  if(minutes<60){
-    return minutes+" мин";
+    break;
+
+   }catch(e){
+
+    if(attempt===3)throw e;
+
+    await sleep(
+     1000*(attempt+1)
+    );
+   }
   }
 
-  if(minutes%1440===0){
-    return (minutes/1440)+" дн";
+  if(!data||!data.length)break;
+
+  for(const k of data){
+
+   all.push({
+    time:k[0],
+    open:Number(k[1]),
+    high:Number(k[2]),
+    low:Number(k[3]),
+    close:Number(k[4]),
+    volume:Number(k[5])
+   });
   }
 
-  return (minutes/60)+" ч";
-}
+  const last=
+   data[data.length-1][0];
 
+  cursor=last+step;
 
-/* =========================
-   BACKTEST RENDER
-========================= */
+  document.getElementById(
+   "status"
+  ).innerText=
+   "Загрузка: "+
+   all.length+
+   " свечей";
 
-function renderBacktest(
-  data,
-  ind
-){
+  await sleep(120);
 
-  const tf=
-    document.getElementById("timeframe").value;
+  if(data.length<1000)break;
+ }
 
-  const horizons=HORIZONS[tf];
+ const unique=new Map();
 
-  let html=`
+ for(const c of all)
+  unique.set(c.time,c);
 
-  <div class="card">
-
-    <div class="sectionTitle">
-      📊 Годовой бэктест
-    </div>
-
-    <div class="small">
-      Свечей: ${data.length.toLocaleString()}
-    </div>
-
-  `;
-
-  for(const h of horizons){
-
-    const buy=
-      calcSignalStats(
-        data,
-        ind,
-        "BUY",
-        h
-      );
-
-    const sell=
-      calcSignalStats(
-        data,
-        ind,
-        "SELL",
-        h
-      );
-
-    html+=`
-
-    <hr>
-
-    <div class="sectionTitle">
-      ${formatHorizon(h,tf)}
-    </div>
-
-    <table>
-
-      <tr>
-        <th></th>
-        <th>Сигналов</th>
-        <th>Успех</th>
-        <th>Средн.</th>
-        <th>Лучший</th>
-        <th>Худший</th>
-      </tr>
-
-      <tr>
-        <td class="good">BUY</td>
-        <td>${buy.n}</td>
-        <td>${buy.accuracy===null?"—":buy.accuracy.toFixed(1)+"%"}</td>
-        <td>${buy.avg===null?"—":pct(buy.avg)}</td>
-        <td>${buy.best===null?"—":pct(buy.best)}</td>
-        <td>${buy.worst===null?"—":pct(buy.worst)}</td>
-      </tr>
-
-      <tr>
-        <td class="bad">SELL</td>
-        <td>${sell.n}</td>
-        <td>${sell.accuracy===null?"—":sell.accuracy.toFixed(1)+"%"}</td>
-        <td>${sell.avg===null?"—":pct(sell.avg)}</td>
-        <td>${sell.best===null?"—":pct(sell.best)}</td>
-        <td>${sell.worst===null?"—":pct(sell.worst)}</td>
-      </tr>
-
-    </table>
-    `;
-
-    const bd=
-      scoreDiagnostics(
-        data,
-        ind,
-        "BUY",
-        h
-      );
-
-    const sd=
-      scoreDiagnostics(
-        data,
-        ind,
-        "SELL",
-        h
-      );
-
-    html+=`
-
-    <details>
-      <summary>Разбор BUY по Score</summary>
-
-      <table>
-        <tr>
-          <th>Score</th>
-          <th>N</th>
-          <th>Успех</th>
-          <th>Средн.</th>
-        </tr>
-    `;
-
-    for(const b of bd.bands){
-
-      const x=bd.stats[b];
-
-      html+=`
-      <tr>
-        <td>${b}</td>
-        <td>${x.n}</td>
-        <td>${x.n ? (x.wins/x.n*100).toFixed(1)+"%" : "—"}</td>
-        <td>${x.n ? pct(x.sum/x.n) : "—"}</td>
-      </tr>
-      `;
-    }
-
-    html+=`
-      </table>
-    </details>
-
-    <details>
-      <summary>Разбор SELL по Score</summary>
-
-      <table>
-        <tr>
-          <th>Score</th>
-          <th>N</th>
-          <th>Успех</th>
-          <th>Средн.</th>
-        </tr>
-    `;
-
-    for(const b of sd.bands){
-
-      const x=sd.stats[b];
-
-      html+=`
-      <tr>
-        <td>${b}</td>
-        <td>${x.n}</td>
-        <td>${x.n ? (x.wins/x.n*100).toFixed(1)+"%" : "—"}</td>
-        <td>${x.n ? pct(x.sum/x.n) : "—"}</td>
-      </tr>
-      `;
-    }
-
-    html+=`
-      </table>
-    </details>
-    `;
-  }
-
-  html+=`
-
-  <details>
-    <summary>⚠️ Важное ограничение теста</summary>
-
-    <div class="small" style="padding:10px">
-      Результаты не учитывают комиссии,
-      проскальзывание и налоги.
-      Прошлая доходность не гарантирует
-      будущую.
-    </div>
-
-  </details>
-
-  </div>
-  `;
-
-  document.getElementById("backtest").innerHTML=html;
+ return [...unique.values()]
+  .sort((a,b)=>a.time-b.time);
 }
 
 
@@ -1396,81 +1278,82 @@ function renderBacktest(
 
 async function runAnalysis(){
 
-  const btn=
-    document.getElementById("runBtn");
+ const btn=
+  document.getElementById("runBtn");
 
-  const status=
-    document.getElementById("status");
+ const status=
+  document.getElementById("status");
 
-  btn.disabled=true;
+ btn.disabled=true;
 
-  document.getElementById("live").innerHTML="";
-  document.getElementById("backtest").innerHTML="";
-  document.getElementById("diagnostics").innerHTML="";
+ document.getElementById("live").innerHTML="";
+ document.getElementById("backtest").innerHTML="";
+ document.getElementById(
+  "regimeDiagnostics"
+ ).innerHTML="";
 
-  try{
+ try{
 
-    const tf=
-      document.getElementById("timeframe").value;
+  const tf=
+   document.getElementById(
+    "timeframe"
+   ).value;
 
-    status.innerText=
-      "Загружаем историю Binance...";
+  status.innerText=
+   "Загружаем историю Binance...";
 
-    candles=
-      await fetchHistory(tf);
+  const data=
+   await fetchHistory(tf);
 
-    if(candles.length<300){
+  if(data.length<300)
+   throw new Error(
+    "Недостаточно данных"
+   );
 
-      throw new Error(
-        "Недостаточно исторических данных"
-      );
-    }
+  status.innerText=
+   "Рассчитываем индикаторы...";
 
-    status.innerText=
-      "Рассчитываем индикаторы...";
+  const ind=
+   buildIndicators(data);
 
-    const ind=
-      buildIndicators(candles);
+  const last=data.length-1;
 
-    const last=
-      candles.length-1;
+  renderLive(ind,last);
 
-    renderLive(ind,last);
+  status.innerText=
+   "Бэктест...";
 
-    status.innerText=
-      "Выполняем годовой бэктест...";
+  await sleep(50);
 
-    await sleep(50);
+  renderBacktest(
+   data,
+   ind
+  );
 
-    renderBacktest(
-      candles,
-      ind
-    );
+  status.innerText=
+   "Анализ режимов рынка...";
 
-    status.innerText=
-      "Выполняем диагностику факторов...";
+  await sleep(50);
 
-    await sleep(50);
+  renderRegimeDiagnostics(
+   data,
+   ind
+  );
 
-    renderDiagnostics(
-      candles,
-      ind
-    );
+  status.innerText=
+   "Готово • BTC Signal v2.4";
 
-    status.innerText=
-      "Готово • v2.3";
+ }catch(e){
 
-  }catch(e){
+  console.error(e);
 
-    console.error(e);
+  status.innerText=
+   "Ошибка: "+e.message;
 
-    status.innerText=
-      "Ошибка: "+e.message;
+ }finally{
 
-  }finally{
-
-    btn.disabled=false;
-  }
+  btn.disabled=false;
+ }
 }
 
 
@@ -1480,16 +1363,14 @@ async function runAnalysis(){
 
 if("serviceWorker" in navigator){
 
-  window.addEventListener(
-    "load",
-    ()=>{
-      navigator.serviceWorker.register(
-        "./sw.js"
-      ).catch(
-        console.error
-      );
-    }
-  );
+ window.addEventListener(
+  "load",
+  ()=>{
+   navigator.serviceWorker.register(
+    "./sw.js"
+   ).catch(console.error);
+  }
+ );
 }
 
 </script>
