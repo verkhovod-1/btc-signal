@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.webmanifest">
-<title>₿ BTC Signal v3.0.2</title>
+<title>₿ BTC Signal v3.1</title>
 
 <style>
 *{box-sizing:border-box}
@@ -127,6 +127,35 @@ th{
  padding:6px 10px;
  border-radius:8px;
 }
+
+.testbox{
+ border:1px solid #374151;
+ border-radius:10px;
+ padding:12px;
+ margin-top:12px;
+}
+
+.test-good{
+ border-color:#166534;
+}
+
+.test-bad{
+ border-color:#991b1b;
+}
+
+.test-neutral{
+ border-color:#92400e;
+}
+
+.note{
+ background:#101827;
+ border-radius:10px;
+ padding:10px;
+ margin-top:10px;
+ font-size:13px;
+ line-height:1.5;
+ color:#cbd5e1;
+}
 </style>
 </head>
 
@@ -134,7 +163,7 @@ th{
 
 <div class="container">
 
-<h1>₿ BTC Signal</h1>
+<h1>₿ BTC Signal <span class="small">v3.1</span></h1>
 
 <div class="card">
 
@@ -220,6 +249,11 @@ JavaScript запускается…
 
 <h2>Walk-forward проверка</h2>
 
+<div class="small">
+Проверка комбинаций на последовательных исторических периодах.
+Последние 10% данных не участвуют в этом разделе.
+</div>
+
 <div id="walk"></div>
 
 </div>
@@ -230,6 +264,21 @@ JavaScript запускается…
 <h2>Наиболее стабильная комбинация</h2>
 
 <div id="best"></div>
+
+</div>
+
+
+<div class="card">
+
+<h2>🔒 Финальный независимый тест</h2>
+
+<div class="small">
+Последние 10% исторических данных полностью отложены.
+Они не используются для выбора комбинации.
+Сравнение идёт с обычным BTC Open → Close на том же периоде.
+</div>
+
+<div id="holdout"></div>
 
 </div>
 
@@ -278,14 +327,51 @@ const FACTORS=[
 ];
 
 
+/*
+   ФИКСИРОВАННЫЕ КАНДИДАТЫ
+   ДЛЯ НЕЗАВИСИМОГО ТЕСТА.
+
+   ВАЖНО:
+   Последние 10% данных не используются
+   для выбора этих комбинаций.
+*/
+
+const HOLDOUT_CANDIDATES=[
+
+ [
+   "Price > EMA200",
+   "MACD > 0",
+   "ADX > 25"
+ ],
+
+ [
+   "RSI > 52",
+   "Volume > average"
+ ],
+
+ [
+   "Price > EMA200",
+   "MACD > 0",
+   "RSI > 52",
+   "Volume > average"
+ ],
+
+ [
+   "EMA20 > EMA50",
+   "Price > EMA200",
+   "MACD > 0",
+   "ADX > 25"
+ ]
+
+];
+
+
 /* =========================================================
    ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 ========================================================= */
 
 function $(id){
-
  return document.getElementById(id);
-
 }
 
 
@@ -295,21 +381,16 @@ function status(text,className){
 
  $("status").className=
    "status "+className;
-
 }
 
 
 function diag(text){
-
  $("diag").textContent=text;
-
 }
 
 
 function progress(value){
-
  $("bar").style.width=value+"%";
-
 }
 
 
@@ -320,7 +401,6 @@ function pct(value){
 
  return (value>=0?"+":"")+
    value.toFixed(2)+"%";
-
 }
 
 
@@ -332,7 +412,6 @@ function avg(arr){
  return arr.reduce(
    (a,b)=>a+b,0
  )/arr.length;
-
 }
 
 
@@ -351,7 +430,6 @@ function med(arr){
    return b[m];
 
  return (b[m-1]+b[m])/2;
-
 }
 
 
@@ -389,7 +467,6 @@ function EMA(values,period){
  }
 
  return result;
-
 }
 
 
@@ -456,7 +533,6 @@ function RSI(values,period=14){
  }
 
  return result;
-
 }
 
 
@@ -545,7 +621,6 @@ function MACD(values){
    line,
    histogram
  };
-
 }
 
 
@@ -744,7 +819,6 @@ function ADX(high,low,close,period=14){
 
 
  return result;
-
 }
 
 
@@ -862,7 +936,6 @@ function build(raw){
 
 
  return data;
-
 }
 
 
@@ -909,7 +982,6 @@ function factors(d){
      d.volume>d.avgVol
 
  };
-
 }
 
 
@@ -920,19 +992,6 @@ function factors(d){
 function prepare(data){
 
  let rows=[];
-
-
- /*
-   ВАЖНО:
-
-   Вход:
-   OPEN следующей дневной свечи.
-
-   Выход:
-   CLOSE следующей дневной свечи.
-
-   Это наш 24h результат.
- */
 
 
  for(
@@ -983,7 +1042,6 @@ function prepare(data){
 
 
  return rows;
-
 }
 
 
@@ -996,7 +1054,6 @@ function match(row,combination){
  return combination.every(
    factor=>row.f[factor]
  );
-
 }
 
 
@@ -1020,7 +1077,9 @@ function stats(rows){
 
      p1:NaN,
 
-     m1:NaN
+     m1:NaN,
+
+     maxLossStreak:0
 
    };
 
@@ -1029,6 +1088,29 @@ function stats(rows){
 
  let returns=
    rows.map(x=>x.ret);
+
+
+ let maxLossStreak=0;
+
+ let currentLossStreak=0;
+
+
+ for(let r of returns){
+
+   if(r<0){
+
+     currentLossStreak++;
+
+     if(currentLossStreak>maxLossStreak)
+       maxLossStreak=currentLossStreak;
+
+   }else{
+
+     currentLossStreak=0;
+
+   }
+
+ }
 
 
  return {
@@ -1049,7 +1131,9 @@ function stats(rows){
 
    m1:
      returns.filter(x=>x<-1).length/
-     returns.length*100
+     returns.length*100,
+
+   maxLossStreak
 
  };
 
@@ -1088,7 +1172,6 @@ function cstats(
 
 
  return stats(selected);
-
 }
 
 
@@ -1152,19 +1235,29 @@ function combinations(
 
 
  return result;
-
 }
 
 
 /* =========================================================
    WALK-FORWARD
+   ВАЖНО:
+   Последние 10% полностью исключены.
 ========================================================= */
 
 function walk(rows,combination){
 
+ let usableEnd=
+   Math.floor(
+     rows.length*0.90
+   );
+
+ let workRows=
+   rows.slice(0,usableEnd);
+
+
  let folds=[];
 
- let n=rows.length;
+ let n=workRows.length;
 
  let train=
    Math.floor(n*0.5);
@@ -1191,7 +1284,7 @@ function walk(rows,combination){
 
    let combo=
      cstats(
-       rows,
+       workRows,
        combination,
        start,
        end
@@ -1200,7 +1293,7 @@ function walk(rows,combination){
 
    let baseline=
      stats(
-       rows.slice(
+       workRows.slice(
          start,
          end
        )
@@ -1239,7 +1332,6 @@ function walk(rows,combination){
 
 
  return folds;
-
 }
 
 
@@ -1312,7 +1404,6 @@ function score(folds){
 
 
  return score;
-
 }
 
 
@@ -1359,7 +1450,6 @@ function regime(d){
 
 
  return "Flat";
-
 }
 
 
@@ -1404,7 +1494,6 @@ function table(headers,rows){
 
 
  return html;
-
 }
 
 
@@ -1491,11 +1580,6 @@ async function getBatch(
      await response.json();
 
 
-   /*
-      Если история закончилась,
-      Binance может вернуть [].
-   */
-
    if(
      !Array.isArray(data)
    ){
@@ -1544,7 +1628,6 @@ async function getBatch(
    clearTimeout(timer);
 
  }
-
 }
 
 
@@ -1579,16 +1662,6 @@ async function loadHistory(){
    }
    catch(error){
 
-     /*
-       Самое важное исправление v3.0.2.
-
-       Если Binance вернул пустой массив,
-       значит мы дошли до начала доступной
-       истории.
-
-       Это НЕ ошибка приложения.
-     */
-
      if(
        error.message===
        "Пустой ответ Binance"
@@ -1622,18 +1695,9 @@ async function loadHistory(){
    );
 
 
-   /*
-      Старые свечи добавляем
-      перед уже полученными.
-   */
-
    all=
      batch.concat(all);
 
-
-   /*
-      Самая старая свеча этого блока.
-   */
 
    end=
      batch[0][0]-1;
@@ -1645,11 +1709,6 @@ async function loadHistory(){
      100
    );
 
-
-   /*
-      Если Binance вернул меньше 1000,
-      значит история закончилась.
-   */
 
    if(
      batch.length<LIMIT
@@ -1685,10 +1744,6 @@ async function loadHistory(){
  }
 
 
- /*
-    Удаляем возможные дубликаты.
- */
-
  let unique=
    new Map();
 
@@ -1711,7 +1766,6 @@ async function loadHistory(){
 
 
  return result;
-
 }
 
 
@@ -1888,6 +1942,8 @@ function render(
 
  renderWalk(rows);
 
+ renderHoldout(rows);
+
 }
 
 
@@ -2009,7 +2065,6 @@ function renderIncremental(rows){
        ])
 
    );
-
 }
 
 
@@ -2070,7 +2125,6 @@ function renderFactors(rows){
      )
 
    );
-
 }
 
 
@@ -2139,17 +2193,31 @@ function renderRegimes(rows){
      )
 
    );
-
 }
 
 
 /* =========================================================
    WALK-FORWARD
+   Последние 10% исключены.
 ========================================================= */
 
 function renderWalk(rows){
 
  let results=[];
+
+
+ /*
+   Берём только первые 90%.
+
+   Последние 10% не участвуют
+   в поиске лучшей комбинации.
+ */
+
+ let workRows=
+   rows.slice(
+     0,
+     Math.floor(rows.length*0.90)
+   );
 
 
  let combos=
@@ -2172,7 +2240,7 @@ function renderWalk(rows){
 
    let folds=
      walk(
-       rows,
+       workRows,
        combination
      );
 
@@ -2352,7 +2420,7 @@ function renderWalk(rows){
    "<div class='badge'>"+
    (
      confirmed
-     ?"ПОДТВЕРЖДЕНО"
+     ?"ПРОШЁЛ WALK-FORWARD"
      :"ЧАСТИЧНО ПОДТВЕРЖДАЕТСЯ"
    )+
    "</div>"+
@@ -2418,7 +2486,402 @@ function renderWalk(rows){
      )
 
    );
+}
 
+
+/* =========================================================
+   ФИНАЛЬНЫЙ НЕЗАВИСИМЫЙ ТЕСТ
+========================================================= */
+
+function renderHoldout(rows){
+
+ /*
+   Разделение:
+
+   70% — разработка
+   20% — промежуточная проверка
+   10% — финальный holdout
+
+   Последние 10% НИГДЕ не используются
+   при выборе комбинации.
+ */
+
+ let n=rows.length;
+
+ let devEnd=
+   Math.floor(n*0.70);
+
+ let validationEnd=
+   Math.floor(n*0.90);
+
+ let finalRows=
+   rows.slice(
+     validationEnd,
+     n
+   );
+
+
+ let validationRows=
+   rows.slice(
+     devEnd,
+     validationEnd
+   );
+
+
+ let devRows=
+   rows.slice(
+     0,
+     devEnd
+   );
+
+
+ /*
+   Базовая доходность BTC
+ */
+
+ let devBase=
+   stats(devRows);
+
+ let validationBase=
+   stats(validationRows);
+
+ let finalBase=
+   stats(finalRows);
+
+
+ let html="";
+
+ html+=
+   "<div class='note'>"+
+   "<b>Разделение истории:</b><br>"+
+   "Разработка: 70% ("+
+   devRows.length+
+   " строк)<br>"+
+   "Валидация: 20% ("+
+   validationRows.length+
+   " строк)<br>"+
+   "Финальный holdout: 10% ("+
+   finalRows.length+
+   " строк)<br><br>"+
+   "Финальный участок не использовался "+
+   "для выбора комбинаций."+
+   "</div>";
+
+
+ html+=
+   "<h3>Базовый BTC</h3>";
+
+
+ html+=
+   table(
+
+     [
+       "Период",
+       "N",
+       "Avg",
+       "Median",
+       "Win"
+     ],
+
+     [
+
+       [
+         "Разработка",
+         devBase.n,
+         pct(devBase.avg),
+         pct(devBase.median),
+         devBase.win.toFixed(1)+"%"
+       ],
+
+       [
+         "Валидация",
+         validationBase.n,
+         pct(validationBase.avg),
+         pct(validationBase.median),
+         validationBase.win.toFixed(1)+"%"
+       ],
+
+       [
+         "Финальный 10%",
+         finalBase.n,
+         pct(finalBase.avg),
+         pct(finalBase.median),
+         finalBase.win.toFixed(1)+"%"
+       ]
+
+     ]
+
+   );
+
+
+ /*
+   Проверяем только заранее выбранные кандидаты.
+ */
+
+ let result=[];
+
+
+ HOLDOUT_CANDIDATES.forEach(
+   combination=>{
+
+     let dev=
+       cstats(
+         rows,
+         combination,
+         0,
+         devEnd
+       );
+
+
+     let validation=
+       cstats(
+         rows,
+         combination,
+         devEnd,
+         validationEnd
+       );
+
+
+     let final=
+       cstats(
+         rows,
+         combination,
+         validationEnd,
+         n
+       );
+
+
+     result.push({
+
+       combination,
+
+       dev,
+
+       validation,
+
+       final,
+
+       validationEdge:
+         validation.avg-
+         validationBase.avg,
+
+       finalEdge:
+         final.avg-
+         finalBase.avg
+
+     });
+
+   }
+ );
+
+
+ html+=
+   "<h3>Предварительно выбранные кандидаты</h3>";
+
+
+ html+=
+   table(
+
+     [
+       "Комбинация",
+       "Dev Avg",
+       "Val Edge",
+       "Final N",
+       "Final Avg",
+       "Final Edge",
+       "Final Win"
+     ],
+
+     result.map(
+       x=>[
+
+         x.combination.join(
+           " + "
+         ),
+
+         pct(x.dev.avg),
+
+         pct(x.validationEdge),
+
+         x.final.n,
+
+         pct(x.final.avg),
+
+         "<span class='"+
+         (
+           x.finalEdge>0
+           ?"good"
+           :"bad"
+         )+
+         "'>"+
+         pct(x.finalEdge)+
+         "</span>",
+
+         x.final.n
+         ?x.final.win.toFixed(1)+"%"
+         :"—"
+
+       ]
+     )
+
+   );
+
+
+ /*
+   Детальный разбор каждого кандидата.
+ */
+
+ result.forEach(
+   (x,index)=>{
+
+     let final=x.final;
+
+     let finalEdge=x.finalEdge;
+
+     /*
+       Строгий критерий.
+
+       Требуем:
+       N >= 50
+       Edge > 0
+       Median > 0
+       Win > 50%
+     */
+
+     let passed=
+
+       final.n>=50 &&
+
+       finalEdge>0 &&
+
+       final.median>0 &&
+
+       final.win>50;
+
+
+     let cls=
+       passed
+       ?"test-good"
+       :
+       finalEdge>0
+       ?"test-neutral"
+       :"test-bad";
+
+
+     html+=
+       "<div class='testbox "+
+       cls+
+       "'>";
+
+
+     html+=
+       "<h3>"+
+       (index+1)+". "+
+       x.combination.join(
+         " + "
+       )+
+       "</h3>";
+
+
+     html+=
+       "<div class='badge'>"+
+       (
+         passed
+         ?"✅ ПРОШЁЛ"
+         :
+         finalEdge>0
+         ?"⚠ ПОЛОЖИТЕЛЬНЫЙ, НО НЕДОСТАТОЧНО"
+         :"❌ НЕ ПОДТВЕРДИЛСЯ"
+       )+
+       "</div>";
+
+
+     html+=
+       "<p>"+
+
+       "<b>Разработка:</b> "+
+       pct(x.dev.avg)+
+       " · N="+
+       x.dev.n+
+       "<br>"+
+
+       "<b>Валидация:</b> "+
+       pct(x.validation.avg)+
+       " · N="+
+       x.validation.n+
+       " · Edge "+
+       pct(x.validationEdge)+
+       "<br>"+
+
+       "<b>Финальный 10%:</b> "+
+       pct(final.avg)+
+       " · N="+
+       final.n+
+       "<br>"+
+
+       "<b>BTC baseline:</b> "+
+       pct(finalBase.avg)+
+       "<br>"+
+
+       "<b>Final Edge:</b> "+
+       pct(finalEdge)+
+       "<br>"+
+
+       "<b>Median:</b> "+
+       pct(final.median)+
+       "<br>"+
+
+       "<b>Win:</b> "+
+       (
+         final.n
+         ?final.win.toFixed(1)+"%"
+         :"—"
+       )+
+       "<br>"+
+
+       "<b>> +1%:</b> "+
+       (
+         final.n
+         ?final.p1.toFixed(1)+"%"
+         :"—"
+       )+
+       "<br>"+
+
+       "<b>< -1%:</b> "+
+       (
+         final.n
+         ?final.m1.toFixed(1)+"%"
+         :"—"
+       )+
+       "<br>"+
+
+       "<b>Макс. серия убытков:</b> "+
+       final.maxLossStreak+
+
+       "</p>";
+
+
+     html+=
+       "</div>";
+
+   }
+ );
+
+
+ html+=
+   "<div class='note'>"+
+   "<b>Как читать результат:</b><br>"+
+   "Final Edge показывает преимущество "+
+   "комбинации над обычным BTC на одном "+
+   "и том же последнем 10%-участке.<br><br>"+
+   "Это не вероятность роста BTC и не "+
+   "гарантия прибыли. Даже положительный "+
+   "финальный Edge может оказаться случайным, "+
+   "особенно при небольшом числе наблюдений."+
+   "</div>";
+
+
+ $("holdout").innerHTML=html;
 }
 
 
@@ -2447,10 +2910,6 @@ async function start(){
    let raw=
      await loadHistory();
 
-
-   /*
-      Проверка полученной истории.
-   */
 
    if(raw.length<1000){
 
@@ -2545,7 +3004,7 @@ async function start(){
 
 
 /* =========================================================
-   СТАРТ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ
+   СТАРТ
 ========================================================= */
 
 window.addEventListener(
