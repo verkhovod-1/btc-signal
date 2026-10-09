@@ -5,152 +5,155 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#10131b">
-<title>BTC Signal v3.6</title>
+<title>BTC Signal v3.7</title>
 <style>
 :root{color-scheme:dark;--bg:#10131b;--card:#1a1f2b;--line:#30394a;--text:#edf2fa;--muted:#9ca9bd;--green:#50d69a;--red:#ff7777;--blue:#79adff}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,-apple-system,sans-serif}
-main{max-width:900px;margin:auto;padding:16px}
-h1{font-size:25px;margin:5px 0}
-h2{font-size:19px;margin:0 0 12px}
-h3{font-size:16px;margin:16px 0 8px}
-p{line-height:1.45}
-.sub,.muted{color:var(--muted);font-size:13px}
+body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,sans-serif}
+main{max-width:900px;margin:auto;padding:15px}
+h1{font-size:25px;margin:5px 0}h2{font-size:19px;margin:0 0 12px}h3{font-size:16px;margin:15px 0 8px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px;margin:13px 0}
-.status{font-size:23px;font-weight:750;margin:8px 0}
+.sub,.muted,.note{color:var(--muted);font-size:13px;line-height:1.5}
+.status{font-size:23px;font-weight:750;margin:10px 0}
 .green{color:var(--green)}.red{color:var(--red)}.blue{color:var(--blue)}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .metric{background:#111722;border-radius:10px;padding:11px;min-width:0}
-.metric .label{font-size:12px;color:var(--muted)}
-.metric .value{font-size:18px;font-weight:700;margin-top:5px;overflow-wrap:anywhere}
-button{border:0;border-radius:10px;padding:12px 16px;background:var(--blue);color:#10131b;font-size:15px;font-weight:700;cursor:pointer}
+.label{font-size:12px;color:var(--muted)}
+.value{font-size:18px;font-weight:700;margin-top:5px;overflow-wrap:anywhere}
+button{border:0;border-radius:10px;padding:12px 14px;background:var(--blue);color:#10131b;font-weight:700;font-size:14px;cursor:pointer;margin:4px 3px 4px 0}
 button:disabled{opacity:.5}
-input{width:100%;background:#111722;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:10px;font-size:16px}
+.secondary{background:#30394a;color:var(--text)}
 table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
 th,td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:right}
-th{color:var(--muted);font-weight:600}
-th:first-child,td:first-child{text-align:left}
+th{color:var(--muted)}th:first-child,td:first-child{text-align:left}
 .tablewrap{overflow-x:auto}
-.note{font-size:13px;color:var(--muted);line-height:1.5}
-#progress{overflow-wrap:anywhere}
-.good{color:var(--green)}.bad{color:var(--red)}
-details{margin-top:12px}
-summary{cursor:pointer;color:var(--blue)}
-@media(min-width:600px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+label{display:block;margin:8px 0}
+input{width:100%;padding:10px;background:#111722;color:var(--text);border:1px solid var(--line);border-radius:9px;font-size:16px}
+.small{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
 <main>
-  <h1>₿ BTC Signal</h1>
-  <div class="sub">Версия 3.6 · проверка торговой стратегии</div>
+<h1>₿ BTC Signal</h1>
+<div class="sub">v3.7 · журнал перспективного тестирования</div>
 
-  <section class="card">
-    <div class="sub">Текущая ситуация</div>
-    <div id="signal" class="status">Загрузка данных…</div>
-    <div class="grid">
-      <div class="metric"><div class="label">BTC/USDT</div><div id="price" class="value">—</div></div>
-      <div class="metric"><div class="label">ADX 14</div><div id="adx" class="value">—</div></div>
-      <div class="metric"><div class="label">EMA20 / EMA50</div><div id="ema" class="value">—</div></div>
-      <div class="metric"><div class="label">Объём / средний</div><div id="vol" class="value">—</div></div>
-    </div>
-    <p id="market" class="note">Загружаем котировки Binance…</p>
-    <button id="reload" onclick="start()">Обновить и пересчитать</button>
-    <p id="progress" class="note"></p>
-  </section>
+<section class="card">
+  <div class="sub">Рынок BTC/USDT · часовой интервал</div>
+  <div id="signal" class="status">Загрузка…</div>
+  <div class="grid">
+    <div class="metric"><div class="label">Цена BTC</div><div id="price" class="value">—</div></div>
+    <div class="metric"><div class="label">ADX 14</div><div id="adx" class="value">—</div></div>
+    <div class="metric"><div class="label">EMA20 / EMA50</div><div id="ema" class="value">—</div></div>
+    <div class="metric"><div class="label">Объём / средний</div><div id="vol" class="value">—</div></div>
+  </div>
+  <p id="market" class="note">Получаем данные…</p>
+  <button id="refresh" onclick="start()">Обновить данные</button>
+  <button class="secondary" onclick="exportData()">Экспорт журнала</button>
+  <p id="progress" class="note"></p>
+</section>
 
-  <section class="card">
-    <h2>Настройки теста</h2>
-    <div class="grid">
-      <div>
-        <label for="fee">Издержки на сделку, %</label>
-        <input id="fee" type="number" min="0" max="5" step="0.01" value="0.10">
-        <div class="note">На вход и выход суммарно</div>
-      </div>
-      <div>
-        <label for="cooldown">Пауза B, часов</label>
-        <input id="cooldown" type="number" min="1" max="168" step="1" value="24">
-        <div class="note">Минимум между входами</div>
-      </div>
-    </div>
-    <p class="note">Издержки вычитаются из доходности сигнала. В качестве базового сравнения используется BTC без вычета торговых издержек. Это консервативное сравнение стратегии с рынком.</p>
-  </section>
+<section class="card">
+  <h2>Настройки</h2>
+  <label>Издержки на вход и выход суммарно, %
+    <input id="fee" type="number" min="0" max="5" step="0.01" value="0.10">
+  </label>
+  <p class="note">Издержки применяются к результатам сигналов. Изменение настройки пересчитает результаты журнала, но не изменит записанные цены входа.</p>
+  <button class="secondary" onclick="render()">Пересчитать статистику</button>
+</section>
 
-  <section class="card">
-    <h2>Как устроен тест</h2>
-    <p class="note">
-      Сигнал: EMA20 выше EMA50, ADX14 выше 25, объём выше среднего за 20 свечей.
-      Вход — открытие следующей часовой свечи. Доходность считается до закрытия свечи на горизонте 24, 48 или 72 часа.
-    </p>
-    <p class="note">
-      История разделена хронологически: первые 80% — обучение, следующие 10% — проверка, последние 10% — финальный тест. Сделки, пересекающие границы участка, исключаются. Результаты финального теста не используются для подбора правил.
-    </p>
-  </section>
+<section class="card">
+  <h2>Накопленная статистика</h2>
+  <div class="grid">
+    <div class="metric"><div class="label">Записано сигналов</div><div id="total" class="value">0</div></div>
+    <div class="metric"><div class="label">Завершено проверок 24 ч</div><div id="done24" class="value">0</div></div>
+    <div class="metric"><div class="label">Средняя net-доходность 24 ч</div><div id="avg24" class="value">—</div></div>
+    <div class="metric"><div class="label">Доля прибыльных 24 ч</div><div id="win24" class="value">—</div></div>
+  </div>
+  <div id="stats"></div>
+  <p class="note">Это результаты только сохранённых сигналов, а не доказательство будущей доходности. Сделки перекрываются по времени, поэтому наблюдения зависимы.</p>
+</section>
 
-  <div id="results"></div>
+<section class="card">
+  <h2>Журнал сигналов</h2>
+  <p class="note">Сигнал фиксируется после закрытия часовой свечи. Условие: EMA20 выше EMA50, ADX14 выше 25 и объём выше среднего за 20 свечей. Вход — открытие следующей свечи.</p>
+  <div id="journal"></div>
+</section>
 
-  <section class="card">
-    <h2>Ограничения</h2>
-    <p class="note">
-      Почасовые сигналы могут быть зависимыми. Вариант A специально оставляет все сигналы для сравнения с прежней версией, поэтому его число сделок не равно числу независимых рыночных ситуаций.
-      Варианты B и C сокращают повторные входы, но не гарантируют независимость результатов.
-    </p>
-    <p class="note">
-      Просадка ниже рассчитана по последовательности доходностей сделок для соответствующего горизонта. Для варианта A сделки перекрываются, поэтому эта величина не является точной просадкой реализуемого портфеля. Тест не моделирует ликвидации, спред, задержки API и проскальзывание.
-    </p>
-  </section>
+<section class="card">
+  <h2>Как пользоваться</h2>
+  <p class="note">
+  1. Открой приложение и дождись загрузки.
+  <br>2. Записанный сигнал появится в журнале. При первом запуске сохраняется только последний закрытый час — старая история не добавляется задним числом.
+  <br>3. Открывай приложение регулярно, желательно ежедневно. При следующем запуске оно сможет дополнить журнал сигналами из загруженной истории, если они появились после последней проверки.
+  <br>4. Через 24, 48 и 72 часа результаты будут рассчитаны, когда соответствующие свечи закроются.
+  <br>5. Периодически нажимай «Экспорт журнала» и сохраняй резервную копию.
+  </p>
+  <p class="note">В браузере нет гарантированной фоновой работы. Если приложение закрыто, оно не сможет своевременно обновлять экран. История Binance ограничена загружаемым диапазоном; при слишком долгом перерыве журнал может пропустить сигналы.</p>
+</section>
 </main>
 
 <script>
-const API = "https://api.binance.com/api/v3/klines";
-const INTERVAL = "1h";
-const LIMIT = 1000;
-let busy = false;
+const API="https://api.binance.com/api/v3/klines";
+const STORE="btc_signal_v37_live_journal";
+let busy=false;
+let candles=[];
+let db={signals:[],lastProcessed:null,startTime:null};
 
 function el(id){return document.getElementById(id)}
 function fmt(n,d=2){
-  if(!Number.isFinite(n)) return "—";
+  if(!Number.isFinite(n))return "—";
   return n.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d});
 }
 function pct(n){return (n>=0?"+":"")+fmt(n,2)+"%"}
-function setProgress(s){el("progress").textContent=s}
-
+function date(t){return new Date(t).toLocaleString("ru-RU")}
+function progress(s){el("progress").textContent=s}
+function loadDB(){
+  try{
+    const s=localStorage.getItem(STORE);
+    if(s){
+      const parsed=JSON.parse(s);
+      if(Array.isArray(parsed.signals))db=parsed;
+    }
+  }catch(e){
+    throw new Error("Не удалось прочитать локальный журнал. Экспортируй данные, если они доступны.");
+  }
+}
+function saveDB(){
+  try{
+    localStorage.setItem(STORE,JSON.stringify(db));
+  }catch(e){
+    throw new Error("Не удалось сохранить журнал. Возможно, память браузера заполнена.");
+  }
+}
 async function loadCandles(){
   const all=[];
-  let endTime=Date.now();
-  // Загружаем последовательными порциями, начиная с последних данных.
-  for(let page=0;page<10;page++){
-    setProgress("Загрузка истории: запрос "+(page+1)+" из 10…");
-    const url=API+"?symbol=BTCUSDT&interval="+INTERVAL+
-      "&limit="+LIMIT+"&endTime="+endTime;
-    const response=await fetch(url,{cache:"no-store"});
-    if(!response.ok) throw new Error("Binance HTTP "+response.status);
-    const raw=await response.json();
-    if(!Array.isArray(raw)||raw.length===0) break;
-    all.push(...raw);
-    const firstTime=Number(raw[0][0]);
-    endTime=firstTime-1;
-    if(raw.length<LIMIT) break;
+  let end=Date.now();
+  for(let p=0;p<10;p++){
+    progress("Загрузка котировок: "+(p+1)+"/10…");
+    const url=API+"?symbol=BTCUSDT&interval=1h&limit=1000&endTime="+end;
+    const r=await fetch(url,{cache:"no-store"});
+    if(!r.ok)throw new Error("Binance HTTP "+r.status);
+    const batch=await r.json();
+    if(!Array.isArray(batch)||!batch.length)break;
+    all.push(...batch);
+    end=Number(batch[0][0])-1;
+    if(batch.length<1000)break;
   }
-  const unique=new Map();
-  for(const k of all){
-    unique.set(Number(k[0]),{
-      t:Number(k[0]),
-      open:Number(k[1]),
-      high:Number(k[2]),
-      low:Number(k[3]),
-      close:Number(k[4]),
-      volume:Number(k[5]),
-      closeTime:Number(k[6])
+  const map=new Map();
+  for(const x of all){
+    map.set(Number(x[0]),{
+      t:Number(x[0]),open:Number(x[1]),high:Number(x[2]),
+      low:Number(x[3]),close:Number(x[4]),volume:Number(x[5]),
+      closeTime:Number(x[6])
     });
   }
-  return [...unique.values()].sort((a,b)=>a.t-b.t);
+  return [...map.values()].sort((a,b)=>a.t-b.t);
 }
-
 function ema(values,period){
   const out=Array(values.length).fill(null);
-  if(values.length<period) return out;
+  if(values.length<period)return out;
   let sum=0;
-  for(let i=0;i<period;i++) sum+=values[i];
+  for(let i=0;i<period;i++)sum+=values[i];
   let prev=sum/period;
   out[period-1]=prev;
   const k=2/(period+1);
@@ -160,249 +163,198 @@ function ema(values,period){
   }
   return out;
 }
-
-function calcADX(candles,period=14){
-  const n=candles.length;
-  const tr=Array(n).fill(0), plus=Array(n).fill(0), minus=Array(n).fill(0);
-  const dx=Array(n).fill(null), adx=Array(n).fill(null);
+function calcADX(c,period=14){
+  const n=c.length,tr=Array(n).fill(0),plus=Array(n).fill(0),minus=Array(n).fill(0);
+  const dx=Array(n).fill(null),adx=Array(n).fill(null);
   for(let i=1;i<n;i++){
-    const c=candles[i],p=candles[i-1];
-    tr[i]=Math.max(c.high-c.low,Math.abs(c.high-p.close),Math.abs(c.low-p.close));
-    const up=c.high-p.high, down=p.low-c.low;
+    tr[i]=Math.max(c[i].high-c[i].low,Math.abs(c[i].high-c[i-1].close),Math.abs(c[i].low-c[i-1].close));
+    const up=c[i].high-c[i-1].high,down=c[i-1].low-c[i].low;
     plus[i]=(up>down&&up>0)?up:0;
     minus[i]=(down>up&&down>0)?down:0;
   }
-  let trSum=0,pSum=0,mSum=0;
-  for(let i=1;i<=period&&i<n;i++){
-    trSum+=tr[i];pSum+=plus[i];mSum+=minus[i];
-  }
+  let ts=0,ps=0,ms=0;
+  for(let i=1;i<=period&&i<n;i++){ts+=tr[i];ps+=plus[i];ms+=minus[i];}
   for(let i=period;i<n;i++){
-    if(i>period){
-      trSum=trSum-trSum/period+tr[i];
-      pSum=pSum-pSum/period+plus[i];
-      mSum=mSum-mSum/period+minus[i];
-    }
-    if(trSum<=0) continue;
-    const pdi=100*pSum/trSum, mdi=100*mSum/trSum;
-    const denom=pdi+mdi;
-    dx[i]=denom===0?0:100*Math.abs(pdi-mdi)/denom;
+    if(i>period){ts=ts-ts/period+tr[i];ps=ps-ps/period+plus[i];ms=ms-ms/period+minus[i];}
+    if(ts<=0)continue;
+    const pdi=100*ps/ts,mdi=100*ms/ts,den=pdi+mdi;
+    dx[i]=den===0?0:100*Math.abs(pdi-mdi)/den;
   }
   const first=period*2-1;
   if(first<n){
-    let sum=0,count=0;
-    for(let i=period;i<=first;i++){
-      if(dx[i]!==null){sum+=dx[i];count++;}
-    }
-    if(count>0){
-      adx[first]=sum/count;
-      for(let i=first+1;i<n;i++){
-        if(dx[i]!==null) adx[i]=(adx[i-1]*(period-1)+dx[i])/period;
-      }
-    }
+    let s=0,k=0;
+    for(let i=period;i<=first;i++)if(dx[i]!==null){s+=dx[i];k++;}
+    if(k){adx[first]=s/k;for(let i=first+1;i<n;i++)if(dx[i]!==null)adx[i]=(adx[i-1]*(period-1)+dx[i])/period;}
   }
   return adx;
 }
-
-function enrich(candles){
-  const closes=candles.map(c=>c.close);
-  const e20=ema(closes,20),e50=ema(closes,50),e200=ema(closes,200);
-  const adx=calcADX(candles,14);
-  const vavg=Array(candles.length).fill(null);
+function enrich(raw){
+  const close=raw.map(x=>x.close);
+  const e20=ema(close,20),e50=ema(close,50),e200=ema(close,200),adx=calcADX(raw);
+  const avg=Array(raw.length).fill(null);
   let sum=0;
-  for(let i=0;i<candles.length;i++){
-    sum+=candles[i].volume;
-    if(i>=20){
-      sum-=candles[i-20].volume;
-      vavg[i]=sum/20;
-    }
+  for(let i=0;i<raw.length;i++){
+    sum+=raw[i].volume;
+    if(i>=20){sum-=raw[i-20].volume;avg[i]=sum/20;}
   }
-  return candles.map((c,i)=>({
-    ...c,i,e20:e20[i],e50:e50[i],e200:e200[i],
-    adx:adx[i],vavg:vavg[i],
-    vr:vavg[i]>0?c.volume/vavg[i]:null,
-    signal:i>0&&e20[i]!==null&&e50[i]!==null&&adx[i]!==null&&vavg[i]!==null&&
-      e20[i]>e50[i]&&adx[i]>25&&c.volume>vavg[i]
+  return raw.map((c,i)=>({
+    ...c,i,e20:e20[i],e50:e50[i],e200:e200[i],adx:adx[i],
+    vavg:avg[i],vr:avg[i]>0?c.volume/avg[i]:null,
+    signal:e20[i]!==null&&e50[i]!==null&&adx[i]!==null&&avg[i]!==null&&
+      e20[i]>e50[i]&&adx[i]>25&&c.volume>avg[i]
   }));
 }
-
-function retAt(rows,i,h){
-  const entry=i+1,exit=entry+h-1;
-  if(entry>=rows.length||exit>=rows.length) return null;
-  const open=rows[entry].open,close=rows[exit].close;
-  if(!Number.isFinite(open)||open<=0) return null;
-  return (close/open-1)*100;
-}
-
-function getBounds(n){
-  return [0,Math.floor(n*.8),Math.floor(n*.9),n];
-}
-
-function selectEvents(rows,start,end,method,cooldown,h){
-  const events=[];
-  let nextAllowed=-Infinity;
-  for(let i=start;i<end;i++){
-    // Все данные входа и выхода должны оставаться внутри этого участка.
-    const entry=i+1,exit=i+h;
-    if(exit>=end||entry>=rows.length) continue;
-    if(!rows[i].signal) continue;
-    if(method==="B"){
-      if(i<nextAllowed) continue;
-      events.push(i);
-      nextAllowed=i+cooldown;
-    }else if(method==="C"){
-      // Первый сигнал серии: в предыдущие cooldown часов не было сигнала.
-      let recent=false;
-      for(let j=Math.max(start,i-cooldown);j<i;j++){
-        if(rows[j].signal){recent=true;break;}
-      }
-      if(!recent) events.push(i);
-    }else{
-      events.push(i);
+function recordNewSignals(){
+  const closedIndex=candles.length-2;
+  if(closedIndex<1)return;
+  const lastClosed=candles[closedIndex];
+  if(db.startTime===null)db.startTime=lastClosed.t;
+  let from;
+  if(db.lastProcessed===null){
+    from=closedIndex; // Первый запуск: не добавляем сигналы из прошлой истории.
+  }else{
+    const oldIndex=candles.findIndex(x=>x.t===db.lastProcessed);
+    if(oldIndex>=0)from=oldIndex+1;
+    else{
+      // Если отметка вышла за загруженную историю, начинаем с доступного края.
+      from=0;
+      progress("Предупреждение: предыдущая отметка старше загруженной истории; часть сигналов могла быть пропущена.");
     }
   }
-  return events;
-}
-
-function baselineEvents(rows,start,end,h){
-  const events=[];
-  for(let i=start;i<end;i++){
-    if(i+1+h-1>=end) continue;
-    events.push(i);
-  }
-  return events;
-}
-
-function maxLosingStreak(values){
-  let current=0,best=0;
-  for(const v of values){
-    if(v<0){current++;best=Math.max(best,current);}
-    else current=0;
-  }
-  return best;
-}
-
-function maxDrawdown(values){
-  let equity=1,peak=1,maxDD=0;
-  for(const v of values){
-    equity*=1+v/100;
-    if(equity>peak) peak=equity;
-    if(peak>0) maxDD=Math.max(maxDD,(peak-equity)/peak*100);
-  }
-  return maxDD;
-}
-
-function median(values){
-  if(!values.length) return NaN;
-  const a=[...values].sort((x,y)=>x-y),m=Math.floor(a.length/2);
-  return a.length%2?a[m]:(a[m-1]+a[m])/2;
-}
-
-function stats(rows,events,baseEvents,h,fee){
-  const signalGross=[],signalNet=[],base=[];
-  for(const i of events){
-    const r=retAt(rows,i,h);
-    if(r!==null){signalGross.push(r);signalNet.push(r-fee);}
-  }
-  for(const i of baseEvents){
-    const r=retAt(rows,i,h);
-    if(r!==null) base.push(r);
-  }
-  const avg=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:NaN;
-  const avgNet=avg(signalNet),avgBase=avg(base);
-  return {
-    n:signalNet.length,
-    gross:avg(signalGross),
-    net:avgNet,
-    base:avgBase,
-    edge:avgNet-avgBase,
-    med:median(signalNet),
-    win:signalNet.length?signalNet.filter(x=>x>0).length/signalNet.length*100:NaN,
-    streak:maxLosingStreak(signalNet),
-    dd:maxDrawdown(signalNet)
-  };
-}
-
-function cell(value,cls=""){
-  return '<td class="'+cls+'">'+value+'</td>';
-}
-function tableFor(rows,segment,start,end,method,cooldown,fee){
-  let html='<h3>'+segment+'</h3><div class="tablewrap"><table><thead><tr>'+
-    '<th>Метод</th><th>Часы</th><th>N</th><th>Ср. net</th><th>BTC</th>'+
-    '<th>Edge</th><th>Медиана</th><th>Win</th><th>Просадка*</th><th>Серия −</th>'+
-    '</tr></thead><tbody>';
-  for(const m of ["A","B","C"]){
-    for(const h of [24,48,72]){
-      const events=selectEvents(rows,start,end,m,cooldown,h);
-      const base=baselineEvents(rows,start,end,h);
-      const s=stats(rows,events,base,h,fee);
-      const label=m==="A"?"A · Все":m==="B"?"B · Пауза":"C · Начало серии";
-      const cls=s.edge>=0?"good":"bad";
-      html+='<tr>'+cell(label)+'<td>'+h+'</td>'+cell(s.n)+
-        cell(pct(s.net),s.net>=0?"good":"bad")+
-        cell(pct(s.base))+
-        cell(pct(s.edge),cls)+
-        cell(pct(s.med),s.med>=0?"good":"bad")+
-        cell(fmt(s.win,1)+'%')+
-        cell(fmt(s.dd,2)+'%')+
-        cell(s.streak)+'</tr>';
+  const known=new Set(db.signals.map(s=>s.signalTime));
+  for(let i=Math.max(1,from);i<=closedIndex;i++){
+    const c=candles[i],entry=candles[i+1];
+    if(!entry)continue;
+    if(c.signal&&!known.has(c.t)){
+      db.signals.push({
+        signalTime:c.t,entryTime:entry.t,entryPrice:entry.open,
+        signalClose:c.close,adx:c.adx,volumeRatio:c.vr,
+        emaSpread:(c.e20/c.e50-1)*100,
+        priceVsEMA200:c.e200?(c.close/c.e200-1)*100:null
+      });
+      known.add(c.t);
     }
   }
-  html+='</tbody></table></div>';
-  return html;
+  db.lastProcessed=lastClosed.t;
+  db.signals.sort((a,b)=>a.signalTime-b.signalTime);
+  saveDB();
 }
-
-function renderResults(rows){
-  const n=rows.length,[a,b,c,d]=getBounds(n);
+function indexForTime(t){
+  let lo=0,hi=candles.length-1;
+  while(lo<=hi){
+    const m=(lo+hi)>>1;
+    if(candles[m].t===t)return m;
+    if(candles[m].t<t)lo=m+1;else hi=m-1;
+  }
+  return -1;
+}
+function outcome(sig,h,fee){
+  const entryIndex=indexForTime(sig.entryTime);
+  const lastClosed=candles.length-2;
+  if(entryIndex<0)return {status:"Нет свечи",net:null,gross:null};
+  const exitIndex=entryIndex+h-1;
+  if(exitIndex>lastClosed)return {status:"Ожидание",net:null,gross:null};
+  const gross=(candles[exitIndex].close/sig.entryPrice-1)*100;
+  return {status:"Готово",gross,net:gross-fee};
+}
+function average(a){return a.length?a.reduce((s,x)=>s+x,0)/a.length:NaN}
+function render(){
+  if(!candles.length)return;
   const fee=Number(el("fee").value);
-  const cooldown=Math.max(1,Math.min(168,Math.floor(Number(el("cooldown").value)||24)));
   if(!Number.isFinite(fee)||fee<0||fee>5){
-    el("results").innerHTML='<section class="card">Укажи издержки от 0 до 5%.</section>';
+    el("stats").textContent="Укажи издержки от 0 до 5%.";
     return;
   }
-  let html='<section class="card"><h2>Результаты исторического теста</h2>'+
-    '<p class="note">Свечей: '+n.toLocaleString("ru-RU")+
-    '. Издержки: '+fmt(fee,2)+'%. Пауза: '+cooldown+' ч.</p>'+
-    '<p class="note">Edge = средняя net-доходность сигнала минус средняя доходность BTC. Положительное значение означает преимущество над базовым сравнением, но не гарантирует прибыль.</p>';
-  html+=tableFor(rows,"1. Обучение · первые 80%",a,b,"A",cooldown,fee);
-  html+=tableFor(rows,"2. Проверка · следующие 10%",b,c,"A",cooldown,fee);
-  html+=tableFor(rows,"3. Финальный тест · последние 10%",c,d,"A",cooldown,fee);
-  html+='<p class="note">* Просадка по последовательности сделок; для A сделки перекрываются, поэтому показатель ориентировочный. N — число допустимых сигналов на соответствующем горизонте.</p></section>';
-  el("results").innerHTML=html;
-}
+  const results={};
+  for(const h of [24,48,72]){
+    const vals=db.signals.map(s=>({s,o:outcome(s,h,fee)})).filter(x=>x.o.net!==null);
+    const nets=vals.map(x=>x.o.net);
+    results[h]={vals,nets,avg:average(nets),win:nets.length?100*nets.filter(x=>x>0).length/nets.length:NaN};
+  }
+  el("total").textContent=db.signals.length;
+  el("done24").textContent=results[24].nets.length;
+  el("avg24").textContent=pct(results[24].avg);
+  el("win24").textContent=fmt(results[24].win,1)+"%";
+  let st='<div class="tablewrap"><table><thead><tr><th>Горизонт</th><th>Готово</th><th>Средняя gross</th><th>Средняя net</th><th>Медиана net</th><th>Win</th></tr></thead><tbody>';
+  for(const h of [24,48,72]){
+    const x=results[h],gross=x.vals.map(v=>v.o.gross),sorted=[...x.nets].sort((a,b)=>a-b);
+    const med=sorted.length?(sorted.length%2?sorted[(sorted.length-1)/2]:(sorted[sorted.length/2-1]+sorted[sorted.length/2])/2):NaN;
+    st+='<tr><td>'+h+' ч</td><td>'+x.nets.length+'</td><td>'+pct(average(gross))+'</td><td class="'+(x.avg>=0?'green':'red')+'">'+pct(x.avg)+'</td><td>'+pct(med)+'</td><td>'+fmt(x.win,1)+'%</td></tr>';
+  }
+  st+='</tbody></table></div>';
+  st+='<p class="note">Сравнение с рынком: ниже средняя доходность BTC за те же горизонты, начиная с начала журнала. Эти часовые наблюдения перекрываются и не являются независимыми.</p>';
+  const firstIndex=indexForTime(db.startTime);
+  for(const h of [24,48,72]){
+    const market=[];
+    if(firstIndex>=0){
+      for(let i=firstIndex;i+h-1<=candles.length-2;i++){
+        const r=(candles[i+h-1].close/candles[i].open-1)*100;
+        if(Number.isFinite(r))market.push(r);
+      }
+    }
+    const sigAvg=results[h].avg,base=average(market);
+    st+='<p class="note"><b>'+h+' ч:</b> средний BTC '+pct(base)+
+      ' · Edge '+pct(sigAvg-base)+' · базовых наблюдений '+market.length+'</p>';
+  }
+  el("stats").innerHTML=st;
 
+  const ordered=[...db.signals].sort((a,b)=>b.signalTime-a.signalTime).slice(0,100);
+  let j='<div class="tablewrap"><table><thead><tr><th>Сигнал</th><th>Вход</th><th>Цена входа</th><th>ADX</th><th>Объём x</th><th>24 ч net</th><th>48 ч net</th><th>72 ч net</th></tr></thead><tbody>';
+  for(const s of ordered){
+    const o24=outcome(s,24,fee),o48=outcome(s,48,fee),o72=outcome(s,72,fee);
+    const v=o=>o.net===null?o.status:pct(o.net);
+    j+='<tr><td>'+date(s.signalTime)+'</td><td>'+date(s.entryTime)+'</td><td>$'+fmt(s.entryPrice,2)+'</td><td>'+fmt(s.adx,1)+'</td><td>'+fmt(s.volumeRatio,2)+'</td>'+
+      '<td class="'+(o24.net>=0?'green':o24.net<0?'red':'')+'">'+v(o24)+'</td>'+
+      '<td class="'+(o48.net>=0?'green':o48.net<0?'red':'')+'">'+v(o48)+'</td>'+
+      '<td class="'+(o72.net>=0?'green':o72.net<0?'red':'')+'">'+v(o72)+'</td></tr>';
+  }
+  j+='</tbody></table></div>';
+  if(!ordered.length)j='<p class="note">Пока новых сигналов нет. Это нормально: приложение не подгружает сигналы из прошлого для создания искусственной статистики.</p>';
+  el("journal").innerHTML=j;
+}
+function exportData(){
+  try{
+    const data=JSON.stringify(db,null,2);
+    const blob=new Blob([data],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="btc-signal-v37-journal.json";
+    document.body.appendChild(a);a.click();a.remove();
+    URL.revokeObjectURL(url);
+    progress("Экспорт журнала запрошен. Проверь папку загрузок телефона.");
+  }catch(e){progress("Ошибка экспорта: "+e.message);}
+}
 async function start(){
   if(busy)return;
-  busy=true;
-  el("reload").disabled=true;
-  el("signal").textContent="Загрузка данных…";
-  el("results").innerHTML="";
+  busy=true;el("refresh").disabled=true;
+  el("signal").textContent="Загрузка…";
   try{
+    loadDB();
     const raw=await loadCandles();
-    if(raw.length<1000) throw new Error("Получено слишком мало свечей: "+raw.length);
-    const rows=enrich(raw);
-    const last=rows[rows.length-2]; // последняя полностью закрытая часовая свеча
-    if(!last) throw new Error("Недостаточно данных");
-    const yes=last.e20>last.e50&&last.adx>25&&last.vr>1;
-    el("signal").textContent=yes?"СИГНАЛ НА ПОКУПКУ":"НЕТ СИГНАЛА";
-    el("signal").className="status "+(yes?"green":"");
+    if(raw.length<500)throw new Error("Слишком мало свечей: "+raw.length);
+    candles=enrich(raw);
+    recordNewSignals();
+    const last=candles[candles.length-2];
+    const active=last.e20>last.e50&&last.adx>25&&last.volume>last.vavg;
+    el("signal").textContent=active?"СИГНАЛ НА ПОКУПКУ":"НЕТ СИГНАЛА";
+    el("signal").className="status "+(active?"green":"");
     el("price").textContent="$"+fmt(last.close,2);
     el("adx").textContent=fmt(last.adx,1);
     el("ema").textContent=last.e20>last.e50?"EMA20 > EMA50":"EMA20 ≤ EMA50";
     el("vol").textContent=fmt(last.vr,2)+"x";
-    const spread=(last.e20/last.e50-1)*100;
-    const from200=(last.close/last.e200-1)*100;
-    el("market").textContent="Цена / EMA200: "+pct(from200)+
-      " · Спред EMA20–EMA50: "+pct(spread)+
-      " · Последняя закрытая свеча: "+new Date(last.t).toLocaleString("ru-RU");
-    renderResults(rows);
-    setProgress("Готово. Загружено "+rows.length.toLocaleString("ru-RU")+" свечей.");
+    el("market").textContent="Цена / EMA200: "+pct((last.close/last.e200-1)*100)+
+      " · Спред EMA20–EMA50: "+pct((last.e20/last.e50-1)*100)+
+      " · Закрытая свеча: "+date(last.t);
+    render();
+    progress("Обновлено "+new Date().toLocaleString("ru-RU")+
+      ". Последняя обработанная свеча: "+date(db.lastProcessed)+
+      ". Сигналов в журнале: "+db.signals.length+".");
   }catch(e){
-    el("signal").textContent="Не удалось загрузить данные";
+    el("signal").textContent="Ошибка обновления";
     el("signal").className="status red";
-    setProgress("Ошибка: "+e.message+". Проверь интернет и попробуй ещё раз.");
+    progress(e.message+" Проверь интернет и попробуй ещё раз.");
   }finally{
-    busy=false;
-    el("reload").disabled=false;
+    busy=false;el("refresh").disabled=false;
   }
 }
 start();
