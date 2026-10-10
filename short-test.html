@@ -1,38 +1,712 @@
+
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10131b"><title>BTC SHORT — исторический тест</title>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10131b">
+<title>BTC SHORT — исторический тест</title>
 <style>
-:root{color-scheme:dark;--bg:#10131b;--card:#1a1f2b;--line:#30394a;--text:#edf2fa;--muted:#9ca9bd;--green:#50d69a;--red:#ff7777;--blue:#79adff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:15px}h1{font-size:24px}h2{font-size:19px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px;margin:13px 0}.note,.sub{color:var(--muted);font-size:13px;line-height:1.5}.status{font-size:20px;font-weight:750}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.metric,.strategy{background:#111722;border-radius:10px;padding:11px;margin:7px 0}.label{font-size:12px;color:var(--muted)}.value{font-size:18px;font-weight:700;margin-top:5px;overflow-wrap:anywhere}.green{color:var(--green)}.red{color:var(--red)}button{border:0;border-radius:10px;padding:12px 14px;background:var(--blue);color:#10131b;font-weight:700;margin:4px 3px 4px 0}.secondary{background:#30394a;color:var(--text)}label{display:block;margin:8px 0}input{width:100%;padding:10px;background:#111722;color:var(--text);border:1px solid var(--line);border-radius:9px;font-size:16px}.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:right}th{color:var(--muted)}th:first-child,td:first-child{text-align:left}@media(min-width:650px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-</style></head><body><main>
-<h1>₿ BTC SHORT — исторический тест</h1><div class="sub">Отдельный эксперимент · BTC/USDT · свечи 1H · журнал LONG не изменяется</div>
-<section class="card"><div id="status" class="status">Ожидание запуска…</div><div class="grid">
-<div class="metric"><div class="label">Последняя закрытая цена</div><div id="price" class="value">—</div></div>
-<div class="metric"><div class="label">Закрытых свечей</div><div id="count" class="value">—</div></div>
-<div class="metric"><div class="label">Период данных</div><div id="period" class="value">—</div></div>
-<div class="metric"><div class="label">Издержки</div><div id="feeView" class="value">0,10%</div></div></div>
-<p id="progress" class="note">Нажми «Загрузить и проверить».</p><button id="run" onclick="runTest()">Загрузить и проверить</button><button class="secondary" onclick="exportResults()">Экспорт JSON</button></section>
-<section class="card"><h2>Заранее заданные SHORT-стратегии</h2>
-<div class="strategy"><b>SHORT A — тренд + объём</b><p class="note">EMA20 ниже EMA50, ADX14 выше 25, объём свечи выше среднего объёма предыдущих 20 свечей.</p></div>
-<div class="strategy"><b>SHORT B — тренд + объём + EMA200</b><p class="note">Условия A плюс цена закрытия ниже EMA200.</p></div>
-<div class="strategy"><b>SHORT C — тренд без фильтра объёма</b><p class="note">EMA20 ниже EMA50, ADX14 выше 25, цена закрытия ниже EMA200; фильтр объёма не применяется.</p></div>
-<label>Суммарные условные издержки сделки, %<input id="fee" type="number" min="0" max="5" step="0.01" value="0.10"></label>
-<p class="note">SHORT net = ((цена входа − цена выхода) / цена входа × 100) − издержки. Вход — open следующей часовой свечи; выход — close через 24/48/72 часа. Это доходность позиции без плеча. Финансирование, проскальзывание, маржа и ликвидации не моделируются.</p></section>
-<section class="card"><h2>Разделение данных</h2><div class="grid"><div class="metric"><div class="label">Обучение</div><div class="value">Первые 80%</div></div><div class="metric"><div class="label">Проверка</div><div class="value">Следующие 10%</div></div><div class="metric"><div class="label">Финальный тест</div><div class="value">Последние 10%</div></div><div class="metric"><div class="label">Горизонты</div><div class="value">24 / 48 / 72 ч</div></div></div>
-<p class="note">Сигнал учитывается только если весь период удержания находится внутри своего участка. Правила фиксированы заранее. Если многократно менять правила после просмотра финального участка, он перестанет быть независимой проверкой.</p></section>
-<section class="card"><h2>Результаты</h2><div id="results" class="note">Результаты появятся после загрузки котировок.</div></section>
-<section class="card"><h2>Ограничения</h2><p class="note">Это исторический эксперимент, не торговая рекомендация. Сделки могут перекрываться, поэтому наблюдения зависимы. Загружается до 10 000 часовых свечей. Результаты не учитывают финансирование SHORT, налоги, проскальзывание и риск ликвидации при плече. Хороший результат в истории не гарантирует будущую прибыль.</p></section>
-</main><script>
-const API="https://api.binance.com/api/v3/klines";let candles=[],report=null,busy=false;const $=id=>document.getElementById(id);
-function fmt(n,d=2){return Number.isFinite(n)?n.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d}):"—"}function pct(n){return Number.isFinite(n)?(n>=0?"+":"")+fmt(n,2)+"%":"—"}function dt(t){return new Date(t).toLocaleString("ru-RU")}function say(s){$("progress").textContent=s}
-function ema(a,p){let o=Array(a.length).fill(null);if(a.length<p)return o;let s=0;for(let i=0;i<p;i++)s+=a[i];let v=s/p;o[p-1]=v;let k=2/(p+1);for(let i=p;i<a.length;i++){v=a[i]*k+v*(1-k);o[i]=v}return o}
-function adxCalc(c,p=14){let n=c.length,tr=Array(n).fill(0),up=Array(n).fill(0),dn=Array(n).fill(0),dx=Array(n).fill(null),out=Array(n).fill(null);for(let i=1;i<n;i++){tr[i]=Math.max(c[i].high-c[i].low,Math.abs(c[i].high-c[i-1].close),Math.abs(c[i].low-c[i-1].close));let u=c[i].high-c[i-1].high,d=c[i-1].low-c[i].low;up[i]=u>d&&u>0?u:0;dn[i]=d>u&&d>0?d:0}let ts=0,us=0,ds=0;for(let i=1;i<=p&&i<n;i++){ts+=tr[i];us+=up[i];ds+=dn[i]}for(let i=p;i<n;i++){if(i>p){ts=ts-ts/p+tr[i];us=us-us/p+up[i];ds=ds-ds/p+dn[i]}if(ts>0){let a=100*us/ts,b=100*ds/ts;dx[i]=a+b?100*Math.abs(a-b)/(a+b):0}}let first=2*p-1;if(first<n){let s=0,k=0;for(let i=p;i<=first;i++)if(dx[i]!==null){s+=dx[i];k++}if(k){out[first]=s/k;for(let i=first+1;i<n;i++)if(dx[i]!==null)out[i]=(out[i-1]*(p-1)+dx[i])/p}}return out}
-function enrich(raw){let cl=raw.map(x=>x.close),e20=ema(cl,20),e50=ema(cl,50),e200=ema(cl,200),adx=adxCalc(raw),prefix=[0];for(let c of raw)prefix.push(prefix[prefix.length-1]+c.volume);return raw.map((c,i)=>{let va=i>=20?(prefix[i]-prefix[i-20])/20:null,valid=e20[i]!==null&&e50[i]!==null&&e200[i]!==null&&adx[i]!==null&&va!==null,down=valid&&e20[i]<e50[i]&&adx[i]>25;return {...c,e20:e20[i],e50:e50[i],e200:e200[i],adx:adx[i],vavg:va,a:down&&c.volume>va,b:down&&c.volume>va&&c.close<e200[i],c:down&&c.close<e200[i]}})}
-async function load(){let all=[],end=Date.now();for(let p=0;p<10;p++){say("Загрузка котировок: запрос "+(p+1)+"/10…");let r=await fetch(API+"?symbol=BTCUSDT&interval=1h&limit=1000&endTime="+end,{cache:"no-store"});if(!r.ok)throw Error("Binance HTTP "+r.status);let batch=await r.json();if(!Array.isArray(batch)||!batch.length)break;all.push(...batch);end=Number(batch[0][0])-1;if(batch.length<1000)break}let m=new Map();for(let x of all)m.set(+x[0],{t:+x[0],open:+x[1],high:+x[2],low:+x[3],close:+x[4],volume:+x[5],closeTime:+x[6]});return [...m.values()].sort((a,b)=>a.t-b.t).filter(x=>x.closeTime<Date.now())}
-function avg(a){return a.length?a.reduce((s,x)=>s+x,0)/a.length:NaN}function med(a){if(!a.length)return NaN;let s=[...a].sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2}
-function streak(a){let c=0,m=0;for(let x of a){if(x<0){c++;m=Math.max(c,m)}else c=0}return m}
-function dd(a){let e=1,peak=1,max=0;for(let x of a){e*=Math.max(.000001,1+x/100);peak=Math.max(peak,e);max=Math.max(max,(peak-e)/peak*100)}return max}
-function calc(key,h,fee,start,end){let trades=[];for(let i=Math.max(0,start);i<Math.min(end,candles.length-1);i++){if(!candles[i][key])continue;let en=i+1,ex=en+h-1;if(en>=end||ex>=end)continue;let a=candles[en].open,b=candles[ex].close;if(a<=0||b<=0)continue;let gross=(a-b)/a*100;trades.push({signalTime:candles[i].t,entryTime:candles[en].t,entryPrice:a,exitTime:candles[ex].t,exitPrice:b,gross,net:gross-fee})}let a=trades.map(x=>x.net);return {n:a.length,mean:avg(a),median:med(a),win:a.length?100*a.filter(x=>x>0).length/a.length:NaN,streak:streak(a),dd:dd(a),trades}}
-function render(){let fee=Number($("fee").value);if(!Number.isFinite(fee)||fee<0||fee>5){$("results").textContent="Укажи издержки от 0 до 5%.";return}let n=candles.length,c1=Math.floor(n*.8),c2=Math.floor(n*.9),segs=[{name:"Обучение",s:0,e:c1},{name:"Проверка",s:c1,e:c2},{name:"Финальный тест",s:c2,e:n-1}],strats=[{k:"a",name:"SHORT A",desc:"EMA20 < EMA50 + ADX >25 + объём выше среднего"},{k:"b",name:"SHORT B",desc:"SHORT A + цена ниже EMA200"},{k:"c",name:"SHORT C",desc:"EMA20 < EMA50 + ADX >25 + цена ниже EMA200"}];let html="";report={createdAt:new Date().toISOString(),symbol:"BTCUSDT",interval:"1h",feePercent:fee,candleCount:n,period:{start:new Date(candles[0].t).toISOString(),end:new Date(candles[n-1].t).toISOString()},segments:{trainEndIndex:c1,validationEndIndex:c2},strategies:{},note:"Historical test only; overlapping trades; no funding, slippage, leverage or liquidation model."};for(let st of strats){html+="<h3>"+st.name+" — "+st.desc+"</h3><div class='tablewrap'><table><thead><tr><th>Участок</th><th>Горизонт</th><th>N</th><th>Средняя net</th><th>Медиана</th><th>Прибыльных</th><th>Серия убытков</th><th>Условная просадка*</th></tr></thead><tbody>";report.strategies[st.k]={name:st.name,description:st.desc,results:{}};for(let sg of segs)for(let h of [24,48,72]){let r=calc(st.k,h,fee,sg.s,sg.e);html+="<tr><td>"+sg.name+"</td><td>"+h+" ч</td><td>"+r.n+"</td><td class='"+(r.mean>=0?"green":"red")+"'>"+pct(r.mean)+"</td><td>"+pct(r.median)+"</td><td>"+fmt(r.win,1)+"%</td><td>"+r.streak+"</td><td>"+fmt(r.dd,1)+"%</td></tr>";report.strategies[st.k].results[sg.name+"_"+h+"h"]={n:r.n,meanNetPercent:r.mean,medianNetPercent:r.median,winRatePercent:r.win,maxLosingStreak:r.streak,descriptiveDrawdownPercent:r.dd,trades:r.trades.map(t=>({...t,signalTime:new Date(t.signalTime).toISOString(),entryTime:new Date(t.entryTime).toISOString(),exitTime:new Date(t.exitTime).toISOString()}))}}html+="</tbody></table></div>"}html+="<p class='note'>* Просадка рассчитана по последовательности результатов, но сделки перекрываются, поэтому это не модель реального портфеля.</p><p class='note'>Сигналы у границ участков исключены, если весь горизонт сделки не помещается в свой участок. Выбор стратегии только по обучающему участку не подтверждает прибыльность.</p>";$("results").innerHTML=html}
-async function runTest(){if(busy)return;busy=true;$("run").disabled=true;$("status").textContent="Загрузка данных…";try{let raw=await load();if(raw.length<1000)throw Error("Слишком мало свечей: "+raw.length);candles=enrich(raw);let last=candles[candles.length-1];$("price").textContent="$"+fmt(last.close);$("count").textContent=candles.length.toLocaleString("ru-RU");$("period").textContent=dt(candles[0].t)+" — "+dt(last.t);$("feeView").textContent=fmt(Number($("fee").value),2)+"%";render();$("status").textContent="Расчёт завершён";$("status").className="status green";say("Загружено "+candles.length+" закрытых свечей. Сохрани JSON для сравнения результатов.");}catch(e){$("status").textContent="Ошибка загрузки или расчёта";$("status").className="status red";say(e.message+" Проверь интернет и попробуй снова.")}finally{busy=false;$("run").disabled=false}}
-function exportResults(){if(!report){say("Сначала нажми «Загрузить и проверить».");return}let blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="btc-short-historical-test.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);say("Экспорт JSON запрошен. Проверь папку загрузок телефона.")}
-$("fee").addEventListener("change",()=>{if(candles.length){$("feeView").textContent=fmt(Number($("fee").value),2)+"%";render()}}); 
-</script></body></html>
+:root {
+  color-scheme: dark;
+  --bg:#10131b;
+  --card:#1a1f2b;
+  --line:#30394a;
+  --text:#edf2fa;
+  --muted:#9ca9bd;
+  --green:#50d69a;
+  --red:#ff7777;
+  --blue:#79adff;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;background:var(--bg);color:var(--text);
+  font:15px system-ui,sans-serif
+}
+main {max-width:1000px;margin:auto;padding:15px}
+h1 {font-size:24px}
+h2 {font-size:19px}
+h3 {font-size:17px}
+.card {
+  background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:15px;margin:13px 0
+}
+.note,.sub {color:var(--muted);font-size:13px;line-height:1.5}
+.status {font-size:20px;font-weight:750}
+.grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px
+}
+.metric,.strategy {
+  background:#111722;border-radius:10px;padding:11px;margin:7px 0
+}
+.label {font-size:12px;color:var(--muted)}
+.value {
+  font-size:18px;font-weight:700;margin-top:5px;overflow-wrap:anywhere
+}
+.green {color:var(--green)}
+.red {color:var(--red)}
+button {
+  border:0;border-radius:10px;padding:12px 14px;
+  background:var(--blue);color:#10131b;font-weight:700;
+  margin:4px 3px 4px 0
+}
+button:disabled {opacity:.5}
+.secondary {background:#30394a;color:var(--text)}
+label {display:block;margin:10px 0}
+input[type="number"] {
+  display:block;width:100%;padding:10px;margin-top:6px;
+  background:#111722;color:var(--text);
+  border:1px solid var(--line);border-radius:9px;font-size:16px
+}
+input[type="checkbox"] {width:auto;transform:scale(1.15);margin-right:8px}
+.tablewrap {overflow-x:auto}
+table {width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+th,td {padding:8px;border-bottom:1px solid var(--line);text-align:right}
+th {color:var(--muted)}
+th:first-child,td:first-child {text-align:left}
+@media(min-width:650px) {
+  .grid {grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+</head>
+
+<body>
+<main>
+<h1>₿ BTC SHORT — исторический тест</h1>
+<div class="sub">
+  Отдельный эксперимент · BTC/USDT · свечи 1H · журнал LONG не изменяется
+</div>
+
+<section class="card">
+  <div id="status" class="status">Ожидание запуска…</div>
+
+  <div class="grid">
+    <div class="metric">
+      <div class="label">Последняя закрытая цена</div>
+      <div id="price" class="value">—</div>
+    </div>
+    <div class="metric">
+      <div class="label">Закрытых свечей</div>
+      <div id="count" class="value">—</div>
+    </div>
+    <div class="metric">
+      <div class="label">Период данных</div>
+      <div id="period" class="value">—</div>
+    </div>
+    <div class="metric">
+      <div class="label">Издержки</div>
+      <div id="feeView" class="value">0,10%</div>
+    </div>
+  </div>
+
+  <p id="progress" class="note">Нажми «Загрузить и проверить».</p>
+  <button id="run" onclick="runTest()">Загрузить и проверить</button>
+  <button class="secondary" onclick="exportResults()">Экспорт JSON</button>
+</section>
+
+<section class="card">
+  <h2>Заранее заданные SHORT-стратегии</h2>
+
+  <div class="strategy">
+    <b>SHORT A — тренд + объём</b>
+    <p class="note">
+      EMA20 ниже EMA50, ADX14 выше 25, объём сигнальной свечи
+      выше среднего объёма предыдущих 20 свечей.
+    </p>
+  </div>
+
+  <div class="strategy">
+    <b>SHORT B — тренд + объём + EMA200</b>
+    <p class="note">Условия A плюс цена закрытия ниже EMA200.</p>
+  </div>
+
+  <div class="strategy">
+    <b>SHORT C — тренд без фильтра объёма</b>
+    <p class="note">
+      EMA20 ниже EMA50, ADX14 выше 25, цена закрытия ниже EMA200;
+      фильтр объёма не применяется.
+    </p>
+  </div>
+
+  <label>
+    Суммарные условные издержки сделки, %
+    <input id="fee" type="number" min="0" max="5" step="0.01" value="0.10">
+  </label>
+
+  <p class="note">
+    SHORT net = ((цена входа − цена выхода) / цена входа × 100) − издержки.
+    Вход — open следующей часовой свечи; выход — close через 24, 48 или 72 часа.
+    Издержки задаются суммарно на полный вход и выход.
+    Это доходность позиции без плеча. Финансирование, проскальзывание,
+    маржа и ликвидации отдельно не моделируются.
+  </p>
+</section>
+
+<section class="card">
+  <h2>Разделение данных</h2>
+  <div class="grid">
+    <div class="metric">
+      <div class="label">Обучение</div>
+      <div class="value">Первые 80%</div>
+    </div>
+    <div class="metric">
+      <div class="label">Проверка</div>
+      <div class="value">Следующие 10%</div>
+    </div>
+    <div class="metric">
+      <div class="label">Финальный тест</div>
+      <div class="value">Последние 10%</div>
+    </div>
+    <div class="metric">
+      <div class="label">Горизонты</div>
+      <div class="value">24 / 48 / 72 ч</div>
+    </div>
+  </div>
+  <p class="note">
+    Сигнал учитывается только тогда, когда вход и выход полностью находятся
+    внутри соответствующего участка. Правила заданы заранее.
+    Многократная настройка стратегии по финальному тесту лишит его
+    независимости.
+  </p>
+</section>
+
+<section class="card">
+  <h2>Результаты</h2>
+
+  <label>
+    <input id="nonOverlap" type="checkbox" onchange="render()">
+    Не открывать новую сделку, пока предыдущая не закрыта
+  </label>
+
+  <p class="note">
+    Без галочки — исходный режим, сделки могут перекрываться.
+    С галочкой — сделки одной стратегии на одном горизонте не перекрываются.
+    Каждая стратегия и каждый горизонт рассчитываются отдельно.
+  </p>
+
+  <div id="results" class="note">
+    Результаты появятся после загрузки котировок.
+  </div>
+</section>
+
+<section class="card">
+  <h2>Ограничения</h2>
+  <p class="note">
+    Это исторический эксперимент, не торговая рекомендация.
+    Загружается до 10 000 часовых свечей. Даже тест без перекрытия
+    не моделирует полноценный торговый счёт: размер позиции, финансирование,
+    проскальзывание, налоги и ликвидации не учитываются.
+    Положительный результат на истории не гарантирует будущую прибыль.
+  </p>
+</section>
+</main>
+
+<script>
+const API = "https://api.binance.com/api/v3/klines";
+
+let candles = [];
+let report = null;
+let busy = false;
+
+const $ = id => document.getElementById(id);
+
+function fmt(n, d=2) {
+  return Number.isFinite(n)
+    ? n.toLocaleString("ru-RU", {
+        minimumFractionDigits:d,
+        maximumFractionDigits:d
+      })
+    : "—";
+}
+
+function pct(n) {
+  return Number.isFinite(n)
+    ? (n >= 0 ? "+" : "") + fmt(n, 2) + "%"
+    : "—";
+}
+
+function dt(t) {
+  return new Date(t).toLocaleString("ru-RU");
+}
+
+function say(s) {
+  $("progress").textContent = s;
+}
+
+function ema(a, p) {
+  let o = Array(a.length).fill(null);
+  if (a.length < p) return o;
+
+  let s = 0;
+  for (let i=0; i<p; i++) s += a[i];
+
+  let v = s / p;
+  o[p-1] = v;
+  let k = 2 / (p+1);
+
+  for (let i=p; i<a.length; i++) {
+    v = a[i] * k + v * (1-k);
+    o[i] = v;
+  }
+  return o;
+}
+
+function adxCalc(c, p=14) {
+  let n = c.length;
+  let tr = Array(n).fill(0);
+  let up = Array(n).fill(0);
+  let dn = Array(n).fill(0);
+  let dx = Array(n).fill(null);
+  let out = Array(n).fill(null);
+
+  for (let i=1; i<n; i++) {
+    tr[i] = Math.max(
+      c[i].high-c[i].low,
+      Math.abs(c[i].high-c[i-1].close),
+      Math.abs(c[i].low-c[i-1].close)
+    );
+
+    let u = c[i].high-c[i-1].high;
+    let d = c[i-1].low-c[i].low;
+
+    up[i] = u>d && u>0 ? u : 0;
+    dn[i] = d>u && d>0 ? d : 0;
+  }
+
+  let ts=0, us=0, ds=0;
+
+  for (let i=1; i<=p && i<n; i++) {
+    ts += tr[i];
+    us += up[i];
+    ds += dn[i];
+  }
+
+  for (let i=p; i<n; i++) {
+    if (i>p) {
+      ts = ts-ts/p+tr[i];
+      us = us-us/p+up[i];
+      ds = ds-ds/p+dn[i];
+    }
+
+    if (ts>0) {
+      let a=100*us/ts;
+      let b=100*ds/ts;
+      dx[i] = a+b ? 100*Math.abs(a-b)/(a+b) : 0;
+    }
+  }
+
+  let first = 2*p-1;
+
+  if (first<n) {
+    let s=0, k=0;
+
+    for (let i=p; i<=first; i++) {
+      if (dx[i]!==null) {
+        s += dx[i];
+        k++;
+      }
+    }
+
+    if (k) {
+      out[first] = s/k;
+
+      for (let i=first+1; i<n; i++) {
+        if (dx[i]!==null) {
+          out[i] = (out[i-1]*(p-1)+dx[i])/p;
+        }
+      }
+    }
+  }
+
+  return out;
+}
+
+function enrich(raw) {
+  let cl = raw.map(x=>x.close);
+  let e20 = ema(cl,20);
+  let e50 = ema(cl,50);
+  let e200 = ema(cl,200);
+  let adx = adxCalc(raw);
+
+  // prefix[i] — объём всех свечей до индекса i, не включая i.
+  let prefix = [0];
+
+  for (let c of raw) {
+    prefix.push(prefix[prefix.length-1]+c.volume);
+  }
+
+  return raw.map((c,i)=>{
+    // Среднее только по 20 предыдущим свечам.
+    let va = i>=20 ? (prefix[i]-prefix[i-20])/20 : null;
+
+    let valid =
+      e20[i]!==null &&
+      e50[i]!==null &&
+      e200[i]!==null &&
+      adx[i]!==null &&
+      va!==null;
+
+    let down = valid && e20[i]<e50[i] && adx[i]>25;
+
+    return {
+      ...c,
+      e20:e20[i],
+      e50:e50[i],
+      e200:e200[i],
+      adx:adx[i],
+      vavg:va,
+      a:down && c.volume>va,
+      b:down && c.volume>va && c.close<e200[i],
+      c:down && c.close<e200[i]
+    };
+  });
+}
+
+async function load() {
+  let all = [];
+  let end = Date.now();
+
+  for (let p=0; p<10; p++) {
+    say("Загрузка котировок: запрос "+(p+1)+"/10…");
+
+    let url = API +
+      "?symbol=BTCUSDT&interval=1h&limit=1000&endTime="+end;
+
+    let r = await fetch(url, {cache:"no-store"});
+
+    if (!r.ok) throw Error("Binance HTTP "+r.status);
+
+    let batch = await r.json();
+
+    if (!Array.isArray(batch) || !batch.length) break;
+
+    all.push(...batch);
+    end = Number(batch[0][0])-1;
+
+    if (batch.length<1000) break;
+  }
+
+  let m = new Map();
+
+  for (let x of all) {
+    m.set(+x[0], {
+      t:+x[0],
+      open:+x[1],
+      high:+x[2],
+      low:+x[3],
+      close:+x[4],
+      volume:+x[5],
+      closeTime:+x[6]
+    });
+  }
+
+  // Только закрытые свечи, без текущей формирующейся свечи.
+  return [...m.values()]
+    .sort((a,b)=>a.t-b.t)
+    .filter(x=>x.closeTime<Date.now());
+}
+
+function avg(a) {
+  return a.length ? a.reduce((s,x)=>s+x,0)/a.length : NaN;
+}
+
+function med(a) {
+  if (!a.length) return NaN;
+
+  let s=[...a].sort((x,y)=>x-y);
+  let m=s.length>>1;
+
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
+}
+
+function streak(a) {
+  let c=0, m=0;
+
+  for (let x of a) {
+    if (x<0) {
+      c++;
+      m=Math.max(c,m);
+    } else {
+      c=0;
+    }
+  }
+
+  return m;
+}
+
+function dd(a) {
+  let e=1, peak=1, max=0;
+
+  for (let x of a) {
+    e *= Math.max(0.000001,1+x/100);
+    peak = Math.max(peak,e);
+    max = Math.max(max,(peak-e)/peak*100);
+  }
+
+  return max;
+}
+
+/*
+  Сегмент задаётся диапазоном [start, end).
+  При режиме без перекрытия новая сделка может получить сигнал
+  на свече закрытия предыдущей позиции: её вход будет только
+  на следующей свече.
+*/
+function calc(key,h,fee,start,end,nonOverlap=false) {
+  let trades=[];
+  let nextAllowedSignal=start;
+
+  for (
+    let i=Math.max(0,start);
+    i<Math.min(end,candles.length);
+    i++
+  ) {
+    if (!candles[i][key]) continue;
+    if (nonOverlap && i<nextAllowedSignal) continue;
+
+    let en=i+1;
+    let ex=en+h-1;
+
+    // Весь сигнал, вход и выход должны помещаться в сегмент.
+    if (i<start || en>=end || ex>=end) continue;
+
+    let a=candles[en].open;
+    let b=candles[ex].close;
+
+    if (a<=0 || b<=0) continue;
+
+    let gross=(a-b)/a*100;
+
+    trades.push({
+      signalTime:candles[i].t,
+      entryTime:candles[en].t,
+      entryPrice:a,
+      exitTime:candles[ex].t,
+      exitPrice:b,
+      gross,
+      net:gross-fee
+    });
+
+    if (nonOverlap) {
+      nextAllowedSignal=ex;
+    }
+  }
+
+  let a=trades.map(x=>x.net);
+
+  return {
+    n:a.length,
+    mean:avg(a),
+    median:med(a),
+    win:a.length ? 100*a.filter(x=>x>0).length/a.length : NaN,
+    streak:streak(a),
+    dd:dd(a),
+    trades
+  };
+}
+
+function render() {
+  if (!candles.length) {
+    $("results").textContent="Сначала загрузи котировки.";
+    return;
+  }
+
+  let fee=Number($("fee").value);
+
+  if (!Number.isFinite(fee) || fee<0 || fee>5) {
+    $("results").textContent="Укажи издержки от 0 до 5%.";
+    return;
+  }
+
+  let nonOverlap=$("nonOverlap").checked;
+  let n=candles.length;
+
+  let c1=Math.floor(n*.8);
+  let c2=Math.floor(n*.9);
+
+  let segs=[
+    {name:"Обучение",s:0,e:c1},
+    {name:"Проверка",s:c1,e:c2},
+    {name:"Финальный тест",s:c2,e:n}
+  ];
+
+  let strats=[
+    {
+      k:"a",
+      name:"SHORT A",
+      desc:"EMA20 < EMA50 + ADX >25 + объём выше среднего"
+    },
+    {
+      k:"b",
+      name:"SHORT B",
+      desc:"SHORT A + цена ниже EMA200"
+    },
+    {
+      k:"c",
+      name:"SHORT C",
+      desc:"EMA20 < EMA50 + ADX >25 + цена ниже EMA200"
+    }
+  ];
+
+  let html="";
+  let mode=nonOverlap
+    ? "Без перекрытия сделок"
+    : "С перекрытием сделок";
+
+  report={
+    createdAt:new Date().toISOString(),
+    symbol:"BTCUSDT",
+    interval:"1h",
+    feePercent:fee,
+    nonOverlappingTrades:nonOverlap,
+    mode,
+    candleCount:n,
+    period:{
+      start:new Date(candles[0].t).toISOString(),
+      end:new Date(candles[n-1].t).toISOString()
+    },
+    segments:{
+      trainEndIndex:c1,
+      validationEndIndex:c2
+    },
+    strategies:{},
+    note:
+      "Historical test only. Fees are a user-entered round-trip assumption. " +
+      "No funding, slippage, leverage, liquidation or portfolio sizing model."
+  };
+
+  for (let st of strats) {
+    html+="<h3>"+st.name+" — "+st.desc+"</h3>";
+    html+="<p class='note'>Режим: "+mode+"</p>";
+    html+="<div class='tablewrap'><table><thead><tr>";
+    html+="<th>Участок</th><th>Горизонт</th><th>N</th>";
+    html+="<th>Средняя net</th><th>Медиана</th><th>Прибыльных</th>";
+    html+="<th>Серия убытков</th><th>Условная просадка*</th>";
+    html+="</tr></thead><tbody>";
+
+    report.strategies[st.k]={
+      name:st.name,
+      description:st.desc,
+      results:{}
+    };
+
+    for (let sg of segs) {
+      for (let h of [24,48,72]) {
+        let r=calc(st.k,h,fee,sg.s,sg.e,nonOverlap);
+
+        html+="<tr>";
+        html+="<td>"+sg.name+"</td>";
+        html+="<td>"+h+" ч</td>";
+        html+="<td>"+r.n+"</td>";
+        html+="<td class='"+(r.mean>=0?"green":"red")+"'>"+pct(r.mean)+"</td>";
+        html+="<td>"+pct(r.median)+"</td>";
+        html+="<td>"+fmt(r.win,1)+"%</td>";
+        html+="<td>"+r.streak+"</td>";
+        html+="<td>"+fmt(r.dd,1)+"%</td>";
+        html+="</tr>";
+
+        report.strategies[st.k].results[sg.name+"_"+h+"h]={
+          n:r.n,
+          meanNetPercent:r.mean,
+          medianNetPercent:r.median,
+          winRatePercent:r.win,
+          maxLosingStreak:r.streak,
+          descriptiveDrawdownPercent:r.dd,
+          trades:r.trades.map(t=>({
+            ...t,
+            signalTime:new Date(t.signalTime).toISOString(),
+            entryTime:new Date(t.entryTime).toISOString(),
+            exitTime:new Date(t.exitTime).toISOString()
+          }))
+        };
+      }
+    }
+
+    html+="</tbody></table></div>";
+  }
+
+  html+="<p class='note'>* Просадка рассчитана по последовательности доходностей сделок с условным реинвестированием. Это не полноценная модель счёта, а при перекрывающихся сделках — особенно условный показатель.</p>";
+  html+="<p class='note'>Комиссии, финансирование и проскальзывание могут существенно изменить результаты. Доходность не является прогнозом будущей прибыли.</p>";
+
+  $("results").innerHTML=html;
+}
+
+async function runTest() {
+  if (busy) return;
+
+  busy=true;
+  $("run").disabled=true;
+  $("status").textContent="Загрузка данных…";
+  $("status").className="status";
+
+  try {
+    let raw=await load();
+
+    if (raw.length<1000) {
+      throw Error("Слишком мало свечей: "+raw.length);
+    }
+
+    candles=enrich(raw);
+
+    let last=candles[candles.length-1];
+
+    $("price").textContent="$"+fmt(last.close);
+    $("count").textContent=candles.length.toLocaleString("ru-RU");
+    $("period").textContent=dt(candles[0].t)+" — "+dt(last.t);
+    $("feeView").textContent=fmt(Number($("fee").value),2)+"%";
+
+    render();
+
+    $("status").textContent="Расчёт завершён";
+    $("status").className="status green";
+
+    say(
+      "Загружено "+candles.length+
+      " закрытых свечей. Выбери режим и экспортируй JSON для сравнения."
+    );
+  } catch(e) {
+    $("status").textContent="Ошибка загрузки или расчёта";
+    $("status").className="status red";
+    say(e.message+" Проверь интернет и попробуй снова.");
+  } finally {
+    busy=false;
+    $("run").disabled=false;
+  }
+}
+
+function exportResults() {
+  if (!report) {
+    say("Сначала нажми «Загрузить и проверить».");
+    return;
+  }
+
+  let blob=new Blob(
+    [JSON.stringify(report,null,2)],
+    {type:"application/json"}
+  );
+
+  let url=URL.createObjectURL(blob);
+  let a=document.createElement("a");
+
+  a.href=url;
+  a.download=report.nonOverlappingTrades
+    ? "btc-short-no-overlap.json"
+    : "btc-short-overlapping.json";
+
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  say("Экспорт JSON запрошен. Проверь папку загрузок телефона.");
+}
+
+$("fee").addEventListener("change",()=>{
+  let fee=Number($("fee").value);
+  $("feeView").textContent=fmt(fee,2)+"%";
+
+  if (candles.length) render();
+});
+</script>
+</body>
+</html>
