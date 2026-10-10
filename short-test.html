@@ -605,7 +605,8 @@ function render() {
         html+="<td>"+fmt(r.dd,1)+"%</td>";
         html+="</tr>";
 
-        report.strategies[st.k].results[sg.name+"_"+h+"h]={
+        // Исправлено: закрыты кавычка и квадратная скобка.
+        report.strategies[st.k].results[sg.name+"_"+h+"h"]={
           n:r.n,
           meanNetPercent:r.mean,
           medianNetPercent:r.median,
