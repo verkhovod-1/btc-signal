@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ru">
 <head>
@@ -27,6 +28,7 @@ h2{font-size:19px}
 .green{color:var(--green)}
 .red{color:var(--red)}
 button{border:0;border-radius:10px;padding:12px 14px;background:var(--blue);color:#10131b;font-weight:700;margin:4px 3px 4px 0}
+button:disabled{opacity:.55}
 .secondary{background:#30394a;color:var(--text)}
 label{display:block;margin:8px 0}
 input,textarea{width:100%;padding:10px;background:#111722;color:var(--text);border:1px solid var(--line);border-radius:9px;font-size:16px}
@@ -402,7 +404,8 @@ function render(){
     html+="<td>"+pct(r.median)+"</td><td>"+fmt(r.win,1)+"%</td>";
     html+="<td>"+r.streak+"</td><td>"+fmt(r.dd,1)+"%</td></tr>";
 
-    report.strategies[st.k].results[sg.name+"_"+h+"h]={
+    // ИСПРАВЛЕНО: закрывающая кавычка после h+"h"
+    report.strategies[st.k].results[sg.name+"_"+h+"h"]={
      n:r.n,
      meanNetPercent:r.mean,
      medianNetPercent:r.median,
@@ -516,6 +519,8 @@ async function runTest(){
  busy=true;
  $("run").disabled=true;
  $("status").textContent="Загрузка данных…";
+ $("status").className="status";
+ $("results").textContent="Загрузка и расчёт…";
 
  try{
   let raw=await load();
@@ -535,6 +540,8 @@ async function runTest(){
 
   render();
 
+  if(!report)throw Error("Не удалось сформировать отчёт. Проверь значение издержек.");
+
   $("status").textContent="Расчёт завершён";
   $("status").className="status green";
 
@@ -543,7 +550,7 @@ async function runTest(){
  }catch(e){
   $("status").textContent="Ошибка загрузки или расчёта";
   $("status").className="status red";
-  say(e.message+" Проверь интернет и попробуй снова.");
+  say((e&&e.message?e.message:String(e))+" Проверь интернет и попробуй снова.");
  }finally{
   busy=false;
   $("run").disabled=false;
