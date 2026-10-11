@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#10131b">
-<title>BTC Strategy Lab v5.8</title>
+<title>BTC Strategy Lab v5.9</title>
 <style>
 :root{color-scheme:dark;--bg:#10131b;--panel:#191e29;--line:#30394a;--text:#edf1f7;--muted:#aab4c5;--green:#54d6a0;--red:#ff7777;--blue:#8ab4ff;--amber:#f4c66a}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-main{max-width:1100px;margin:auto;padding:16px}
+main{max-width:1200px;margin:auto;padding:16px}
 h1{font-size:25px;margin:8px 0 4px}
 h2{font-size:19px;margin:0 0 12px}
 p{margin:6px 0;color:var(--muted)}
@@ -42,7 +42,7 @@ footer{font-size:12px;color:var(--muted);padding:10px 0 30px}
 <body>
 <main>
 <header>
-<h1>BTC Strategy Lab <span style="color:var(--blue)">v5.8</span></h1>
+<h1>BTC Strategy Lab <span style="color:var(--blue)">v5.9</span></h1>
 <p>BTCUSDT · 1 час · восемь гипотез · историческое тестирование</p>
 </header>
 
@@ -114,7 +114,7 @@ footer{font-size:12px;color:var(--muted);padding:10px 0 30px}
 </div>
 </section>
 
-<footer>v5.8 · Binance Spot klines · Gap-aware индикаторы · Train/Validation/Final Test</footer>
+<footer>v5.9 · Binance Spot klines · Gap-aware индикаторы · Train/Validation/Final Test</footer>
 </main>
 
 <script>
@@ -125,7 +125,8 @@ const HOUR=3600000;
 let candles=[];
 let lastReport="";
 let busy=false;
-let sharedIndicators=null;
+let duplicateCount=0;
+let invalidCount=0;
 
 const fmt=(n,d=2)=>Number.isFinite(n)?n.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
 const pct=n=>Number.isFinite(n)?fmt(n*100,2)+"%":"—";
@@ -134,6 +135,7 @@ const dateUTC=ms=>new Date(ms).toISOString().replace("T"," ").slice(0,19)+" UTC"
 const num=(id,fallback)=>Number.isFinite(Number($(id).value))?Number($(id).value):fallback;
 
 function setStatus(s){$("status").textContent=s}
+
 function setBusy(v){
  busy=v;
  $("loadBtn").disabled=v;
@@ -141,6 +143,7 @@ function setBusy(v){
  $("copyBtn").disabled=v||!lastReport;
  $("copyReportBtn").disabled=v||!lastReport;
 }
+
 function getConfig(){
  const fee=Math.max(0,num("fee",0.1))/100;
  return {
@@ -170,13 +173,15 @@ async function loadHistory(){
 
  setBusy(true);
  candles=[];
- sharedIndicators=null;
+ duplicateCount=0;
+ invalidCount=0;
  lastReport="";
  $("report").value="";
  $("results").innerHTML="";
  $("robustness").innerHTML="";
  $("yearly").innerHTML="";
  $("summary").textContent="Загрузка данных…";
+
  try{
   let cursor=startMs;
   const now=Date.now();
@@ -196,37 +201,44 @@ async function loadHistory(){
    for(const k of batch){
     const t=Number(k[0]);
     const closeTime=Number(k[6]);
-    // Не используем текущую незакрытую свечу.
     if(t>=startMs&&closeTime<now){
      all.push({t,o:Number(k[1]),h:Number(k[2]),l:Number(k[3]),c:Number(k[4]),v:Number(k[5])});
     }
    }
+
    const lastTime=Number(batch[batch.length-1][0]);
    if(!Number.isFinite(lastTime)||lastTime<cursor)break;
    cursor=lastTime+HOUR;
+
    setStatus("Загрузка Binance…\nЗапросов: "+requests+
     "\nПолучено свечей: "+all.length.toLocaleString("ru-RU")+
     "\nПоследняя свеча: "+dateUTC(lastTime));
+
    if(batch.length<1000)break;
    await new Promise(resolve=>setTimeout(resolve,120));
   }
 
   all.sort((a,b)=>a.t-b.t);
   const clean=[];
-  let duplicates=0,invalid=0;
+
   for(const c of all){
-   if(clean.length&&c.t===clean[clean.length-1].t){duplicates++;continue}
+   if(clean.length&&c.t===clean[clean.length-1].t){
+    duplicateCount++;
+    continue;
+   }
    if(![c.t,c.o,c.h,c.l,c.c,c.v].every(Number.isFinite)||
       c.o<=0||c.h<=0||c.l<=0||c.c<=0||c.v<0||
       c.h<Math.max(c.o,c.c,c.l)||c.l>Math.min(c.o,c.c,c.h)){
-    invalid++;continue;
+    invalidCount++;
+    continue;
    }
    clean.push(c);
   }
+
   if(clean.length<1000)throw new Error("Недостаточно корректных свечей: "+clean.length);
   candles=clean;
-  renderDataSummary(duplicates,invalid);
-  $("runBtn").disabled=false;
+  renderDataSummary(duplicateCount,invalidCount);
+
   setStatus("Загрузка завершена.\nСвечей: "+candles.length.toLocaleString("ru-RU")+
    "\nПериод: "+dateUTC(candles[0].t)+" — "+dateUTC(candles[candles.length-1].t)+
    "\nТеперь нажмите «Запустить тест».");
@@ -259,7 +271,11 @@ function gapStats(data){
  let gaps=0,missing=0,maxGap=0;
  for(let i=1;i<data.length;i++){
   const diff=Math.round((data[i].t-data[i-1].t)/HOUR);
-  if(diff>1){gaps++;missing+=diff-1;maxGap=Math.max(maxGap,diff-1)}
+  if(diff>1){
+   gaps++;
+   missing+=diff-1;
+   maxGap=Math.max(maxGap,diff-1);
+  }
  }
  return {gaps,missing,maxGap};
 }
@@ -281,16 +297,22 @@ function renderDataSummary(duplicates,invalid){
 function ema(values,period){
  const out=new Array(values.length).fill(NaN);
  if(values.length<period)return out;
+
  let sum=0;
  for(let i=0;i<period;i++){
   if(!Number.isFinite(values[i]))return out;
   sum+=values[i];
  }
+
  let prev=sum/period;
  out[period-1]=prev;
  const alpha=2/(period+1);
+
  for(let i=period;i<values.length;i++){
-  if(!Number.isFinite(values[i])){prev=NaN;continue}
+  if(!Number.isFinite(values[i])){
+   prev=NaN;
+   continue;
+  }
   if(!Number.isFinite(prev))break;
   prev=values[i]*alpha+prev*(1-alpha);
   out[i]=prev;
@@ -335,14 +357,17 @@ function rollingStd(values,period){
 function rsiCalc(close,period=14){
  const out=new Array(close.length).fill(NaN);
  if(close.length<=period)return out;
+
  let gain=0,loss=0;
  for(let i=1;i<=period;i++){
   const d=close[i]-close[i-1];
   gain+=Math.max(0,d);
   loss+=Math.max(0,-d);
  }
+
  let ag=gain/period,al=loss/period;
  out[period]=al===0?100:100-100/(1+ag/al);
+
  for(let i=period+1;i<close.length;i++){
   const d=close[i]-close[i-1];
   ag=(ag*(period-1)+Math.max(0,d))/period;
@@ -356,14 +381,18 @@ function atrCalc(high,low,close,period=14){
  const n=close.length;
  const out=new Array(n).fill(NaN);
  const tr=new Array(n).fill(NaN);
+
  for(let i=1;i<n;i++){
   tr[i]=Math.max(high[i]-low[i],Math.abs(high[i]-close[i-1]),Math.abs(low[i]-close[i-1]));
  }
+
  if(n<=period)return out;
  let sum=0;
  for(let i=1;i<=period;i++)sum+=tr[i];
+
  let prev=sum/period;
  out[period]=prev;
+
  for(let i=period+1;i<n;i++){
   prev=(prev*(period-1)+tr[i])/period;
   out[i]=prev;
@@ -375,35 +404,50 @@ function adxCalc(high,low,close,period=14){
  const n=close.length;
  const out=new Array(n).fill(NaN);
  if(n<period*2+2)return out;
+
  const tr=new Array(n).fill(0);
  const plus=new Array(n).fill(0);
  const minus=new Array(n).fill(0);
+
  for(let i=1;i<n;i++){
   tr[i]=Math.max(high[i]-low[i],Math.abs(high[i]-close[i-1]),Math.abs(low[i]-close[i-1]));
   const up=high[i]-high[i-1],down=low[i-1]-low[i];
   plus[i]=up>down&&up>0?up:0;
   minus[i]=down>up&&down>0?down:0;
  }
+
  let st=0,sp=0,sm=0;
- for(let i=1;i<=period;i++){st+=tr[i];sp+=plus[i];sm+=minus[i]}
+ for(let i=1;i<=period;i++){
+  st+=tr[i];
+  sp+=plus[i];
+  sm+=minus[i];
+ }
+
  const dx=new Array(n).fill(NaN);
- const dxValue=()=> {
+ const dxValue=()=>{
   const p=st===0?0:100*sp/st;
   const m=st===0?0:100*sm/st;
   return p+m===0?0:100*Math.abs(p-m)/(p+m);
  };
+
  dx[period]=dxValue();
+
  for(let i=period+1;i<n;i++){
   st=st-st/period+tr[i];
   sp=sp-sp/period+plus[i];
   sm=sm-sm/period+minus[i];
   dx[i]=dxValue();
  }
+
  const first=period*2-1;
  let sum=0,count=0;
  for(let i=period;i<=first;i++){
-  if(Number.isFinite(dx[i])){sum+=dx[i];count++}
+  if(Number.isFinite(dx[i])){
+   sum+=dx[i];
+   count++;
+  }
  }
+
  if(count===period){
   out[first]=sum/period;
   for(let i=first+1;i<n;i++)out[i]=(out[i-1]*(period-1)+dx[i])/period;
@@ -416,23 +460,36 @@ function buildIndicators(data){
  const out={};
  for(const name of names)out[name]=new Array(data.length).fill(NaN);
 
- // Каждый непрерывный участок получает собственные индикаторы.
  for(const run of getRuns(data)){
   const part=data.slice(run.start,run.end);
   if(part.length<2)continue;
-  const close=part.map(x=>x.c),high=part.map(x=>x.h),low=part.map(x=>x.l),vol=part.map(x=>x.v);
+
+  const close=part.map(x=>x.c);
+  const high=part.map(x=>x.h);
+  const low=part.map(x=>x.l);
+  const vol=part.map(x=>x.v);
+
   const e12=ema(close,12),e26=ema(close,26);
   const macd=e12.map((v,i)=>Number.isFinite(v)&&Number.isFinite(e26[i])?v-e26[i]:NaN);
   const macdSignal=emaValid(macd,9);
   const hist=macd.map((v,i)=>Number.isFinite(v)&&Number.isFinite(macdSignal[i])?v-macdSignal[i]:NaN);
   const vMean=rollingMean(vol,20);
   const bbMid=rollingMean(close,20),sd=rollingStd(close,20);
+
   const local={
-   ema20:ema(close,20),ema50:ema(close,50),ema200:ema(close,200),
-   rsi:rsiCalc(close,14),atr:atrCalc(high,low,close,14),adx:adxCalc(high,low,close,14),
-   macdHist:hist,volRatio:vol.map((v,i)=>vMean[i]>0?v/vMean[i]:NaN),
-   bbMid,bbUpper:bbMid.map((v,i)=>v+2*sd[i]),bbLower:bbMid.map((v,i)=>v-2*sd[i])
+   ema20:ema(close,20),
+   ema50:ema(close,50),
+   ema200:ema(close,200),
+   rsi:rsiCalc(close,14),
+   atr:atrCalc(high,low,close,14),
+   adx:adxCalc(high,low,close,14),
+   macdHist:hist,
+   volRatio:vol.map((v,i)=>vMean[i]>0?v/vMean[i]:NaN),
+   bbMid,
+   bbUpper:bbMid.map((v,i)=>v+2*sd[i]),
+   bbLower:bbMid.map((v,i)=>v-2*sd[i])
   };
+
   for(const name of names){
    for(let j=0;j<part.length;j++)out[name][run.start+j]=local[name][j];
   }
@@ -446,32 +503,45 @@ function indicatorsReady(x,i){
 }
 
 /* ========== СТРАТЕГИИ ========== */
+/*
+ВАЖНО:
+data — массив объектов свечей:
+data[i].c, data[i].h, data[i].l, data[i].v.
+Все сигналы используют именно этот формат.
+*/
 
 const STRATEGIES=[
  {id:"A_LONG",name:"A LONG · Trend pullback",side:"long",signal:(d,x,i)=>
-  d.c[i]>x.ema200[i]&&x.ema20[i]>x.ema50[i]&&d.l[i]<=x.ema20[i]&&d.c[i]>x.ema20[i]&&x.rsi[i]>=45&&x.rsi[i]<=62&&x.adx[i]>=18},
+  d[i].c>x.ema200[i]&&x.ema20[i]>x.ema50[i]&&d[i].l<=x.ema20[i]&&d[i].c>x.ema20[i]&&x.rsi[i]>=45&&x.rsi[i]<=62&&x.adx[i]>=18},
+
  {id:"A_SHORT",name:"A SHORT · Trend pullback",side:"short",signal:(d,x,i)=>
-  d.c[i]<x.ema200[i]&&x.ema20[i]<x.ema50[i]&&d.h[i]>=x.ema20[i]&&d.c[i]<x.ema20[i]&&x.rsi[i]>=38&&x.rsi[i]<=55&&x.adx[i]>=18},
+  d[i].c<x.ema200[i]&&x.ema20[i]<x.ema50[i]&&d[i].h>=x.ema20[i]&&d[i].c<x.ema20[i]&&x.rsi[i]>=38&&x.rsi[i]<=55&&x.adx[i]>=18},
+
  {id:"B_LONG",name:"B LONG · Breakout + volume",side:"long",signal:(d,x,i)=>{
   if(i<20)return false;
   let max=-Infinity;
-  for(let j=i-20;j<i;j++)max=Math.max(max,d.h[j]);
-  return d.c[i]>max&&x.volRatio[i]>=1.2&&x.adx[i]>=20&&d.c[i]>x.ema200[i];
+  for(let j=i-20;j<i;j++)max=Math.max(max,d[j].h);
+  return d[i].c>max&&x.volRatio[i]>=1.2&&x.adx[i]>=20&&d[i].c>x.ema200[i];
  }},
+
  {id:"B_SHORT",name:"B SHORT · Breakdown + volume",side:"short",signal:(d,x,i)=>{
   if(i<20)return false;
   let min=Infinity;
-  for(let j=i-20;j<i;j++)min=Math.min(min,d.l[j]);
-  return d.c[i]<min&&x.volRatio[i]>=1.2&&x.adx[i]>=20&&d.c[i]<x.ema200[i];
+  for(let j=i-20;j<i;j++)min=Math.min(min,d[j].l);
+  return d[i].c<min&&x.volRatio[i]>=1.2&&x.adx[i]>=20&&d[i].c<x.ema200[i];
  }},
+
  {id:"C_LONG",name:"C LONG · Momentum + trend",side:"long",signal:(d,x,i)=>
-  d.c[i]>x.ema50[i]&&d.c[i]>x.ema200[i]&&x.rsi[i]>=55&&x.rsi[i]<=70&&x.macdHist[i]>0&&x.volRatio[i]>=.8},
+  d[i].c>x.ema50[i]&&d[i].c>x.ema200[i]&&x.rsi[i]>=55&&x.rsi[i]<=70&&x.macdHist[i]>0&&x.volRatio[i]>=.8},
+
  {id:"C_SHORT",name:"C SHORT · Momentum + trend",side:"short",signal:(d,x,i)=>
-  d.c[i]<x.ema50[i]&&d.c[i]<x.ema200[i]&&x.rsi[i]>=30&&x.rsi[i]<=45&&x.macdHist[i]<0&&x.volRatio[i]>=.8},
+  d[i].c<x.ema50[i]&&d[i].c<x.ema200[i]&&x.rsi[i]>=30&&x.rsi[i]<=45&&x.macdHist[i]<0&&x.volRatio[i]>=.8},
+
  {id:"D_LONG",name:"D LONG · Bollinger mean reversion",side:"long",signal:(d,x,i)=>
-  d.c[i]<x.bbLower[i]&&x.rsi[i]<35&&x.adx[i]<18},
+  d[i].c<x.bbLower[i]&&x.rsi[i]<35&&x.adx[i]<18},
+
  {id:"D_SHORT",name:"D SHORT · Bollinger mean reversion",side:"short",signal:(d,x,i)=>
-  d.c[i]>x.bbUpper[i]&&x.rsi[i]>65&&x.adx[i]<18}
+  d[i].c>x.bbUpper[i]&&x.rsi[i]>65&&x.adx[i]<18}
 ];
 
 /* ========== СИМУЛЯЦИЯ СДЕЛКИ ========== */
@@ -479,6 +549,7 @@ const STRATEGIES=[
 function makeTrade(data,side,signalIndex,runEnd,segmentEnd,cfg,indicators,fee){
  const entryIndex=signalIndex+1;
  if(entryIndex>=runEnd||entryIndex>=segmentEnd)return null;
+
  const entry=data[entryIndex].o;
  const atr=indicators.atr[signalIndex];
  if(!(entry>0&&atr>0&&Number.isFinite(atr)))return null;
@@ -487,6 +558,7 @@ function makeTrade(data,side,signalIndex,runEnd,segmentEnd,cfg,indicators,fee){
  const targetDistance=atr*cfg.targetAtr;
  const stopPct=stopDistance/entry;
  if(!(stopPct>0&&Number.isFinite(stopPct)))return null;
+
  const fraction=Math.min(1,cfg.risk/stopPct);
  if(!(fraction>0&&Number.isFinite(fraction)))return null;
 
@@ -494,13 +566,15 @@ function makeTrade(data,side,signalIndex,runEnd,segmentEnd,cfg,indicators,fee){
  const target=side==="long"?entry+targetDistance:entry-targetDistance;
  const lastAllowed=entryIndex+cfg.hold-1;
 
- // Консервативно исключаем сделку, если весь горизонт и выход по времени
- // не помещаются в один непрерывный участок и один тестовый сегмент.
+ // Нужна дополнительная свеча для закрытия по времени,
+ // если до этого не достигнут стоп или тейк.
  if(lastAllowed+1>=runEnd||lastAllowed+1>=segmentEnd)return null;
 
  let exitIndex=-1,exitPrice=NaN,reason="";
+
  for(let j=entryIndex;j<=lastAllowed;j++){
   const c=data[j];
+
   if(side==="long"){
    if(c.o<=stop){exitIndex=j;exitPrice=c.o;reason="stop-gap";break}
    if(c.o>=target){exitIndex=j;exitPrice=c.o;reason="target-gap";break}
@@ -513,18 +587,22 @@ function makeTrade(data,side,signalIndex,runEnd,segmentEnd,cfg,indicators,fee){
    if(c.l<=target){exitIndex=j;exitPrice=target;reason="target";break}
   }
  }
+
  if(exitIndex<0){
   exitIndex=lastAllowed+1;
   exitPrice=data[exitIndex].o;
   reason="timeout";
  }
+
  if(!(exitPrice>0&&Number.isFinite(exitPrice)))return null;
 
  const gross=side==="long"?(exitPrice-entry)/entry:(entry-exitPrice)/entry;
- // Fee charged on entry and exit, scaled by allocated position fraction.
  const net=fraction*(gross-2*fee);
- return {entryIndex,exitIndex,entry,exit:exitPrice,side,reason,fraction,
-  grossReturn:gross,netReturn:net,pnl:0,holdBars:exitIndex-entryIndex};
+
+ return {
+  entryIndex,exitIndex,entry,exit:exitPrice,side,reason,fraction,
+  grossReturn:gross,netReturn:net,pnl:0,holdBars:exitIndex-entryIndex
+ };
 }
 
 /* ========== МЕТРИКИ ========== */
@@ -537,23 +615,34 @@ function calcMetrics(tradeList,startingEquity,exposureBars){
 
  for(const t of tradeList){
   if(equity<=0)break;
+
   const pnl=equity*t.netReturn;
   t.pnl=pnl;
   equity+=pnl;
-  if(t.netReturn>0){wins++;grossProfit+=pnl}
-  else if(t.netReturn<0)grossLoss+=-pnl;
+
+  if(t.netReturn>0){
+   wins++;
+   grossProfit+=pnl;
+  }else if(t.netReturn<0){
+   grossLoss+=-pnl;
+  }
+
   sumReturn+=t.netReturn;
   sumGross+=t.grossReturn;
   totalBars+=t.holdBars;
+
   if(t.reason.startsWith("stop"))stops++;
   else if(t.reason.startsWith("target"))targets++;
   else timeouts++;
+
   peak=Math.max(peak,equity);
   if(peak>0)maxDD=Math.max(maxDD,(peak-equity)/peak);
   curve.push({equity,peak,dd:peak>0?(peak-equity)/peak:0});
  }
+
  const actual=curve.length-1;
  const pf=grossLoss>0?grossProfit/grossLoss:(grossProfit>0?Infinity:0);
+
  return {
   trades:actual,
   winRate:actual?wins/actual:0,
@@ -573,26 +662,73 @@ function calcMetrics(tradeList,startingEquity,exposureBars){
 function simulate(strategy,data,indicators,range,cfg,fee){
  const list=[];
  let rejectedBoundary=0;
- const start=Math.max(0,range.start),end=Math.min(data.length,range.end);
+ let rejectedInvalid=0;
+ let signalChecks=0;
+ let signalCount=0;
+ let signalErrors=0;
+
+ const start=Math.max(0,range.start);
+ const end=Math.min(data.length,range.end);
+
  for(const run of getRuns(data)){
-  const rs=Math.max(run.start,start),re=Math.min(run.end,end);
+  const rs=Math.max(run.start,start);
+  const re=Math.min(run.end,end);
   if(re-rs<250)continue;
-  // Индикаторы могут использовать предшествующие свечи этого же непрерывного участка.
+
+  // Используем историю текущего непрерывного участка для прогрева индикаторов.
   let i=Math.max(rs,run.start+210);
+
   while(i<re-1){
-   if(!indicatorsReady(indicators,i)){i++;continue}
+   if(!indicatorsReady(indicators,i)){
+    i++;
+    continue;
+   }
+
    let active=false;
-   try{active=!!strategy.signal(data,indicators,i)}catch(_){active=false}
-   if(!active){i++;continue}
+   signalChecks++;
+
+   try{
+    active=!!strategy.signal(data,indicators,i);
+   }catch(err){
+    signalErrors++;
+    console.error("Ошибка сигнала "+strategy.id+" на свече "+i,err);
+    active=false;
+   }
+
+   if(!active){
+    i++;
+    continue;
+   }
+
+   signalCount++;
+
    const trade=makeTrade(data,strategy.side,i,re,re,cfg,indicators,fee);
-   if(!trade){rejectedBoundary++;i++;continue}
+
+   if(!trade){
+    rejectedBoundary++;
+    i++;
+    continue;
+   }
+
+   if(!Number.isFinite(trade.netReturn)){
+    rejectedInvalid++;
+    i++;
+    continue;
+   }
+
    list.push(trade);
    i=Math.max(i+1,trade.exitIndex+1);
+
    if(list.length>100000)break;
   }
  }
+
  const metrics=calcMetrics(list,cfg.startingEquity,end-start);
  metrics.rejectedBoundary=rejectedBoundary;
+ metrics.rejectedInvalid=rejectedInvalid;
+ metrics.signalChecks=signalChecks;
+ metrics.signalCount=signalCount;
+ metrics.signalErrors=signalErrors;
  return metrics;
 }
 
@@ -610,13 +746,16 @@ function getSplits(n){
 function buyHold(data,range,startingEquity){
  const s=Math.max(0,range.start),e=Math.min(data.length,range.end);
  if(e-s<2)return {totalReturn:0,maxDD:0,endingEquity:startingEquity};
+
  const base=data[s].c;
  let peak=startingEquity,maxDD=0,eq=startingEquity;
+
  for(let i=s;i<e;i++){
   eq=startingEquity*data[i].c/base;
   peak=Math.max(peak,eq);
   maxDD=Math.max(maxDD,(peak-eq)/peak);
  }
+
  return {totalReturn:eq/startingEquity-1,maxDD,endingEquity:eq};
 }
 
@@ -624,60 +763,109 @@ function buyHold(data,range,startingEquity){
 
 function metricRow(name,m){
  const pf=Number.isFinite(m.profitFactor)?fmt(m.profitFactor,3):(m.profitFactor===Infinity?"∞":"—");
+
  return `<tr>
- <td>${name}</td><td>${m.trades}</td><td>${pct(m.winRate)}</td><td>${pf}</td>
+ <td>${name}</td>
+ <td>${m.trades}</td>
+ <td>${m.signalCount??0}</td>
+ <td>${m.signalErrors??0}</td>
+ <td>${pct(m.winRate)}</td>
+ <td>${pf}</td>
  <td class="${m.totalReturn>0?"good":m.totalReturn<0?"bad":""}">${signedPct(m.totalReturn)}</td>
- <td>${pct(m.maxDD)}</td><td>${pct(m.exposure)}</td><td>${signedPct(m.avgTrade)}</td>
+ <td>${pct(m.maxDD)}</td>
+ <td>${pct(m.exposure)}</td>
+ <td>${signedPct(m.avgTrade)}</td>
  </tr>`;
 }
 
 function renderResults(outputs){
- let html=`<table><thead><tr><th>Стратегия</th><th>Сделки</th><th>Win rate</th><th>PF</th><th>Доходность</th><th>Max DD</th><th>Exposure</th><th>Средн. доход/сделку</th></tr></thead><tbody>`;
+ let html=`<table><thead><tr>
+ <th>Стратегия</th><th>Сделки</th><th>Сигналы</th><th>Ошибки</th>
+ <th>Win rate</th><th>PF</th><th>Доходность</th><th>Max DD</th>
+ <th>Exposure</th><th>Средн. доход/сделку</th>
+ </tr></thead><tbody>`;
+
  for(const x of outputs)html+=metricRow(x.strategy.name,x.test);
- $("results").innerHTML=html+"</tbody></table><p>Exposure — приблизительная доля времени в позиции относительно проверяемого периода.</p>";
+
+ $("results").innerHTML=html+"</tbody></table><p>«Сигналы» — число обнаруженных условий входа до проверки возможности открыть сделку. «Ошибки» — исключения при вычислении сигнала. Exposure — приблизительная доля времени в позиции.</p>";
 }
 
-function renderRobustness(outputs,bh,cfg){
- let html=`<table><thead><tr><th>Стратегия</th><th>Период</th><th>Сделки</th><th>PF</th><th>Доходность</th><th>Max DD</th></tr></thead><tbody>`;
+function renderRobustness(outputs,bh){
+ let html=`<table><thead><tr>
+ <th>Стратегия</th><th>Период</th><th>Сигналы</th><th>Сделки</th>
+ <th>Ошибки</th><th>Отклонено у границы</th><th>PF</th>
+ <th>Доходность</th><th>Max DD</th>
+ </tr></thead><tbody>`;
+
  for(const x of outputs){
-  for(const [label,m] of [["Train",x.train],["Validation",x.validation],["Final test",x.test],["Stress fee",x.stress]]){
+  for(const [label,m] of [
+   ["Train",x.train],
+   ["Validation",x.validation],
+   ["Final test",x.test],
+   ["Stress fee",x.stress]
+  ]){
    const pf=Number.isFinite(m.profitFactor)?fmt(m.profitFactor,3):(m.profitFactor===Infinity?"∞":"—");
-   html+=`<tr><td>${x.strategy.id}</td><td>${label}</td><td>${m.trades}</td><td>${pf}</td><td class="${m.totalReturn>0?"good":m.totalReturn<0?"bad":""}">${signedPct(m.totalReturn)}</td><td>${pct(m.maxDD)}</td></tr>`;
+   html+=`<tr>
+    <td>${x.strategy.id}</td><td>${label}</td>
+    <td>${m.signalCount??0}</td><td>${m.trades}</td>
+    <td>${m.signalErrors??0}</td><td>${m.rejectedBoundary??0}</td>
+    <td>${pf}</td>
+    <td class="${m.totalReturn>0?"good":m.totalReturn<0?"bad":""}">${signedPct(m.totalReturn)}</td>
+    <td>${pct(m.maxDD)}</td>
+   </tr>`;
   }
  }
- for(const [label,m] of [["Buy & Hold train",bh.train],["Buy & Hold validation",bh.validation],["Buy & Hold final test",bh.test]]){
-  html+=`<tr><td>${label}</td><td>Benchmark</td><td>—</td><td>—</td><td class="${m.totalReturn>0?"good":"bad"}">${signedPct(m.totalReturn)}</td><td>${pct(m.maxDD)}</td></tr>`;
+
+ for(const [label,m] of [
+  ["Buy & Hold train",bh.train],
+  ["Buy & Hold validation",bh.validation],
+  ["Buy & Hold final test",bh.test]
+ ]){
+  html+=`<tr><td>${label}</td><td>Benchmark</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="${m.totalReturn>0?"good":"bad"}">${signedPct(m.totalReturn)}</td><td>${pct(m.maxDD)}</td></tr>`;
  }
+
  $("robustness").innerHTML=html+"</tbody></table>";
 }
 
 function renderYearly(outputs,testRange,indicators,cfg){
  const years=[...new Set(candles.slice(testRange.start,testRange.end).map(c=>new Date(c.t).getUTCFullYear()))];
+
  let html=`<table><thead><tr><th>Стратегия</th>${years.map(y=>`<th>${y}</th>`).join("")}</tr></thead><tbody>`;
+
  for(const x of outputs){
   html+=`<tr><td>${x.strategy.id}</td>`;
+
   for(const y of years){
    let start=-1,end=-1;
+
    for(let i=testRange.start;i<testRange.end;i++){
     if(new Date(candles[i].t).getUTCFullYear()===y){
      if(start<0)start=i;
      end=i+1;
     }else if(start>=0)break;
    }
-   if(start<0||end-start<250){html+="<td>—</td>";continue}
+
+   if(start<0||end-start<250){
+    html+="<td>—</td>";
+    continue;
+   }
+
    const m=simulate(x.strategy,candles,indicators,{start,end},cfg,cfg.fee);
    html+=`<td class="${m.totalReturn>0?"good":m.totalReturn<0?"bad":""}">${signedPct(m.totalReturn)}</td>`;
   }
+
   html+="</tr>";
  }
- $("yearly").innerHTML=html+"</tbody></table><p>Каждый год тестируется отдельно; сделки, горизонт которых выходит за границы года, исключаются. Индикаторы используют только текущую и предшествующую историю без пересечения разрывов.</p>";
+
+ $("yearly").innerHTML=html+"</tbody></table><p>Каждый год тестируется отдельно. Сделки, горизонт которых выходит за границы года, исключаются. Индикаторы используют историю текущего непрерывного участка без пересечения разрывов.</p>";
 }
 
-/* ========== ОТЧЁТ ДЛЯ КОПИРОВАНИЯ ========== */
+/* ========== ТЕКСТОВЫЙ ОТЧЁТ ========== */
 
 function buildReport(data,g,outputs,splits,bh,cfg,duplicates,invalid){
  const lines=[];
- lines.push("BTC STRATEGY LAB v5.8 — ОТЧЁТ");
+
+ lines.push("BTC STRATEGY LAB v5.9 — ОТЧЁТ");
  lines.push("Пара: "+$("symbol").value.trim().toUpperCase()+" | Таймфрейм: 1h");
  lines.push("Свечей: "+data.length);
  lines.push("Период UTC: "+dateUTC(data[0].t)+" — "+dateUTC(data[data.length-1].t));
@@ -686,31 +874,55 @@ function buildReport(data,g,outputs,splits,bh,cfg,duplicates,invalid){
  lines.push("Комиссия/сторона: "+fmt(cfg.fee*100,4)+"% | Стресс: "+fmt(cfg.stressFee*100,4)+"%");
  lines.push("Риск: "+fmt(cfg.risk*100,3)+"% | Stop: "+cfg.stopAtr+" ATR | Target: "+cfg.targetAtr+" ATR | Max hold: "+cfg.hold+" ч");
  lines.push("");
- lines.push("Стратегия | Период | Сделки | Win% | PF | Return | MaxDD | AvgTrade | Exposure");
+
+ lines.push("Стратегия | Период | Проверки | Сигналы | Сделки | Ошибки | Отклонено | Win% | PF | Return | MaxDD | AvgTrade | Exposure");
+
  for(const x of outputs){
-  for(const [label,m] of [["TRAIN",x.train],["VALIDATION",x.validation],["FINAL",x.test],["STRESS",x.stress]]){
+  for(const [label,m] of [
+   ["TRAIN",x.train],
+   ["VALIDATION",x.validation],
+   ["FINAL",x.test],
+   ["STRESS",x.stress]
+  ]){
    const pf=Number.isFinite(m.profitFactor)?fmt(m.profitFactor,3):(m.profitFactor===Infinity?"Infinity":"0");
-   lines.push([x.strategy.id,label,m.trades,pct(m.winRate),pf,signedPct(m.totalReturn),pct(m.maxDD),signedPct(m.avgTrade),pct(m.exposure)].join(" | "));
+
+   lines.push([
+    x.strategy.id,label,m.signalChecks??0,m.signalCount??0,m.trades,
+    m.signalErrors??0,m.rejectedBoundary??0,pct(m.winRate),pf,
+    signedPct(m.totalReturn),pct(m.maxDD),signedPct(m.avgTrade),pct(m.exposure)
+   ].join(" | "));
   }
  }
+
  lines.push("");
  lines.push("BUY & HOLD:");
  lines.push("Train: "+signedPct(bh.train.totalReturn)+" | MaxDD "+pct(bh.train.maxDD));
  lines.push("Validation: "+signedPct(bh.validation.totalReturn)+" | MaxDD "+pct(bh.validation.maxDD));
  lines.push("Final test: "+signedPct(bh.test.totalReturn)+" | MaxDD "+pct(bh.test.maxDD));
+
  const passed=outputs.filter(x=>x.test.trades>=30&&x.test.totalReturn>0&&x.test.profitFactor>1);
  lines.push("");
  lines.push("Первичный фильтр (>=30 сделок, Return>0, PF>1): "+passed.length+" из "+outputs.length);
  lines.push("Прошедшие стратегии: "+(passed.length?passed.map(x=>x.strategy.id).join(", "):"нет"));
+
+ const totalSignals=outputs.reduce((s,x)=>s+(x.test.signalCount||0),0);
+ const totalErrors=outputs.reduce((s,x)=>s+(x.test.signalErrors||0),0);
+ lines.push("");
+ lines.push("ДИАГНОСТИКА:");
+ lines.push("Суммарные сигналы всех стратегий в финальном периоде: "+totalSignals);
+ lines.push("Суммарные ошибки вычисления сигналов: "+totalErrors);
+ lines.push("Если сигналы есть, но сделок нет, см. «Отклонено» и границы сегментов.");
+
  lines.push("");
  lines.push("МЕТОДОЛОГИЯ:");
  lines.push("Сигнал формируется на закрытии свечи, вход — на open следующей свечи.");
  lines.push("Стоп и тейк проверяются по OHLC; если оба затронуты за одну свечу, приоритет у стопа.");
  lines.push("Индикаторы перезапускаются на каждом непрерывном участке данных.");
  lines.push("Сделки не пересекают границы пропусков и тестовых сегментов.");
- lines.push("Риск-позиция приблизительно ограничивается выбранным риском при достижении стопа; гэпы могут привести к большему убытку.");
+ lines.push("Размер позиции рассчитывается приблизительно по заданному риску и расстоянию до стопа; гэпы могут увеличить убыток.");
  lines.push("Комиссия учтена, проскальзывание и funding не учтены. Spot Buy & Hold не является риск-сопоставимым бенчмарком.");
  lines.push("Исследовательский тест, не финансовая рекомендация.");
+
  return lines.join("\n");
 }
 
@@ -718,22 +930,27 @@ function buildReport(data,g,outputs,splits,bh,cfg,duplicates,invalid){
 
 function runAll(){
  if(busy||candles.length<1000)return;
+
  setBusy(true);
+
  try{
   const data=candles;
   const cfg=getConfig();
   const gaps=gapStats(data);
+
   setStatus("Расчёт индикаторов…");
   const indicators=buildIndicators(data);
-  sharedIndicators=indicators;
   const splits=getSplits(data.length);
   const outputs=[];
 
   for(const strategy of STRATEGIES){
+   setStatus("Тестирование "+strategy.id+"…");
+
    const train=simulate(strategy,data,indicators,splits.train,cfg,cfg.fee);
    const validation=simulate(strategy,data,indicators,splits.validation,cfg,cfg.fee);
    const test=simulate(strategy,data,indicators,splits.test,cfg,cfg.fee);
    const stress=simulate(strategy,data,indicators,splits.test,cfg,cfg.stressFee);
+
    outputs.push({strategy,train,validation,test,stress});
   }
 
@@ -742,26 +959,35 @@ function runAll(){
    validation:buyHold(data,splits.validation,cfg.startingEquity),
    test:buyHold(data,splits.test,cfg.startingEquity)
   };
+
   renderResults(outputs);
-  renderRobustness(outputs,bh,cfg);
+  renderRobustness(outputs,bh);
   renderYearly(outputs,splits.test,indicators,cfg);
 
-  const duplicates=Number(window._duplicates||0);
-  const invalid=Number(window._invalid||0);
-  lastReport=buildReport(data,gaps,outputs,splits,bh,cfg,duplicates,invalid);
+  lastReport=buildReport(data,gaps,outputs,splits,bh,cfg,duplicateCount,invalidCount);
   $("report").value=lastReport;
+
   const passed=outputs.filter(x=>x.test.trades>=30&&x.test.totalReturn>0&&x.test.profitFactor>1);
+  const totalSignals=outputs.reduce((s,x)=>s+(x.test.signalCount||0),0);
+  const totalErrors=outputs.reduce((s,x)=>s+(x.test.signalErrors||0),0);
+
   $("summary").innerHTML=`
    <div class="kpis">
     <div class="kpi"><small>Стратегий</small><strong>${outputs.length}</strong></div>
     <div class="kpi"><small>Прошли фильтр</small><strong class="${passed.length?"good":"bad"}">${passed.length}</strong></div>
+    <div class="kpi"><small>Сигналы в финальном тесте</small><strong>${totalSignals}</strong></div>
+    <div class="kpi"><small>Ошибки сигналов</small><strong class="${totalErrors?"bad":"good"}">${totalErrors}</strong></div>
     <div class="kpi"><small>Комиссия за сторону</small><strong>${fmt(cfg.fee*100,3)}%</strong></div>
     <div class="kpi"><small>Стресс-комиссия</small><strong>${fmt(cfg.stressFee*100,3)}%</strong></div>
    </div>
    <p>Фильтр финального теста: не менее 30 сделок, положительная доходность и PF больше 1. Это начальный критерий, а не доказательство устойчивости.</p>`;
+
   setStatus("Тест завершён.\nСвечей: "+data.length.toLocaleString("ru-RU")+
+   "\nСигналов в финальном периоде: "+totalSignals+
+   "\nОшибок сигналов: "+totalErrors+
    "\nСтратегий, прошедших первичный фильтр: "+passed.length+
    "\nСкопируйте отчёт ниже и отправьте его в чат.");
+
  }catch(err){
   console.error(err);
   setStatus("Ошибка тестирования: "+(err.stack||err.message||String(err)));
@@ -772,11 +998,13 @@ function runAll(){
 
 async function copyReport(){
  if(!lastReport)return;
+
  try{
   await navigator.clipboard.writeText(lastReport);
   setStatus("Отчёт скопирован. Вставьте его в чат.");
  }catch(_){
-  $("report").focus();$("report").select();
+  $("report").focus();
+  $("report").select();
   const ok=document.execCommand("copy");
   setStatus(ok?"Отчёт скопирован.":"Не удалось скопировать автоматически. Выделите текст вручную.");
  }
