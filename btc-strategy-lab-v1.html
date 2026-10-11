@@ -5,54 +5,107 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#10131b">
-<title>BTC Strategy Lab v5.1 — 8 Years</title>
+<title>BTC Strategy Lab v5.2</title>
 <style>
-:root{color-scheme:dark;--bg:#10131b;--panel:#191e29;--border:#30394a;--text:#edf1f7;--muted:#a3aec0;--green:#4cdb9a;--red:#ff727d;--blue:#83b7ff;--yellow:#ffd479}
+:root{
+--bg:#10131b;--panel:#191e29;--border:#30394a;
+--text:#edf1f7;--muted:#a3aec0;
+--green:#4cdb9a;--red:#ff727d;
+--blue:#83b7ff;--yellow:#ffd479
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
-main{max-width:1050px;margin:auto;padding:16px}
-h1{font-size:24px;margin:4px 0}
-h2{font-size:18px;margin:0 0 12px}
+body{
+margin:0;background:var(--bg);color:var(--text);
+font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif
+}
+main{max-width:1100px;margin:auto;padding:14px}
+h1{font-size:23px;margin:5px 0}
+h2{font-size:18px;margin:0 0 10px}
 p{margin:6px 0;color:var(--muted)}
-.panel{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:15px;margin:12px 0}
-button{background:#3679dc;color:white;border:0;border-radius:9px;padding:12px 16px;font-size:15px;font-weight:650;cursor:pointer}
+.panel{
+background:var(--panel);border:1px solid var(--border);
+border-radius:13px;padding:14px;margin:12px 0
+}
+button{
+background:#3679dc;color:white;border:0;border-radius:9px;
+padding:12px 15px;font-size:15px;font-weight:650;cursor:pointer
+}
 button:disabled{opacity:.5}
-select{background:#101722;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px;width:100%}
+select{
+background:#101722;color:var(--text);
+border:1px solid var(--border);border-radius:8px;
+padding:10px;width:100%
+}
 label{display:block;color:var(--muted);font-size:13px;margin-bottom:5px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
-.stat{background:#111722;border:1px solid var(--border);border-radius:9px;padding:10px}
+.grid{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+gap:9px
+}
+.stat{
+background:#111722;border:1px solid var(--border);
+border-radius:9px;padding:10px;min-width:0
+}
 .stat small{display:block;color:var(--muted)}
-.stat strong{font-size:19px;overflow-wrap:anywhere}
-.good{color:var(--green)}.bad{color:var(--red)}.blue{color:var(--blue)}.yellow{color:var(--yellow)}
+.stat strong{font-size:18px;overflow-wrap:anywhere}
+.good{color:var(--green)}.bad{color:var(--red)}
+.blue{color:var(--blue)}.yellow{color:var(--yellow)}
 .progress{height:7px;background:#30394a;border-radius:9px;overflow:hidden;margin-top:10px}
-#bar{height:100%;width:0;background:var(--blue);transition:width .15s}
-.status{overflow-wrap:anywhere;white-space:pre-wrap;color:var(--muted);font-size:13px}
-.tablewrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}
-td,th{text-align:right;padding:9px 7px;border-bottom:1px solid var(--border)}
-th{color:var(--muted);font-weight:600}
+#bar{height:100%;width:0;background:var(--blue)}
+.status{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+.tablewrap{overflow-x:auto;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+td,th{text-align:right;padding:8px 6px;border-bottom:1px solid var(--border)}
 td:first-child,th:first-child{text-align:left}
+th{color:var(--muted);font-weight:600}
 .note{font-size:13px;color:var(--muted)}
-#report{width:100%;min-height:250px;background:#0b1018;color:#e3eaf5;border:1px solid var(--border);border-radius:9px;padding:12px;font:12px/1.5 ui-monospace,monospace}
+#report{
+width:100%;min-height:340px;background:#0b1018;color:#e3eaf5;
+border:1px solid var(--border);border-radius:9px;padding:12px;
+font:12px/1.5 ui-monospace,monospace
+}
+button.secondary{background:#30394a;margin-left:5px}
 </style>
 </head>
 <body>
 <main>
-<h1>BTC Strategy Lab v5.1</h1>
-<p>BTCUSDT · 1H · LONG / SHORT · проверка силы сигналов · до 8 лет истории</p>
+<h1>BTC Strategy Lab v5.2</h1>
+<p>BTCUSDT · 1H · 8-летняя история · LONG/SHORT · внутрисделочная диагностика</p>
 
 <div class="panel">
-<h2>1. Загрузка истории</h2>
-<p>Свечи загружаются порциями из Binance. Это может занять несколько минут. Не закрывай страницу во время загрузки.</p>
+<h2>1. Загрузка и настройки</h2>
+<p>История загружается с Binance. Не закрывай страницу во время загрузки.</p>
 <div class="grid">
-<div><label for="years">Период истории</label>
-<select id="years"><option value="8" selected>8 лет</option><option value="6">6 лет</option><option value="4">4 года</option><option value="2">2 года</option></select></div>
-<div><label for="cost">Издержки за полный цикл</label>
-<select id="cost"><option value="0.20" selected>0,20%</option><option value="0.30">0,30%</option><option value="0.40">0,40%</option></select></div>
-<div><label for="exit">Порог удержания позиции</label>
-<select id="exit"><option value="25">25 баллов</option><option value="35" selected>35 баллов</option><option value="45">45 баллов</option><option value="50">50 баллов</option></select></div>
+<div>
+<label for="years">История</label>
+<select id="years">
+<option value="8" selected>8 лет</option>
+<option value="6">6 лет</option>
+<option value="4">4 года</option>
+<option value="2">2 года</option>
+</select>
 </div>
-<div style="margin-top:13px"><button id="load">Загрузить историю и провести тест</button></div>
+<div>
+<label for="cost">Издержки за полный цикл</label>
+<select id="cost">
+<option value="0.10">0,10%</option>
+<option value="0.20" selected>0,20%</option>
+<option value="0.30">0,30%</option>
+<option value="0.40">0,40%</option>
+</select>
+</div>
+<div>
+<label for="exit">Порог удержания</label>
+<select id="exit">
+<option value="25">25</option>
+<option value="35" selected>35</option>
+<option value="45">45</option>
+<option value="50">50</option>
+</select>
+</div>
+</div>
+<div style="margin-top:12px">
+<button id="load">Загрузить историю и провести тест</button>
+</div>
 <div class="progress"><div id="bar"></div></div>
 <p id="status" class="status">История ещё не загружена.</p>
 </div>
@@ -63,30 +116,49 @@ td:first-child,th:first-child{text-align:left}
 </div>
 
 <div class="panel">
-<h2>3. Результаты на разных участках истории</h2>
-<p>Пороги входа: без фильтра, 60, 70 и 80 баллов. Все варианты используют одинаковые свечи и издержки.</p>
+<h2>3. Основные результаты</h2>
+<p>Разделение по времени: обучение 60%, проверка 20%, финальный тест 20%.</p>
 <div id="results" class="tablewrap"><p>Ожидается тест.</p></div>
 <p id="warning" class="note"></p>
 </div>
 
 <div class="panel">
-<h2>4. Диагностика сигналов</h2>
+<h2>4. LONG против SHORT</h2>
+<p>Статистика закрытых сделок по направлению на финальном участке.</p>
+<div id="directions"><p>Ожидается тест.</p></div>
+</div>
+
+<div class="panel">
+<h2>5. Результаты по рыночным режимам</h2>
+<p>Режим определяется по ADX и положению цены относительно EMA200 в момент сигнала входа.</p>
+<div id="regimes"><p>Ожидается тест.</p></div>
+</div>
+
+<div class="panel">
+<h2>6. Чувствительность к издержкам</h2>
+<p>Одна и та же стратегия и один финальный участок. Меняется только полная стоимость сделки.</p>
+<div id="costs"><p>Ожидается тест.</p></div>
+</div>
+
+<div class="panel">
+<h2>7. Диагностика данных и сигналов</h2>
 <div id="diagnostics"><p>Ожидается тест.</p></div>
 </div>
 
 <div class="panel">
-<h2>5. Текстовый отчёт</h2>
-<p>Отчёт можно выделить и скопировать прямо со страницы. JSON-файлы не создаются.</p>
+<h2>8. Текстовый отчёт</h2>
+<p>Отчёт можно скопировать и прислать прямо в чат. JSON не создаётся.</p>
 <button id="copy">Скопировать отчёт</button>
-<textarea id="report" readonly placeholder="Здесь появится полный текстовый отчёт."></textarea>
+<textarea id="report" readonly placeholder="Здесь появится отчёт."></textarea>
 <p id="copyStatus" class="note"></p>
 </div>
 
 <div class="panel">
-<h2>Как читать результаты</h2>
-<p>История делится хронологически: 60% — обучающий участок, 20% — проверочный, последние 20% — финальный тест. Сигналы используют только текущие и предыдущие свечи.</p>
-<p>Положительный результат на финальном участке важнее результата на обучающем. Одна удачная стратегия не считается надёжной, если сделок мало или результат зависит от одного участка рынка.</p>
-<p>Доходность рассчитана последовательным реинвестированием капитала в каждую закрытую сделку, без плеча. Комиссия вычитается из каждой сделки целиком согласно выбранной ставке полного цикла. Реальное проскальзывание может увеличить издержки.</p>
+<h2>Методология и ограничения</h2>
+<p>Сигнал формируется по закрытию свечи, исполнение моделируется по open следующей свечи. Используются EMA20/50/200, RSI(14), ADX(14) и эвристические баллы LONG/SHORT.</p>
+<p>Внутрисделочная просадка рассчитывается по закрытиям часовых свечей с учётом открытого результата позиции. Движение внутри свечи по high/low не моделируется.</p>
+<p>При разделении 60/20/20 индикаторы используют только прошлые и текущие данные. Каждый тестовый участок начинает симуляцию без открытой позиции.</p>
+<p>Проверка нескольких порогов сама по себе создаёт риск подбора параметров. Финальный участок нельзя использовать для повторной настройки стратегии.</p>
 </div>
 </main>
 
@@ -98,15 +170,19 @@ let candles = [];
 let indicators = null;
 let reportText = "";
 
-function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
-function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+const sleep = ms => new Promise(r => setTimeout(r,ms));
+const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
+
 function fmt(x,d=2){
   if(x===null||x===undefined||!Number.isFinite(x)) return "—";
-  return x.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d});
+  return x.toLocaleString("ru-RU",{
+    minimumFractionDigits:d,maximumFractionDigits:d
+  });
 }
-function pct(x){return x===null||!Number.isFinite(x)?"—":fmt(x,2)+"%";}
-function signClass(x){return x>0?"good":x<0?"bad":"";}
-
+function pct(x){
+  return Number.isFinite(x)?fmt(x,2)+"%":"—";
+}
+function cls(x){return x>0?"good":x<0?"bad":"";}
 function setStatus(s){$("status").textContent=s;}
 function setProgress(x){$("bar").style.width=clamp(x,0,100)+"%";}
 
@@ -114,49 +190,44 @@ async function loadCandles(years){
   const end=Date.now();
   const d=new Date(end);
   d.setUTCFullYear(d.getUTCFullYear()-years);
-  let cursor=d.getTime();
+  const start=d.getTime();
+  let cursor=start;
   const all=[];
   let requests=0;
-  const maxRequests=Math.ceil(years*366*24/950)+5;
+  const maxRequests=Math.ceil(years*366*24/950)+10;
 
   while(cursor<end && requests<maxRequests){
-    const url="https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&startTime="+cursor+"&endTime="+end+"&limit=1000";
+    const url="https://api.binance.com/api/v3/klines?symbol=BTCUSDT"+
+      "&interval=1h&startTime="+cursor+"&endTime="+end+"&limit=1000";
     let response;
     try{
       response=await fetch(url,{cache:"no-store"});
     }catch(e){
-      throw new Error("Не удалось подключиться к Binance. Проверь интернет и повтори попытку.");
+      throw new Error("Нет соединения с Binance. Проверь интернет.");
     }
     if(!response.ok){
-      let detail="";
-      try{detail=await response.text();}catch(e){}
-      throw new Error("Binance вернул HTTP "+response.status+". "+detail.slice(0,180));
+      throw new Error("Binance HTTP "+response.status+
+        ". Попробуй позже или проверь доступ к API.");
     }
     const batch=await response.json();
-    if(!Array.isArray(batch)) throw new Error("Binance вернул неожиданный формат данных.");
-    if(batch.length===0) break;
+    if(!Array.isArray(batch)) throw new Error("Неожиданный формат Binance.");
+    if(!batch.length) break;
 
     for(const k of batch){
       if(Number(k[6])<end){
         all.push({
-          time:Number(k[0]),
-          open:Number(k[1]),
-          high:Number(k[2]),
-          low:Number(k[3]),
-          close:Number(k[4]),
-          volume:Number(k[5]),
+          time:Number(k[0]),open:Number(k[1]),high:Number(k[2]),
+          low:Number(k[3]),close:Number(k[4]),volume:Number(k[5]),
           closeTime:Number(k[6])
         });
       }
     }
+
     cursor=Number(batch[batch.length-1][0])+3600000;
     requests++;
-    const progress=clamp((cursor-d.getTime())/(end-d.getTime())*100,0,100);
-    setProgress(progress);
+    setProgress((cursor-start)/(end-start)*100);
     setStatus("Загрузка свечей: "+all.length.toLocaleString("ru-RU")+
-      "\nЗапросов: "+requests+
-      "\nПериод: "+new Date(d.getTime()).toLocaleDateString("ru-RU")+
-      " — "+new Date(end).toLocaleDateString("ru-RU"));
+      "\nЗапросов: "+requests);
     if(batch.length<1000) break;
     await sleep(120);
   }
@@ -164,11 +235,10 @@ async function loadCandles(years){
   const map=new Map();
   for(const c of all) map.set(c.time,c);
   const sorted=Array.from(map.values()).sort((a,b)=>a.time-b.time);
-  if(sorted.length<1000) throw new Error("Получено слишком мало свечей: "+sorted.length);
+  if(sorted.length<1000) throw new Error("Получено слишком мало свечей.");
   return sorted;
 }
 
-/* EMA: корректная рекуррентная формула */
 function ema(values,period){
   const out=Array(values.length).fill(null);
   if(values.length<period)return out;
@@ -184,7 +254,6 @@ function ema(values,period){
   return out;
 }
 
-/* RSI с Wilder smoothing */
 function rsi(values,period=14){
   const out=Array(values.length).fill(null);
   if(values.length<=period)return out;
@@ -193,63 +262,55 @@ function rsi(values,period=14){
     const diff=values[i]-values[i-1];
     if(diff>0)gain+=diff;else loss-=diff;
   }
-  let avgGain=gain/period,avgLoss=loss/period;
-  const calc=()=>avgLoss===0?(avgGain===0?50:100):100-100/(1+avgGain/avgLoss);
+  let ag=gain/period,al=loss/period;
+  const calc=()=>al===0?(ag===0?50:100):100-100/(1+ag/al);
   out[period]=calc();
   for(let i=period+1;i<values.length;i++){
     const diff=values[i]-values[i-1];
-    avgGain=(avgGain*(period-1)+Math.max(diff,0))/period;
-    avgLoss=(avgLoss*(period-1)+Math.max(-diff,0))/period;
+    ag=(ag*(period-1)+Math.max(diff,0))/period;
+    al=(al*(period-1)+Math.max(-diff,0))/period;
     out[i]=calc();
   }
   return out;
 }
 
-/* ADX с Wilder smoothing */
-function adx(candles,period=14){
-  const n=candles.length;
-  const out=Array(n).fill(null);
+function adx(cs,period=14){
+  const n=cs.length,out=Array(n).fill(null);
   if(n<period*3+2)return out;
-
-  const tr=Array(n).fill(0);
-  const plus=Array(n).fill(0);
-  const minus=Array(n).fill(0);
+  const tr=Array(n).fill(0),plus=Array(n).fill(0),minus=Array(n).fill(0);
 
   for(let i=1;i<n;i++){
-    const c=candles[i],p=candles[i-1];
+    const c=cs[i],p=cs[i-1];
     tr[i]=Math.max(c.high-c.low,Math.abs(c.high-p.close),Math.abs(c.low-p.close));
-    const up=c.high-p.high;
-    const down=p.low-c.low;
+    const up=c.high-p.high,down=p.low-c.low;
     plus[i]=(up>down&&up>0)?up:0;
     minus[i]=(down>up&&down>0)?down:0;
   }
 
-  let trSum=0,plusSum=0,minusSum=0;
+  let ts=0,ps=0,ms=0;
   for(let i=1;i<=period;i++){
-    trSum+=tr[i];plusSum+=plus[i];minusSum+=minus[i];
+    ts+=tr[i];ps+=plus[i];ms+=minus[i];
   }
   const dx=Array(n).fill(null);
-  function makeDx(i){
-    const p=trSum===0?0:100*plusSum/trSum;
-    const m=trSum===0?0:100*minusSum/trSum;
-    dx[i]=(p+m===0)?0:100*Math.abs(p-m)/(p+m);
+  function calc(i){
+    const p=ts===0?0:100*ps/ts;
+    const m=ts===0?0:100*ms/ts;
+    dx[i]=p+m===0?0:100*Math.abs(p-m)/(p+m);
   }
-  makeDx(period);
-
+  calc(period);
   for(let i=period+1;i<n;i++){
-    trSum=trSum-trSum/period+tr[i];
-    plusSum=plusSum-plusSum/period+plus[i];
-    minusSum=minusSum-minusSum/period+minus[i];
-    makeDx(i);
+    ts=ts-ts/period+tr[i];
+    ps=ps-ps/period+plus[i];
+    ms=ms-ms/period+minus[i];
+    calc(i);
   }
 
-  const firstAdx=period*2-1;
-  if(firstAdx>=n)return out;
-  let total=0;
-  for(let i=period;i<=firstAdx;i++)total+=dx[i]||0;
-  let prev=total/period;
-  out[firstAdx]=prev;
-  for(let i=firstAdx+1;i<n;i++){
+  const first=2*period-1;
+  let sum=0;
+  for(let i=period;i<=first;i++)sum+=dx[i]||0;
+  let prev=sum/period;
+  out[first]=prev;
+  for(let i=first+1;i<n;i++){
     prev=(prev*(period-1)+(dx[i]||0))/period;
     out[i]=prev;
   }
@@ -257,15 +318,12 @@ function adx(candles,period=14){
 }
 
 function buildIndicators(cs){
-  const closes=cs.map(c=>c.close);
-  const e20=ema(closes,20);
-  const e50=ema(closes,50);
-  const e200=ema(closes,200);
-  const r=rsi(closes,14);
-  const a=adx(cs,14);
-  const raw=Array(cs.length).fill(0);
+  const close=cs.map(c=>c.close);
+  const e20=ema(close,20),e50=ema(close,50),e200=ema(close,200);
+  const r=rsi(close,14),a=adx(cs,14);
   const longScore=Array(cs.length).fill(null);
   const shortScore=Array(cs.length).fill(null);
+  const raw=Array(cs.length).fill(0);
 
   for(let i=0;i<cs.length;i++){
     if(e20[i]===null||e50[i]===null||e200[i]===null||
@@ -273,88 +331,104 @@ function buildIndicators(cs){
 
     const spread=clamp(50+(e20[i]/e50[i]-1)*1500,0,100);
     const old=Math.max(0,i-5);
-    const slopeRaw=e20[old] ? (e20[i]/e20[old]-1)*100 : 0;
-    const longSlope=clamp(50+slopeRaw*800,0,100);
-    const shortSlope=100-longSlope;
-    const longRsi=clamp((r[i]-30)/40*100,0,100);
-    const shortRsi=100-longRsi;
+    const slopeRaw=e20[old]?(e20[i]/e20[old]-1)*100:0;
+    const ls=clamp(50+slopeRaw*800,0,100);
+    const ss=100-ls;
+    const lr=clamp((r[i]-30)/40*100,0,100);
+    const sr=100-lr;
     const strength=clamp(a[i]/35*100,0,100);
-    const longAlign=cs[i].close>e200[i]?100:0;
-    const shortAlign=cs[i].close<e200[i]?100:0;
+    const la=cs[i].close>e200[i]?100:0;
+    const sa=cs[i].close<e200[i]?100:0;
 
-    longScore[i]=0.30*spread+0.20*longSlope+0.20*longRsi+
-      0.15*strength+0.15*longAlign;
-    shortScore[i]=0.30*(100-spread)+0.20*shortSlope+
-      0.20*shortRsi+0.15*strength+0.15*shortAlign;
+    longScore[i]=.30*spread+.20*ls+.20*lr+.15*strength+.15*la;
+    shortScore[i]=.30*(100-spread)+.20*ss+.20*sr+.15*strength+.15*sa;
 
     if(a[i]>=12){
       if(e20[i]>e50[i]&&cs[i].close>e200[i])raw[i]=1;
       else if(e20[i]<e50[i]&&cs[i].close<e200[i])raw[i]=-1;
     }
   }
-  return {e20,e50,e200,rsi:r,adx:a,raw,longScore,shortScore};
+  return {e20,e50,e200,rsi:r,adx:a,longScore,shortScore,raw};
 }
+
 function scoreAt(sig,i,dir){
   return dir===1?(sig.longScore[i]??0):(sig.shortScore[i]??0);
 }
 
-/* Симуляция: вход на следующем open; выходы без заглядывания вперёд */
+function regimeAt(cs,sig,i){
+  if(sig.adx[i]===null)return "Не определён";
+  const trend=cs[i].close>sig.e200[i]?"выше EMA200":
+    cs[i].close<sig.e200[i]?"ниже EMA200":"у EMA200";
+  const strength=sig.adx[i]>=25?"трендовый":
+    sig.adx[i]<20?"слабый/боковой":"переходный";
+  return strength+"; "+trend;
+}
+
+/*
+  Equity mark-to-market: обновляется на закрытии каждой свечи.
+  Полный расход сделки отражается в оценке открытой позиции.
+  При закрытии комиссия списывается один раз из реализованного результата.
+*/
 function simulate(cs,sig,start,end,threshold,costPct,exitThreshold){
-  let pos=0,entry=0,entryTime=0;
-  let trades=[];
-  let equity=1,peak=1,maxDD=0;
-  let lastMark=1;
+  let pos=0,entry=0,entryTime=0,entryIndex=0,entryRegime="";
+  let trades=[],equity=1,peak=1,maxDD=0;
   const cost=costPct/100;
+
+  function mark(price){
+    if(pos===0)return equity;
+    const gross=pos===1?(price/entry-1):(entry/price-1);
+    return Math.max(0,equity*(1+gross-cost));
+  }
 
   function closeTrade(price,time,reason){
     if(!pos)return;
-    let gross=pos===1?(price/entry-1):(entry/price-1);
+    const gross=pos===1?(price/entry-1):(entry/price-1);
     const net=gross-cost;
-    equity*=Math.max(0.000001,1+net);
+    equity*=Math.max(.000001,1+net);
     trades.push({
       dir:pos===1?"LONG":"SHORT",
-      entry,exit:price,entryTime,exitTime:time,
-      gross:gross*100,net:net*100,
-      reason,equity:equity*100
+      entry,exit:price,entryTime,exitTime:time,entryIndex,
+      gross:gross*100,net:net*100,reason,regime:entryRegime,
+      equity:equity*100
     });
     peak=Math.max(peak,equity);
     maxDD=Math.max(maxDD,(peak-equity)/peak*100);
     pos=0;
   }
 
-  function openTrade(dir,price,time){
-    pos=dir;entry=price;entryTime=time;
+  function openTrade(dir,price,time,index,regime){
+    pos=dir;entry=price;entryTime=time;entryIndex=index;
+    entryRegime=regime;
   }
 
   for(let i=start;i<end-1;i++){
     if(sig.longScore[i]===null||sig.shortScore[i]===null)continue;
-    const raw=sig.raw[i];
-    const next=cs[i+1];
-    const heldScore=pos===0?0:scoreAt(sig,i,pos);
-    const oppositeScore=pos===0?0:scoreAt(sig,i,-pos);
+    const raw=sig.raw[i],next=cs[i+1];
+    const held=pos===0?0:scoreAt(sig,i,pos);
+    const opposite=pos===0?0:scoreAt(sig,i,-pos);
 
     if(pos!==0){
-      if(raw===pos&&heldScore>=exitThreshold)continue;
-
-      const margin=threshold===0?0:10;
-      const canReverse=raw===-pos&&oppositeScore>=threshold&&
-        oppositeScore>=heldScore+margin;
-
-      if(canReverse){
-        closeTrade(next.open,next.time,"Сильный противоположный сигнал");
-        openTrade(raw,next.open,next.time);
-        continue;
+      const canHold=raw===pos&&held>=exitThreshold;
+      if(!canHold){
+        const canReverse=raw===-pos&&opposite>=threshold&&
+          opposite>=held+(threshold===0?0:10);
+        if(canReverse){
+          closeTrade(next.open,next.time,"Сильный противоположный сигнал");
+          openTrade(raw,next.open,next.time,i+1,regimeAt(cs,sig,i));
+        }else{
+          closeTrade(next.open,next.time,
+            raw===0?"Сигнал нейтрален":
+            raw===pos?"Сила ниже порога удержания":
+            "Противоположный сигнал недостаточно силён");
+        }
       }
-
-      closeTrade(next.open,next.time,
-        raw===0?"Сигнал нейтрален":
-        raw===pos?"Сила сигнала ниже порога удержания":
-        "Противоположный сигнал недостаточно силён");
+    }else if(raw!==0&&scoreAt(sig,i,raw)>=threshold){
+      openTrade(raw,next.open,next.time,i+1,regimeAt(cs,sig,i));
     }
 
-    if(pos===0&&raw!==0&&scoreAt(sig,i,raw)>=threshold){
-      openTrade(raw,next.open,next.time);
-    }
+    const mtm=mark(cs[i+1].close);
+    peak=Math.max(peak,mtm);
+    if(peak>0)maxDD=Math.max(maxDD,(peak-mtm)/peak*100);
   }
 
   if(pos!==0){
@@ -364,22 +438,20 @@ function simulate(cs,sig,start,end,threshold,costPct,exitThreshold){
 
   const wins=trades.filter(t=>t.net>0);
   const losses=trades.filter(t=>t.net<0);
-  const sumWin=wins.reduce((s,t)=>s+t.net,0);
-  const sumLoss=Math.abs(losses.reduce((s,t)=>s+t.net,0));
-  const pf=sumLoss===0?(sumWin>0?Infinity:null):sumWin/sumLoss;
-  const totalReturn=(equity-1)*100;
+  const sw=wins.reduce((s,t)=>s+t.net,0);
+  const sl=Math.abs(losses.reduce((s,t)=>s+t.net,0));
+  const pf=sl===0?(sw>0?Infinity:null):sw/sl;
   const avg=trades.length?trades.reduce((s,t)=>s+t.net,0)/trades.length:0;
 
   return {
-    trades,wins:wins.length,losses:losses.length,
-    count:trades.length,winRate:trades.length?wins.length/trades.length*100:0,
-    pf,totalReturn,avg,maxDD,equity:equity*100
+    trades,count:trades.length,wins:wins.length,losses:losses.length,
+    winRate:trades.length?wins.length/trades.length*100:0,
+    pf,totalReturn:(equity-1)*100,avg,maxDD,equity:equity*100
   };
 }
 
 function segmentRanges(n){
-  const a=Math.floor(n*0.60);
-  const b=Math.floor(n*0.80);
+  const a=Math.floor(n*.60),b=Math.floor(n*.80);
   return [
     {key:"train",name:"Обучение 60%",start:0,end:a},
     {key:"validation",name:"Проверка 20%",start:a,end:b},
@@ -387,56 +459,94 @@ function segmentRanges(n){
   ];
 }
 
-function metricRow(name,result){
-  return "<tr><td>"+name+"</td><td>"+result.count+"</td><td>"+
-    pct(result.winRate)+"</td><td>"+
-    (result.pf===Infinity?"∞":result.pf===null?"—":fmt(result.pf,2))+
-    "</td><td class='"+signClass(result.totalReturn)+"'>"+
-    pct(result.totalReturn)+"</td><td>"+pct(result.avg)+
-    "</td><td>"+pct(result.maxDD)+"</td></tr>";
+function pfText(x){
+  return x.pf===Infinity?"∞":x.pf===null?"—":fmt(x.pf,2);
 }
+function metricRow(name,x){
+  return "<tr><td>"+name+"</td><td>"+x.count+"</td><td>"+
+    pct(x.winRate)+"</td><td>"+pfText(x)+"</td><td class='"+
+    cls(x.totalReturn)+"'>"+pct(x.totalReturn)+"</td><td>"+
+    pct(x.avg)+"</td><td>"+pct(x.maxDD)+"</td></tr>";
+}
+
 function renderMarket(cs,sig){
   const i=cs.length-1;
-  const date=new Date(cs[i].time).toLocaleString("ru-RU");
-  const raw=sig.raw[i];
-  const direction=raw===1?"LONG":raw===-1?"SHORT":"НЕЙТРАЛЬНО";
-  const scoreL=sig.longScore[i],scoreS=sig.shortScore[i];
+  const dir=sig.raw[i]===1?"LONG":sig.raw[i]===-1?"SHORT":"НЕЙТРАЛЬНО";
   $("market").innerHTML=
-    '<div class="stat"><small>Цена BTC</small><strong>$'+fmt(cs[i].close,2)+'</strong></div>'+
-    '<div class="stat"><small>Последняя свеча</small><strong style="font-size:14px">'+date+'</strong></div>'+
-    '<div class="stat"><small>Базовое направление</small><strong class="'+(raw===1?"good":raw===-1?"bad":"yellow")+'">'+direction+'</strong></div>'+
-    '<div class="stat"><small>Сила LONG</small><strong class="good">'+fmt(scoreL,1)+'</strong></div>'+
-    '<div class="stat"><small>Сила SHORT</small><strong class="bad">'+fmt(scoreS,1)+'</strong></div>'+
-    '<div class="stat"><small>ADX / RSI</small><strong>'+fmt(sig.adx[i],1)+' / '+fmt(sig.rsi[i],1)+'</strong></div>'+
-    '<div class="stat"><small>EMA20 / EMA50</small><strong style="font-size:14px">'+fmt(sig.e20[i],2)+' / '+fmt(sig.e50[i],2)+'</strong></div>'+
-    '<div class="stat"><small>EMA200</small><strong style="font-size:14px">'+fmt(sig.e200[i],2)+'</strong></div>';
+    '<div class="stat"><small>Цена BTC</small><strong>$'+fmt(cs[i].close)+'</strong></div>'+
+    '<div class="stat"><small>Последняя свеча</small><strong>'+new Date(cs[i].time).toLocaleString("ru-RU")+'</strong></div>'+
+    '<div class="stat"><small>Направление</small><strong class="'+
+    (sig.raw[i]===1?"good":sig.raw[i]===-1?"bad":"yellow")+'">'+dir+'</strong></div>'+
+    '<div class="stat"><small>LONG score</small><strong class="good">'+fmt(sig.longScore[i],1)+'</strong></div>'+
+    '<div class="stat"><small>SHORT score</small><strong class="bad">'+fmt(sig.shortScore[i],1)+'</strong></div>'+
+    '<div class="stat"><small>RSI / ADX</small><strong>'+fmt(sig.rsi[i],1)+' / '+fmt(sig.adx[i],1)+'</strong></div>'+
+    '<div class="stat"><small>EMA20 / EMA50</small><strong>'+fmt(sig.e20[i],2)+' / '+fmt(sig.e50[i],2)+'</strong></div>'+
+    '<div class="stat"><small>EMA200</small><strong>'+fmt(sig.e200[i],2)+'</strong></div>';
 }
-function renderDiagnostics(cs,sig){
-  const counts={long:0,short:0,neutral:0};
-  const thresholds=[60,70,80];
-  let longEligible={},shortEligible={};
-  for(const t of thresholds){longEligible[t]=0;shortEligible[t]=0;}
-  for(let i=0;i<cs.length;i++){
-    if(sig.longScore[i]===null)continue;
-    if(sig.raw[i]===1)counts.long++;
-    else if(sig.raw[i]===-1)counts.short++;
-    else counts.neutral++;
-    for(const t of thresholds){
-      if(sig.raw[i]===1&&sig.longScore[i]>=t)longEligible[t]++;
-      if(sig.raw[i]===-1&&sig.shortScore[i]>=t)shortEligible[t]++;
-    }
+
+function renderDirections(final){
+  const sides=["LONG","SHORT"];
+  let html='<div class="tablewrap"><table><thead><tr>'+
+    '<th>Направление</th><th>Сделки</th><th>Успех</th><th>PF</th>'+
+    '<th>Доходность сделок*</th><th>Средняя</th></tr></thead><tbody>';
+  for(const side of sides){
+    const ts=final.trades.filter(t=>t.dir===side);
+    const wins=ts.filter(t=>t.net>0);
+    const losses=ts.filter(t=>t.net<0);
+    const sw=wins.reduce((s,t)=>s+t.net,0);
+    const sl=Math.abs(losses.reduce((s,t)=>s+t.net,0));
+    const pf=sl===0?(sw>0?Infinity:null):sw/sl;
+    const avg=ts.length?ts.reduce((s,t)=>s+t.net,0)/ts.length:0;
+    const compounded=ts.reduce((e,t)=>e*Math.max(.000001,1+t.net/100),1);
+    html+='<tr><td>'+side+'</td><td>'+ts.length+'</td><td>'+
+      pct(ts.length?wins.length/ts.length*100:0)+'</td><td>'+
+      pfText({pf})+'</td><td class="'+cls((compounded-1)*100)+'">'+
+      pct((compounded-1)*100)+'</td><td>'+pct(avg)+'</td></tr>';
   }
-  let html='<div class="grid">'+
-    '<div class="stat"><small>Свечей</small><strong>'+cs.length.toLocaleString("ru-RU")+'</strong></div>'+
-    '<div class="stat"><small>Базовых LONG-свечей</small><strong class="good">'+counts.long.toLocaleString("ru-RU")+'</strong></div>'+
-    '<div class="stat"><small>Базовых SHORT-свечей</small><strong class="bad">'+counts.short.toLocaleString("ru-RU")+'</strong></div>'+
-    '<div class="stat"><small>Нейтральных свечей</small><strong>'+counts.neutral.toLocaleString("ru-RU")+'</strong></div></div>'+
-    '<div class="tablewrap"><table><thead><tr><th>Порог</th><th>LONG-кандидаты</th><th>SHORT-кандидаты</th></tr></thead><tbody>';
-  for(const t of thresholds){
-    html+='<tr><td>'+t+'</td><td>'+longEligible[t]+'</td><td>'+shortEligible[t]+'</td></tr>';
+  html+='</tbody></table></div><p class="note">*Сделки каждой стороны перемножены отдельно. Это диагностический показатель, а не доходность реального портфеля с одновременным разделением капитала.</p>';
+  $("directions").innerHTML=html;
+}
+
+function renderRegimes(final){
+  const names=[...new Set(final.trades.map(t=>t.regime))];
+  if(!names.length){$("regimes").innerHTML="<p>Нет сделок.</p>";return;}
+  let html='<div class="tablewrap"><table><thead><tr>'+
+    '<th>Режим входа</th><th>Сделки</th><th>Успех</th><th>PF</th>'+
+    '<th>Средняя сделка</th></tr></thead><tbody>';
+  for(const name of names){
+    const ts=final.trades.filter(t=>t.regime===name);
+    const wins=ts.filter(t=>t.net>0),loss=ts.filter(t=>t.net<0);
+    const sw=wins.reduce((s,t)=>s+t.net,0);
+    const sl=Math.abs(loss.reduce((s,t)=>s+t.net,0));
+    const pf=sl===0?(sw>0?Infinity:null):sw/sl;
+    const avg=ts.reduce((s,t)=>s+t.net,0)/ts.length;
+    html+='<tr><td>'+name+'</td><td>'+ts.length+'</td><td>'+
+      pct(wins.length/ts.length*100)+'</td><td>'+pfText({pf})+
+      '</td><td>'+pct(avg)+'</td></tr>';
   }
   html+='</tbody></table></div>';
-  $("diagnostics").innerHTML=html;
+  $("regimes").innerHTML=html;
+}
+
+function renderCosts(cs,sig,finalRange,exitThreshold){
+  let html='<div class="tablewrap"><table><thead><tr>'+
+    '<th>Издержки</th><th>Порог</th><th>Сделки</th><th>PF</th>'+
+    '<th>Доходность</th><th>Просадка</th></tr></thead><tbody>';
+  const lines=[];
+  for(const cost of [.1,.2,.3,.4]){
+    for(const threshold of [60,70,80]){
+      const x=simulate(cs,sig,finalRange.start,finalRange.end,
+        threshold,cost,exitThreshold);
+      html+='<tr><td>'+fmt(cost,2)+'%</td><td>'+threshold+
+        '</td><td>'+x.count+'</td><td>'+pfText(x)+
+        '</td><td class="'+cls(x.totalReturn)+'">'+pct(x.totalReturn)+
+        '</td><td>'+pct(x.maxDD)+'</td></tr>';
+      lines.push({cost,threshold,x});
+    }
+  }
+  html+='</tbody></table></div>';
+  $("costs").innerHTML=html;
+  return lines;
 }
 
 function runTests(cs,sig){
@@ -445,6 +555,7 @@ function runTests(cs,sig){
   const ranges=segmentRanges(cs.length);
   const thresholds=[0,60,70,80];
   const all={};
+
   for(const t of thresholds){
     all[t]={};
     for(const r of ranges){
@@ -452,57 +563,95 @@ function runTests(cs,sig){
     }
   }
 
-  let html='<table><thead><tr><th>Порог</th><th>Участок</th><th>Сделки</th><th>Успех</th><th>PF</th><th>Доходность</th><th>Средняя сделка</th><th>Просадка</th></tr></thead><tbody>';
+  let html='<div class="tablewrap"><table><thead><tr>'+
+    '<th>Порог</th><th>Участок</th><th>Сделки</th><th>Успех</th>'+
+    '<th>PF</th><th>Доходность</th><th>Средняя</th><th>Просадка</th>'+
+    '</tr></thead><tbody>';
   for(const t of thresholds){
     for(const r of ranges){
       const x=all[t][r.key];
-      html+='<tr><td>'+ (t===0?"Без фильтра":t+" баллов")+'</td><td>'+
-        r.name+'</td><td>'+x.count+'</td><td>'+pct(x.winRate)+
-        '</td><td>'+(x.pf===Infinity?"∞":x.pf===null?"—":fmt(x.pf,2))+
-        '</td><td class="'+signClass(x.totalReturn)+'">'+pct(x.totalReturn)+
-        '</td><td>'+pct(x.avg)+'</td><td>'+pct(x.maxDD)+'</td></tr>';
+      html+='<tr><td>'+(t===0?"Без фильтра":t)+'</td><td>'+r.name+
+        '</td><td>'+x.count+'</td><td>'+pct(x.winRate)+
+        '</td><td>'+pfText(x)+'</td><td class="'+cls(x.totalReturn)+'">'+
+        pct(x.totalReturn)+'</td><td>'+pct(x.avg)+'</td><td>'+
+        pct(x.maxDD)+'</td></tr>';
     }
   }
-  html+='</tbody></table>';
+  html+='</tbody></table></div>';
   $("results").innerHTML=html;
 
-  const finalCounts=thresholds.map(t=>all[t].final.count);
-  const few=finalCounts.some(n=>n<30);
-  const finalBase=all[0].final;
-  const final70=all[70].final;
-  const final80=all[80].final;
-  let warnings=[];
-  if(few)warnings.push("ВНИМАНИЕ: как минимум у одного варианта меньше 30 сделок на финальном участке. Сравнение может быть статистически ненадёжным.");
-  if(finalBase.count<30)warnings.push("У базовой стратегии на финальном участке менее 30 сделок.");
-  if(final70.count<30)warnings.push("У порога 70 на финальном участке менее 30 сделок.");
-  if(final80.count<30)warnings.push("У порога 80 на финальном участке менее 30 сделок.");
-  if(final70.count>0&&finalBase.count>0&&final70.totalReturn>finalBase.totalReturn){
-    warnings.push("Порог 70 показал более высокую финальную доходность, чем базовый вариант. Это ещё не доказывает устойчивость — проверь результат на других периодах и издержках.");
+  const finalRange=ranges[2];
+  const final70=all[70].final,final80=all[80].final;
+  const warnings=[];
+  if(all[0].final.count<30||final70.count<30||final80.count<30)
+    warnings.push("ВНИМАНИЕ: у одного из вариантов меньше 30 финальных сделок.");
+  if(final70.totalReturn<=0&&final80.totalReturn<=0)
+    warnings.push("Пороги 70 и 80 не показали положительной финальной доходности.");
+  if(final80.totalReturn>all[0].final.totalReturn)
+    warnings.push("Порог 80 обошёл базовый вариант, но это не доказывает устойчивость.");
+  warnings.push("Просадка считается по часовым закрытиям, не по внутрисвечным экстремумам.");
+  warnings.push("Проверка издержек — сценарный тест, а не оценка фактического проскальзывания.");
+  $("warning").textContent=warnings.join("\n");
+
+  renderDirections(all[80].final);
+  renderRegimes(all[80].final);
+  const costLines=renderCosts(cs,sig,finalRange,exitThreshold);
+
+  const counts={long:0,short:0,neutral:0};
+  let gaps=0;
+  for(let i=0;i<cs.length;i++){
+    if(sig.longScore[i]===null)continue;
+    if(sig.raw[i]===1)counts.long++;
+    else if(sig.raw[i]===-1)counts.short++;
+    else counts.neutral++;
+    if(i>0&&cs[i].time-cs[i-1].time!==3600000)gaps++;
   }
-  if(finalBase.totalReturn<=0&&final70.totalReturn<=0&&final80.totalReturn<=0){
-    warnings.push("Ни один из проверенных вариантов с порогом 0/70/80 не дал положительную доходность на финальном участке при выбранных издержках.");
-  }
-  $("warning").textContent=warnings.join("\n")||"Автоматические предупреждения не обнаружены. Это не является доказательством прибыльности.";
+  $("diagnostics").innerHTML='<div class="grid">'+
+    '<div class="stat"><small>Свечей</small><strong>'+cs.length.toLocaleString("ru-RU")+'</strong></div>'+
+    '<div class="stat"><small>Пропусков часов</small><strong>'+gaps+'</strong></div>'+
+    '<div class="stat"><small>Базовых LONG</small><strong class="good">'+counts.long+'</strong></div>'+
+    '<div class="stat"><small>Базовых SHORT</small><strong class="bad">'+counts.short+'</strong></div>'+
+    '<div class="stat"><small>Нейтральных</small><strong>'+counts.neutral+'</strong></div>'+
+    '</div>';
 
   const lines=[];
-  lines.push("BTC STRATEGY LAB v5.1 — ОТЧЁТ");
+  lines.push("BTC STRATEGY LAB v5.2 — ОТЧЁТ");
   lines.push("Пара: BTCUSDT | Таймфрейм: 1H");
   lines.push("Свечей: "+cs.length);
   lines.push("Начало: "+new Date(cs[0].time).toLocaleString("ru-RU"));
   lines.push("Конец: "+new Date(cs[cs.length-1].time).toLocaleString("ru-RU"));
-  lines.push("Издержки за полный цикл: "+cost+"%");
-  lines.push("Порог удержания: "+exitThreshold);
+  lines.push("Издержки: "+cost+"% | Порог удержания: "+exitThreshold);
   lines.push("Разделение: 60% / 20% / 20%");
   lines.push("");
-  lines.push("РЕЗУЛЬТАТЫ");
-  lines.push("Порог | Участок | Сделки | Успех | PF | Доходность | Средняя сделка | Просадка");
+  lines.push("ОСНОВНЫЕ РЕЗУЛЬТАТЫ");
+  lines.push("Порог | Участок | Сделки | Успех | PF | Доходность | Средняя | Просадка");
   for(const t of thresholds){
     for(const r of ranges){
       const x=all[t][r.key];
       lines.push((t===0?"Без фильтра":t)+" | "+r.name+" | "+x.count+
-        " | "+pct(x.winRate)+" | "+(x.pf===Infinity?"∞":x.pf===null?"—":fmt(x.pf,2))+
-        " | "+pct(x.totalReturn)+" | "+pct(x.avg)+" | "+pct(x.maxDD));
+        " | "+pct(x.winRate)+" | "+pfText(x)+" | "+pct(x.totalReturn)+
+        " | "+pct(x.avg)+" | "+pct(x.maxDD));
     }
+  }
+  lines.push("");
+  lines.push("LONG/SHORT — ФИНАЛЬНЫЙ УЧАСТОК, ПОРОГ 80");
+  for(const side of ["LONG","SHORT"]){
+    const ts=all[80].final.trades.filter(t=>t.dir===side);
+    const wins=ts.filter(t=>t.net>0),loss=ts.filter(t=>t.net<0);
+    const sw=wins.reduce((s,t)=>s+t.net,0);
+    const sl=Math.abs(loss.reduce((s,t)=>s+t.net,0));
+    const pf=sl===0?(sw>0?Infinity:null):sw/sl;
+    const avg=ts.length?ts.reduce((s,t)=>s+t.net,0)/ts.length:0;
+    lines.push(side+": сделок "+ts.length+
+      " | успех "+pct(ts.length?wins.length/ts.length*100:0)+
+      " | PF "+pfText({pf})+" | средняя "+pct(avg));
+  }
+  lines.push("");
+  lines.push("ЧУВСТВИТЕЛЬНОСТЬ К ИЗДЕРЖКАМ — ФИНАЛЬНЫЙ УЧАСТОК");
+  lines.push("Издержки | Порог | Сделки | PF | Доходность | Просадка");
+  for(const row of costLines){
+    lines.push(row.cost+"% | "+row.threshold+" | "+row.x.count+
+      " | "+pfText(row.x)+" | "+pct(row.x.totalReturn)+" | "+pct(row.x.maxDD));
   }
   lines.push("");
   lines.push("ТЕКУЩИЙ РЫНОК");
@@ -511,18 +660,17 @@ function runTests(cs,sig){
   lines.push("EMA20: "+sig.e20[i]+" | EMA50: "+sig.e50[i]+" | EMA200: "+sig.e200[i]);
   lines.push("RSI: "+sig.rsi[i]+" | ADX: "+sig.adx[i]);
   lines.push("LONG score: "+sig.longScore[i]+" | SHORT score: "+sig.shortScore[i]);
-  lines.push("Базовое направление: "+(sig.raw[i]===1?"LONG":sig.raw[i]===-1?"SHORT":"NEUTRAL"));
+  lines.push("Направление: "+(sig.raw[i]===1?"LONG":sig.raw[i]===-1?"SHORT":"NEUTRAL"));
   lines.push("");
-  lines.push("ПРИМЕЧАНИЯ");
-  lines.push("EMA использует корректную формулу сглаживания.");
-  lines.push("Вход/выход моделируется по следующему open после сигнала.");
-  lines.push("Слабый противоположный сигнал не вызывает разворот: позиция закрывается, а новый вход требует прохождения порога.");
+  lines.push("МЕТОДОЛОГИЯ");
+  lines.push("Сигнал на закрытии свечи; исполнение по open следующей свечи.");
   lines.push("Доходность — последовательное реинвестирование закрытых сделок без плеча.");
-  lines.push("Просадка рассчитывается по капиталу после закрытия сделок, не является внутрисделочной mark-to-market просадкой.");
-  lines.push("Сигналы и баллы являются эвристикой, не прогнозом и не гарантией прибыли.");
+  lines.push("Просадка включает открытый результат по закрытию каждой часовой свечи.");
+  lines.push("Не учитываются внутрисвечные экстремумы, funding и индивидуальные тарифы биржи.");
+  lines.push("Финальный участок не следует использовать для подбора параметров.");
   lines.push("");
   lines.push("ПРЕДУПРЕЖДЕНИЯ");
-  lines.push(warnings.join("\n")||"Автоматические предупреждения не обнаружены.");
+  lines.push(warnings.join("\n"));
   reportText=lines.join("\n");
   $("report").value=reportText;
 }
@@ -530,30 +678,25 @@ function runTests(cs,sig){
 $("load").addEventListener("click",async()=>{
   $("load").disabled=true;
   $("results").innerHTML="<p>Выполняется тест…</p>";
-  $("diagnostics").innerHTML="<p>Выполняется расчёт…</p>";
   setProgress(0);
   try{
     candles=await loadCandles(Number($("years").value));
-    setStatus("Загрузка завершена. Свечей: "+candles.length.toLocaleString("ru-RU")+
-      ". Проверка пропусков и расчёт индикаторов…");
+    setStatus("Загрузка завершена. Рассчитываю индикаторы…");
+    indicators=buildIndicators(candles);
+    renderMarket(candles,indicators);
+    runTests(candles,indicators);
+    setProgress(100);
     let gaps=0;
     for(let i=1;i<candles.length;i++){
       if(candles[i].time-candles[i-1].time!==3600000)gaps++;
     }
-    indicators=buildIndicators(candles);
-    renderMarket(candles,indicators);
-    renderDiagnostics(candles,indicators);
-    runTests(candles,indicators);
-    setProgress(100);
     setStatus("Готово.\nСвечей: "+candles.length.toLocaleString("ru-RU")+
-      "\nПропусков часовых свечей: "+gaps+
+      "\nПропусков часов: "+gaps+
       "\nПериод: "+new Date(candles[0].time).toLocaleDateString("ru-RU")+
-      " — "+new Date(candles[candles.length-1].time).toLocaleDateString("ru-RU")+
-      "\nЕсли пропусков много, повтори загрузку и сравни даты.");
+      " — "+new Date(candles[candles.length-1].time).toLocaleDateString("ru-RU"));
   }catch(e){
     console.error(e);
-    setStatus("ОШИБКА: "+(e&&e.message?e.message:String(e))+
-      "\nЕсли Binance недоступен из сети, повтори попытку позже.");
+    setStatus("ОШИБКА: "+(e.message||String(e)));
     $("results").innerHTML="<p>Тест не выполнен.</p>";
   }finally{
     $("load").disabled=false;
@@ -566,16 +709,21 @@ $("cost").addEventListener("change",()=>{
 $("exit").addEventListener("change",()=>{
   if(candles.length&&indicators)runTests(candles,indicators);
 });
+
 $("copy").addEventListener("click",async()=>{
   const textToCopy=$("report").value;
-  if(!textToCopy){$("copyStatus").textContent="Сначала запусти тест.";return;}
+  if(!textToCopy){
+    $("copyStatus").textContent="Сначала запусти тест.";
+    return;
+  }
   try{
     await navigator.clipboard.writeText(textToCopy);
-    $("copyStatus").textContent="Отчёт скопирован. Можно вставить его прямо в чат.";
+    $("copyStatus").textContent="Отчёт скопирован. Вставь его в чат.";
   }catch(e){
     $("report").focus();
     $("report").select();
-    $("copyStatus").textContent="Автокопирование недоступно. Текст выделен — нажми «Копировать» в меню телефона.";
+    $("copyStatus").textContent=
+      "Текст выделен. Выбери «Копировать» в меню телефона.";
   }
 });
 </script>
