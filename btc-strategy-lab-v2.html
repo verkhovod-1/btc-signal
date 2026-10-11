@@ -5,618 +5,912 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#10131b">
-<title>BTC Strategy Lab v5.5</title>
+<title>BTC Strategy Lab v5.6 — Research Integrity</title>
 <style>
-:root{color-scheme:dark;--bg:#10131b;--panel:#191f2b;--line:#30394a;--text:#edf2fa;--muted:#a4afc1;--green:#54d6a0;--red:#ff737d;--blue:#82b4ff;--yellow:#ffd477}
+:root{
+  color-scheme:dark;
+  --bg:#10131b;--panel:#191f2c;--panel2:#202838;
+  --text:#edf1f8;--muted:#9daac0;--line:#30394b;
+  --green:#53d6a0;--red:#ff7185;--blue:#83aaff;
+  --yellow:#ffd477;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}
-main{max-width:1200px;margin:auto;padding:14px}
-h1{font-size:23px;margin:8px 0}
-h2{font-size:18px;margin:0 0 12px}
-h3{font-size:15px;margin:18px 0 8px}
-p{margin:7px 0;color:var(--muted)}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;margin:12px 0}
-.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
-label{display:block;font-size:13px;color:var(--muted)}
-input,select,button,textarea{font:inherit;border-radius:8px;border:1px solid var(--line);padding:10px;background:#111722;color:var(--text);width:100%;margin-top:5px}
-button{background:#315f9d;border:0;font-weight:700;cursor:pointer}
-button.secondary{background:#303a4b}
-button:disabled{opacity:.45}
-.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:9px;margin-top:12px}
-.status{padding:11px;background:#111722;border-radius:8px;color:var(--blue);white-space:pre-wrap;overflow-wrap:anywhere}
-.small{font-size:12px;color:var(--muted)}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:9px}
-.metric{background:#111722;padding:11px;border-radius:9px}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif
+}
+main{max-width:1150px;margin:auto;padding:16px}
+h1{font-size:25px;line-height:1.2;margin:5px 0 8px}
+h2{font-size:19px;margin:0 0 12px}
+h3{font-size:16px;margin:14px 0 7px}
+p{margin:7px 0}
+.sub,.muted{color:var(--muted)}
+.panel{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;padding:15px;margin:12px 0
+}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{
+  border:0;border-radius:9px;padding:11px 15px;
+  font-size:14px;font-weight:650;cursor:pointer;
+  color:#10131b;background:#9ab8ff
+}
+button.secondary{background:var(--panel2);color:var(--text);
+  border:1px solid var(--line)}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select{
+  color:var(--text);background:var(--panel2);
+  border:1px solid var(--line);border-radius:8px;
+  padding:9px;max-width:100%
+}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+.field{min-width:120px;flex:1}
+.status{padding:10px;border-radius:9px;background:var(--panel2);
+  overflow-wrap:anywhere}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
+.metric{background:var(--panel2);padding:12px;border-radius:10px;min-width:0}
 .metric .name{font-size:12px;color:var(--muted)}
-.metric .value{font-size:19px;font-weight:750;margin-top:3px;overflow-wrap:anywhere}
-.tablewrap{overflow-x:auto;margin-top:10px}
-table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}
-th,td{padding:8px;border-bottom:1px solid var(--line);text-align:right}
+.metric .value{font-size:20px;font-weight:750;overflow-wrap:anywhere}
+.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{text-align:right;padding:9px 7px;border-bottom:1px solid var(--line);
+  white-space:nowrap}
 th{color:var(--muted);font-weight:600}
 th:first-child,td:first-child{text-align:left}
-textarea{min-height:350px;resize:vertical;font:12px/1.45 monospace}
-.progress{height:7px;background:#30394a;border-radius:9px;overflow:hidden;margin:10px 0}
-.progress>div{height:100%;width:0;background:var(--blue)}
-.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}
-footer{padding:12px 2px 25px;color:var(--muted);font-size:12px}
+.tablewrap{overflow-x:auto}
+.small{font-size:12px}
+progress{width:100%;height:12px}
+details{margin:10px 0}
+summary{cursor:pointer;color:var(--blue)}
+#report{width:100%;min-height:240px;resize:vertical;
+  background:#0c1017;color:#dce6f6;border:1px solid var(--line);
+  border-radius:9px;padding:12px;font:12px/1.5 ui-monospace,monospace}
+footer{color:var(--muted);font-size:12px;padding:12px 0 30px}
 </style>
 </head>
 <body>
 <main>
-<h1>₿ BTC Strategy Lab v5.5</h1>
-<p>Data Quality · Benchmarks · Double-Cost Stress Test · BTCUSDT · 1H</p>
+  <h1>BTC Strategy Lab v5.6</h1>
+  <p class="sub">Research Integrity · BTCUSDT · 1H · ATR risk management · Gap-aware backtest</p>
 
-<div class="panel">
-<h2>1. Настройки исследования</h2>
-<div class="controls">
-<label>Начало истории
-<input id="startDate" type="date" value="2018-10-12">
-</label>
-<label>Конец истории
-<input id="endDate" type="date">
-</label>
-<label>Базовые издержки за круговую сделку
-<select id="cost">
-<option value="0.10">0,10%</option>
-<option value="0.20" selected>0,20%</option>
-<option value="0.30">0,30%</option>
-<option value="0.40">0,40%</option>
-</select>
-</label>
-<label>Максимальное удержание
-<select id="hold">
-<option value="4">4 часа</option>
-<option value="8">8 часов</option>
-<option value="12">12 часов</option>
-<option value="24" selected>24 часа</option>
-<option value="48">48 часов</option>
-</select>
-</label>
-<label>Стоп-лосс, ATR
-<select id="stopAtr">
-<option value="1">1,0 ATR</option>
-<option value="1.5" selected>1,5 ATR</option>
-<option value="2">2,0 ATR</option>
-<option value="2.5">2,5 ATR</option>
-</select>
-</label>
-<label>Тейк-профит, ATR
-<select id="targetAtr">
-<option value="1">1,0 ATR</option>
-<option value="1.5">1,5 ATR</option>
-<option value="2" selected>2,0 ATR</option>
-<option value="2.5">2,5 ATR</option>
-<option value="3">3,0 ATR</option>
-<option value="4">4,0 ATR</option>
-</select>
-</label>
-<label>Риск капитала на сделку
-<select id="risk">
-<option value="0.25">0,25%</option>
-<option value="0.50" selected>0,50%</option>
-<option value="0.75">0,75%</option>
-<option value="1.00">1,00%</option>
-</select>
-</label>
-<label>Финальная выборка
-<select id="testShare">
-<option value="0.20" selected>Последние 20%</option>
-<option value="0.25">Последние 25%</option>
-<option value="0.30">Последние 30%</option>
-</select>
-</label>
-</div>
-<div class="actions">
-<button id="loadBtn">1. Загрузить историю</button>
-<button id="runBtn" disabled>2. Провести исследование</button>
-<button id="copyBtn" class="secondary">Скопировать отчёт</button>
-</div>
-<div class="progress"><div id="bar"></div></div>
-<div id="status" class="status">Готово. Загрузи исторические свечи Binance.</div>
-<p class="small">Загружаются закрытые часовые свечи. Не закрывай страницу до завершения загрузки. Если Binance ограничит запросы, повтори попытку позже.</p>
-</div>
+  <section class="panel">
+    <h2>1. Исторические данные</h2>
+    <p class="muted small">
+      История загружается с Binance Spot. Для восьми лет может потребоваться
+      несколько минут и около 70 запросов. Не закрывай страницу во время загрузки.
+    </p>
+    <div class="row">
+      <div class="field">
+        <label>Начало истории</label>
+        <input id="startDate" type="date" value="2018-10-12">
+      </div>
+      <div class="field">
+        <label>Конец истории</label>
+        <input id="endDate" type="date" value="2026-10-12">
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button id="loadBtn" onclick="loadData()">Загрузить Binance</button>
+      <button class="secondary" id="runBtn" onclick="runResearch()" disabled>
+        Запустить исследование
+      </button>
+    </div>
+    <progress id="progress" value="0" max="100" hidden></progress>
+    <div id="status" class="status" style="margin-top:10px">Данные ещё не загружены.</div>
+  </section>
 
-<div class="panel">
-<h2>2. Основные результаты</h2>
-<div id="metrics" class="metrics">
-<div class="metric"><div class="name">Свечей</div><div class="value">—</div></div>
-<div class="metric"><div class="name">Стратегий</div><div class="value">—</div></div>
-<div class="metric"><div class="name">LONG-кандидатов</div><div class="value">—</div></div>
-<div class="metric"><div class="name">Качество данных</div><div class="value">—</div></div>
-</div>
-<div id="tables"></div>
-</div>
+  <section class="panel">
+    <h2>2. Параметры эксперимента</h2>
+    <div class="row">
+      <div class="field">
+        <label>Комиссия за одну сторону, %</label>
+        <input id="fee" type="number" value="0.10" min="0" max="2" step="0.01">
+      </div>
+      <div class="field">
+        <label>Риск капитала на сделку, %</label>
+        <input id="risk" type="number" value="0.50" min="0.05" max="5" step="0.05">
+      </div>
+      <div class="field">
+        <label>Стоп, ATR</label>
+        <input id="stopAtr" type="number" value="1.5" min="0.2" max="10" step="0.1">
+      </div>
+      <div class="field">
+        <label>Цель, ATR</label>
+        <input id="targetAtr" type="number" value="2" min="0.2" max="20" step="0.1">
+      </div>
+      <div class="field">
+        <label>Макс. удержание, часов</label>
+        <input id="hold" type="number" value="24" min="1" max="168" step="1">
+      </div>
+    </div>
+    <p class="muted small">
+      Максимальная экспозиция — 100% капитала. Плечо не применяется.
+      Стресс-тест удваивает комиссию. Параметры применяются одинаково
+      ко всем стратегиям и временным сегментам.
+    </p>
+  </section>
 
-<div class="panel">
-<h2>3. Полный текстовый отчёт</h2>
-<p>Нажми «Скопировать отчёт» после завершения исследования и вставь текст в чат.</p>
-<textarea id="report" placeholder="Здесь появится полный отчёт..."></textarea>
-<div class="actions">
-<button id="selectBtn" class="secondary">Выделить отчёт</button>
-<button id="copyBtn2" class="secondary">Скопировать отчёт</button>
-</div>
-</div>
+  <section class="panel">
+    <h2>3. Качество данных</h2>
+    <div id="quality" class="cards">
+      <div class="metric"><div class="name">Свечи</div><div class="value">—</div></div>
+    </div>
+    <div id="gapText" class="muted small" style="margin-top:10px"></div>
+  </section>
 
-<footer>
-Исследовательский инструмент, не торговый совет. Исторические результаты не гарантируют будущую прибыль. Buy & Hold служит ориентиром изменения цены BTC; его риск и экспозиция отличаются от торговых стратегий. Модель не учитывает точный спред, стакан, funding, ликвидации, задержки и реальные исполнения.
-</footer>
+  <section class="panel">
+    <h2>4. Результаты</h2>
+    <div id="summary" class="cards">
+      <div class="metric"><div class="name">Статус</div><div class="value">Ожидание</div></div>
+    </div>
+    <h3>Сравнение стратегий</h3>
+    <div class="tablewrap">
+      <table id="resultsTable">
+        <thead><tr><th>Стратегия</th><th>Сделки</th><th>Win %</th>
+        <th>PF</th><th>Доходность</th><th>Просадка</th><th>Экспозиция</th>
+        <th>Средняя сделка</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3>Сегменты рынка</h3>
+    <div class="tablewrap">
+      <table id="segmentTable">
+        <thead><tr><th>Сегмент</th><th>Период</th><th>Свечи</th>
+        <th>BTC Buy & Hold</th><th>Просадка BTC</th><th>Cash</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3>Стресс-тест: удвоенные комиссии</h3>
+    <div class="tablewrap">
+      <table id="stressTable">
+        <thead><tr><th>Стратегия</th><th>Сделки</th><th>PF</th>
+        <th>Доходность</th><th>Просадка</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3>Годовые результаты финального сегмента</h3>
+    <div class="tablewrap">
+      <table id="yearTable">
+        <thead><tr><th>Год</th><th>BTC Buy & Hold</th>
+        <th>Стратегии: диапазон доходности</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>5. Текстовый отчёт</h2>
+    <p class="muted small">Скопируй отчёт и отправь его в чат для анализа.</p>
+    <div class="row">
+      <button onclick="copyReport()">Скопировать отчёт</button>
+      <button class="secondary" onclick="selectReport()">Выделить текст</button>
+    </div>
+    <textarea id="report" readonly placeholder="После исследования здесь появится отчёт."></textarea>
+  </section>
+
+  <section class="panel">
+    <h2>Как читать результаты</h2>
+    <ul>
+      <li><b>PF &gt; 1</b> означает, что сумма прибыльных сделок выше суммы убыточных до некоторых эффектов компаундинга; для отбора важны также комиссии, просадка и устойчивость.</li>
+      <li><b>Экспозиция</b> — приблизительная доля времени в позиции, а не доля капитала, вложенная в рынок.</li>
+      <li><b>Финальный сегмент</b> — последние 20% истории. Если его результаты уже многократно изучались, он больше не является полностью независимым тестом.</li>
+      <li>Short-стратегии здесь — только математическая модель. Она не учитывает финансирование, ликвидации, маржу и специфику фьючерсов.</li>
+      <li>Историческая доходность не гарантирует будущую прибыль.</li>
+    </ul>
+  </section>
+
+  <footer>
+    BTC Strategy Lab v5.6 · Исследовательский инструмент, не финансовая рекомендация.
+  </footer>
 </main>
 
 <script>
 "use strict";
 
-const $=id=>document.getElementById(id);
-let candles=[],busy=false,lastReport="";
-let dataQuality=null;
+const $ = id => document.getElementById(id);
+let candles = [];
+let indicators = null;
+let dataGaps = [];
+let lastResults = null;
+let loading = false;
 
-const strategies=[
-{id:"A_LONG",name:"A · Тренд + откат",dir:"LONG",desc:"Восходящий тренд, откат к EMA20 и восстановление цены."},
-{id:"A_SHORT",name:"A · Тренд + откат",dir:"SHORT",desc:"Нисходящий тренд, откат к EMA20 и возобновление падения."},
-{id:"B_LONG",name:"B · Пробой + объём",dir:"LONG",desc:"Пробой максимума предыдущих 20 свечей с подтверждением объёма."},
-{id:"B_SHORT",name:"B · Пробой + объём",dir:"SHORT",desc:"Пробой минимума предыдущих 20 свечей с подтверждением объёма."},
-{id:"C_LONG",name:"C · Импульс",dir:"LONG",desc:"Положительный импульс, тренд и подтверждение RSI."},
-{id:"C_SHORT",name:"C · Импульс",dir:"SHORT",desc:"Отрицательный импульс, тренд и подтверждение RSI."},
-{id:"D_LONG",name:"D · Возврат к среднему",dir:"LONG",desc:"Покупка сильного отклонения вниз во флэте."},
-{id:"D_SHORT",name:"D · Возврат к среднему",dir:"SHORT",desc:"Продажа сильного отклонения вверх во флэте."}
+const HOUR = 3600000;
+const STRATEGIES = [
+  {id:"A_LONG", name:"A — Trend Pullback LONG", dir:1, type:"A"},
+  {id:"A_SHORT",name:"A — Trend Pullback SHORT",dir:-1,type:"A"},
+  {id:"B_LONG", name:"B — Breakout LONG",dir:1,type:"B"},
+  {id:"B_SHORT",name:"B — Breakout SHORT",dir:-1,type:"B"},
+  {id:"C_LONG", name:"C — Momentum LONG",dir:1,type:"C"},
+  {id:"C_SHORT",name:"C — Momentum SHORT",dir:-1,type:"C"},
+  {id:"D_LONG", name:"D — Mean Reversion LONG",dir:1,type:"D"},
+  {id:"D_SHORT",name:"D — Mean Reversion SHORT",dir:-1,type:"D"}
 ];
 
-function fmt(x,d=2){
- if(!Number.isFinite(x))return "—";
- return x.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d});
+function setStatus(s){ $("status").textContent = s; }
+
+function fmt(n,d=2){
+  if(!Number.isFinite(n)) return "—";
+  return n.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d});
 }
-function pct(x){return Number.isFinite(x)?(x>0?"+":"")+fmt(x,2)+"%":"—";}
-function dt(t){return new Date(t).toISOString().slice(0,16).replace("T"," ");}
-function status(s){$("status").textContent=s;}
-function progress(n){$("bar").style.width=Math.max(0,Math.min(100,n))+"%";}
-function wait(ms){return new Promise(r=>setTimeout(r,ms));}
-function dateStart(){
- const s=$("startDate").value;
- return s?Date.parse(s+"T00:00:00Z"):Date.UTC(2018,9,12);
+function pct(n){return Number.isFinite(n)?fmt(n*100)+"%":"—";}
+function signedPct(n){return Number.isFinite(n)?(n>0?"+":"")+pct(n):"—";}
+function dateStr(t){return new Date(t).toISOString().slice(0,16).replace("T"," ");}
+function esc(s){
+  return String(s).replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
 }
-function dateEnd(){
- const s=$("endDate").value;
- return s?Date.parse(s+"T23:59:59Z"):Date.now();
-}
-function setBusy(v){
- busy=v;
- $("loadBtn").disabled=v;
- $("runBtn").disabled=v||candles.length===0;
+function num(id,min,max){
+  const v=Number($(id).value);
+  if(!Number.isFinite(v)||v<min||v>max) throw new Error(
+    "Проверь параметр «"+id+"»: допустимый диапазон "+min+"–"+max+"."
+  );
+  return v;
 }
 
-function inspectData(data,duplicates=0){
- const gaps=[];
- let invalid=0,maxGap=0;
- for(let i=0;i<data.length;i++){
-  const c=data[i];
-  if(!(c.open>0&&c.close>0&&c.high>0&&c.low>0&&c.volume>=0&&
-       c.high>=Math.max(c.open,c.close,c.low)&&
-       c.low<=Math.min(c.open,c.close,c.high)))invalid++;
-  if(i>0){
-   const delta=c.time-data[i-1].time;
-   if(delta!==3600000){
-    gaps.push({time:data[i-1].time,missing:Math.max(0,Math.round(delta/3600000)-1),delta});
-    maxGap=Math.max(maxGap,delta);
-   }
-  }
- }
- const expected=Math.max(0,Math.floor((data[data.length-1].time-data[0].time)/3600000));
- const actual=data.length-1;
- return {
-  gaps:gaps.length,missingHours:gaps.reduce((s,g)=>s+g.missing,0),
-  maxGapHours:maxGap/3600000,invalid,duplicates,expected,actual,
-  gapDetails:gaps.slice(0,20)
- };
-}
+async function loadData(){
+  if(loading) return;
+  loading=true;
+  $("loadBtn").disabled=true;
+  $("runBtn").disabled=true;
+  $("progress").hidden=false;
+  $("progress").value=0;
+  candles=[];
+  dataGaps=[];
+  lastResults=null;
+  $("report").value="";
+  setStatus("Подготовка загрузки…");
 
-async function loadHistory(){
- if(busy)return;
- setBusy(true);candles=[];dataQuality=null;lastReport="";
- $("report").value="";$("tables").innerHTML="";progress(0);
- try{
-  const start=dateStart(),end=dateEnd();
-  if(!Number.isFinite(start)||!Number.isFinite(end)||start>=end)
-   throw Error("Проверь даты: начало должно быть раньше конца.");
+  try{
+    const startValue=$("startDate").value;
+    const endValue=$("endDate").value;
+    if(!startValue||!endValue) throw new Error("Укажи обе даты.");
+    const start=Date.parse(startValue+"T00:00:00Z");
+    const end=Date.parse(endValue+"T00:00:00Z");
+    if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)
+      throw new Error("Неверный диапазон дат.");
 
-  let cursor=start,all=[],requests=0,duplicates=0;
-  while(cursor<end&&requests<200){
-   const url="https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=1000&startTime="+cursor+"&endTime="+end;
-   let response;
-   try{response=await fetch(url,{cache:"no-store"});}
-   catch(e){throw Error("Не удалось соединиться с Binance API. Проверь интернет.");}
-   if(!response.ok)throw Error("Binance API вернул HTTP "+response.status+". Попробуй позже.");
-   const data=await response.json();requests++;
-   if(!Array.isArray(data))throw Error("Неожиданный ответ Binance.");
-   if(!data.length)break;
+    let cursor=start;
+    const temp=[];
+    let requests=0;
+    const maxRequests=500;
 
-   for(const k of data){
-    const t=Number(k[0]),ct=Number(k[6]);
-    if(t>=start&&t<end&&ct<Date.now()){
-     all.push({time:t,open:+k[1],high:+k[2],low:+k[3],close:+k[4],volume:+k[5],closeTime:ct});
+    while(cursor<end && requests<maxRequests){
+      const url="https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&startTime="
+        +cursor+"&endTime="+(end-1)+"&limit=1000";
+      const response=await fetch(url);
+      if(!response.ok){
+        let msg="HTTP "+response.status;
+        try{const body=await response.json();if(body.msg)msg=body.msg;}catch(_){}
+        throw new Error("Binance не ответила: "+msg+". Попробуй позже или проверь соединение.");
+      }
+      const rows=await response.json();
+      requests++;
+      if(!Array.isArray(rows)) throw new Error("Неожиданный ответ Binance.");
+      if(rows.length===0) break;
+
+      for(const r of rows){
+        const c={
+          t:Number(r[0]), o:Number(r[1]), h:Number(r[2]),
+          l:Number(r[3]), c:Number(r[4]), v:Number(r[5]),
+          closeTime:Number(r[6])
+        };
+        if(c.t>=start&&c.t<end&&
+          [c.t,c.o,c.h,c.l,c.c,c.v].every(Number.isFinite)&&
+          c.o>0&&c.h>0&&c.l>0&&c.c>0&&c.v>=0&&
+          c.h>=Math.max(c.o,c.c,c.l)&&c.l<=Math.min(c.o,c.c,c.h)){
+          temp.push(c);
+        }
+      }
+
+      const next=Number(rows[rows.length-1][0])+HOUR;
+      if(next<=cursor) break;
+      cursor=next;
+      $("progress").value=Math.min(99,100*(cursor-start)/(end-start));
+      setStatus("Загружено свечей: "+temp.length.toLocaleString("ru-RU")+
+        ". Запросов: "+requests+".");
+      await new Promise(resolve=>setTimeout(resolve,80));
     }
-   }
-   const last=Number(data[data.length-1][0]);
-   if(last<=cursor)break;
-   cursor=last+3600000;
-   progress(100*(cursor-start)/(end-start));
-   status("Загрузка истории Binance...\nСвечей получено: "+all.length.toLocaleString("ru-RU")+
-    "\nЗапросов: "+requests+"\nПоследняя свеча: "+dt(last));
-   await wait(130);
-   if(data.length<1000)break;
+
+    if(requests>=maxRequests) throw new Error("Достигнут лимит запросов.");
+    const map=new Map();
+    for(const c of temp) map.set(c.t,c);
+    candles=Array.from(map.values()).sort((a,b)=>a.t-b.t);
+    if(candles.length<500) throw new Error("Недостаточно данных: "+candles.length+" свечей.");
+
+    dataGaps=[];
+    for(let i=1;i<candles.length;i++){
+      const delta=candles[i].t-candles[i-1].t;
+      if(delta!==HOUR){
+        dataGaps.push({
+          left:i-1,right:i,
+          missing:Math.max(0,Math.round(delta/HOUR)-1),
+          delta
+        });
+      }
+    }
+
+    indicators=buildIndicators(candles);
+    $("progress").value=100;
+    $("runBtn").disabled=false;
+    renderQuality();
+    setStatus("Загрузка завершена: "+candles.length.toLocaleString("ru-RU")+
+      " свечей. Можно запускать исследование.");
+  }catch(e){
+    setStatus("Ошибка: "+e.message);
+  }finally{
+    loading=false;
+    $("loadBtn").disabled=false;
   }
-  if(cursor<end&&requests>=200)throw Error("Достигнут лимит запросов загрузчика. История может быть неполной. Уменьши диапазон дат и повтори.");
-  const map=new Map();
-  for(const c of all){
-   if(map.has(c.time))duplicates++;
-   map.set(c.time,c);
-  }
-  candles=[...map.values()].sort((a,b)=>a.time-b.time);
-  if(candles.length<3000)throw Error("Получено мало свечей: "+candles.length+". Проверь даты и интернет.");
-  dataQuality=inspectData(candles,duplicates);
-  calculateIndicators(candles);
-  addMomentum(candles);
-  progress(100);
-  $("runBtn").disabled=false;
-  status("История загружена.\nСвечей: "+candles.length.toLocaleString("ru-RU")+
-   "\nС: "+dt(candles[0].time)+"\nПо: "+dt(candles[candles.length-1].time)+
-   "\nРазрывов между свечами: "+dataQuality.gaps+
-   "\nПропущенных часов по интервалам: "+dataQuality.missingHours+
-   "\nНекорректных свечей: "+dataQuality.invalid+
-   "\nТеперь нажми «Провести исследование».");
- }catch(e){status("Ошибка загрузки: "+(e.message||String(e)));}
- finally{setBusy(false);}
 }
 
-function ema(a,p){
- const o=Array(a.length).fill(null);
- if(a.length<p)return o;
- let s=0;
- for(let i=0;i<p;i++)s+=a[i];
- o[p-1]=s/p;
- const k=2/(p+1);
- for(let i=p;i<a.length;i++)o[i]=a[i]*k+o[i-1]*(1-k);
- return o;
-}
-function rsi(a,p=14){
- const o=Array(a.length).fill(null);
- if(a.length<=p)return o;
- let g=0,l=0;
- for(let i=1;i<=p;i++){const d=a[i]-a[i-1];if(d>0)g+=d;else l-=d;}
- let ag=g/p,al=l/p;
- o[p]=al===0?100:100-100/(1+ag/al);
- for(let i=p+1;i<a.length;i++){
-  const d=a[i]-a[i-1];
-  ag=(ag*(p-1)+Math.max(0,d))/p;
-  al=(al*(p-1)+Math.max(0,-d))/p;
-  o[i]=al===0?100:100-100/(1+ag/al);
- }
- return o;
-}
-function indicators(data,p=14){
- const n=data.length,tr=Array(n).fill(0),pd=Array(n).fill(0),md=Array(n).fill(0);
- for(let i=1;i<n;i++){
-  tr[i]=Math.max(data[i].high-data[i].low,
-   Math.abs(data[i].high-data[i-1].close),
-   Math.abs(data[i].low-data[i-1].close));
-  const u=data[i].high-data[i-1].high,d=data[i-1].low-data[i].low;
-  pd[i]=u>d&&u>0?u:0;md[i]=d>u&&d>0?d:0;
- }
- const atr=Array(n).fill(null),adx=Array(n).fill(null),dx=Array(n).fill(null);
- let st=0,sp=0,sm=0;
- for(let i=1;i<=p;i++){st+=tr[i];sp+=pd[i];sm+=md[i];}
- atr[p]=st/p;
- for(let i=p;i<n;i++){
-  if(i>p){st=st-st/p+tr[i];sp=sp-sp/p+pd[i];sm=sm-sm/p+md[i];}
-  atr[i]=st/p;
-  const plus=st?100*sp/st:0,minus=st?100*sm/st:0;
-  dx[i]=plus+minus?100*Math.abs(plus-minus)/(plus+minus):0;
- }
- let sum=0,count=0;
- for(let i=p;i<2*p;i++){if(dx[i]!==null){sum+=dx[i];count++;}}
- if(count===p)adx[2*p-1]=sum/p;
- for(let i=2*p;i<n;i++){
-  if(adx[i-1]!==null&&dx[i]!==null)adx[i]=(adx[i-1]*(p-1)+dx[i])/p;
- }
- return {atr,adx};
-}
-function calculateIndicators(data){
- const close=data.map(c=>c.close);
- const e20=ema(close,20),e50=ema(close,50),e200=ema(close,200);
- const r=rsi(close,14),{atr,adx}=indicators(data,14);
- const volAvg=Array(data.length).fill(null),highs=Array(data.length).fill(null),lows=Array(data.length).fill(null);
- const bbMid=Array(data.length).fill(null),bbUpper=Array(data.length).fill(null),bbLower=Array(data.length).fill(null);
- let volSum=0;
- for(let i=0;i<data.length;i++){
-  volSum+=data[i].volume;
-  if(i>=20)volSum-=data[i-20].volume;
-  if(i>=19)volAvg[i]=volSum/20;
-  if(i>=20){
-   let hi=-Infinity,lo=Infinity;
-   for(let j=i-20;j<i;j++){hi=Math.max(hi,data[j].high);lo=Math.min(lo,data[j].low);}
-   highs[i]=hi;lows[i]=lo;
+function ema(values,period){
+  const out=new Array(values.length).fill(null);
+  const k=2/(period+1);
+  let seed=0,count=0,prev=null;
+  for(let i=0;i<values.length;i++){
+    const x=values[i];
+    if(!Number.isFinite(x)){prev=null;seed=0;count=0;continue;}
+    if(prev===null){
+      seed+=x;count++;
+      if(count===period){prev=seed/period;out[i]=prev;}
+    }else{
+      prev=x*k+prev*(1-k);
+      out[i]=prev;
+    }
   }
-  if(i>=19){
-   let m=0;for(let j=i-19;j<=i;j++)m+=close[j];m/=20;
-   let v=0;for(let j=i-19;j<=i;j++)v+=(close[j]-m)**2;
-   v=Math.sqrt(v/20);bbMid[i]=m;bbUpper[i]=m+2*v;bbLower[i]=m-2*v;
-  }
- }
- for(let i=0;i<data.length;i++){
-  Object.assign(data[i],{ema20:e20[i],ema50:e50[i],ema200:e200[i],
-   rsi:r[i],atr:atr[i],adx:adx[i],volAvg:volAvg[i],
-   prevHigh:highs[i],prevLow:lows[i],bbMid:bbMid[i],bbUpper:bbUpper[i],bbLower:bbLower[i]});
- }
-}
-function addMomentum(data){
- for(let i=0;i<data.length;i++)data[i].momentum12=i>=12?data[i-12].close:null;
-}
-function signal(c,id){
- if(!c||!Number.isFinite(c.atr)||!Number.isFinite(c.adx)||!Number.isFinite(c.rsi))return false;
- const L=id.endsWith("LONG"),A=id.startsWith("A"),B=id.startsWith("B"),C=id.startsWith("C"),D=id.startsWith("D");
- if(A){
-  if(!Number.isFinite(c.ema200)||!Number.isFinite(c.ema50)||!Number.isFinite(c.ema20))return false;
-  if(L)return c.close>c.ema200&&c.ema20>c.ema50&&c.low<=c.ema20&&c.close>c.ema20&&c.adx>18;
-  return c.close<c.ema200&&c.ema20<c.ema50&&c.high>=c.ema20&&c.close<c.ema20&&c.adx>18;
- }
- if(B){
-  if(!(c.volAvg>0&&c.volume>1.2*c.volAvg&&c.adx>20))return false;
-  return L?c.prevHigh!==null&&c.close>c.prevHigh:c.prevLow!==null&&c.close<c.prevLow;
- }
- if(C){
-  if(!Number.isFinite(c.momentum12)||!Number.isFinite(c.ema20))return false;
-  if(L)return c.close>c.momentum12&&c.close>c.ema20&&c.rsi>=52&&c.rsi<=75&&c.adx>18;
-  return c.close<c.momentum12&&c.close<c.ema20&&c.rsi>=25&&c.rsi<=48&&c.adx>18;
- }
- if(D){
-  if(c.adx>=18||!Number.isFinite(c.bbUpper)||!Number.isFinite(c.bbLower))return false;
-  return L?c.close<c.bbLower&&c.rsi<35:c.close>c.bbUpper&&c.rsi>65;
- }
- return false;
+  return out;
 }
 
-function stats(trades){
- let wins=0,gain=0,loss=0,sum=0,eq=1,peak=1,dd=0;
- for(const t of trades){
-  const x=t.netEquityPct/100;sum+=t.netEquityPct;
-  if(x>0){wins++;gain+=x;}else if(x<0)loss+=Math.abs(x);
-  eq=Math.max(0.000001,eq*(1+x));peak=Math.max(peak,eq);
-  dd=Math.max(dd,(peak-eq)/peak);
- }
- return {n:trades.length,win:trades.length?100*wins/trades.length:NaN,
-  pf:loss?gain/loss:(gain?Infinity:NaN),ret:(eq-1)*100,
-  avg:trades.length?sum/trades.length:NaN,dd:dd*100};
-}
-function simulate(data,strategy,opts,begin,end){
- const hold=Number(opts.hold),cost=Number(opts.cost)/100;
- const stopMult=Number(opts.stopAtr),targetMult=Number(opts.targetAtr),risk=Number(opts.risk)/100;
- const trades=[];let equity=1,peak=1,i=Math.max(begin,210);
- while(i<end-1&&equity>0.00000101){
-  const c=data[i];
-  if(!signal(c,strategy.id)){i++;continue;}
-  const entryIndex=i+1,timeout=entryIndex+hold;
-  if(timeout>=end)break;
-  const entry=data[entryIndex].open,atr=c.atr;
-  if(!(entry>0&&atr>0)){i++;continue;}
-  const isLong=strategy.dir==="LONG",stopDist=atr*stopMult,targetDist=atr*targetMult;
-  const stop=isLong?entry-stopDist:entry+stopDist,target=isLong?entry+targetDist:entry-targetDist;
-  const stopFrac=stopDist/entry,exposure=Math.min(1,risk/stopFrac);
-  let exitPrice=null,reason="TIME",exitIndex=timeout;
-  for(let j=entryIndex;j<timeout;j++){
-   const b=data[j];
-   if(isLong){
-    if(b.open<=stop){exitPrice=b.open;reason="STOP_GAP";}
-    else if(b.open>=target){exitPrice=target;reason="TARGET";}
-    else if(b.low<=stop){exitPrice=stop;reason="STOP";}
-    else if(b.high>=target){exitPrice=target;reason="TARGET";}
-   }else{
-    if(b.open>=stop){exitPrice=b.open;reason="STOP_GAP";}
-    else if(b.open<=target){exitPrice=target;reason="TARGET";}
-    else if(b.high>=stop){exitPrice=stop;reason="STOP";}
-    else if(b.low<=target){exitPrice=target;reason="TARGET";}
-   }
-   if(exitPrice!==null){exitIndex=j;break;}
+function sma(values,period){
+  const out=new Array(values.length).fill(null);
+  let sum=0;
+  for(let i=0;i<values.length;i++){
+    sum+=values[i];
+    if(i>=period) sum-=values[i-period];
+    if(i>=period-1) out[i]=sum/period;
   }
-  if(exitPrice===null)exitPrice=data[timeout].open;
-  if(!(exitPrice>0)){i++;continue;}
-  const gross=isLong?(exitPrice-entry)/entry:(entry-exitPrice)/entry;
-  const netFraction=exposure*(gross-cost),before=equity;
-  equity=Math.max(0,equity*(1+netFraction));
-  peak=Math.max(peak,equity);
-  trades.push({signalTime:c.time,entryTime:data[entryIndex].time,exitTime:data[exitIndex].time,
-   entry,exit:exitPrice,grossPct:gross*100,exposurePct:exposure*100,
-   netEquityPct:netFraction*100,reason,year:new Date(data[entryIndex].time).getUTCFullYear(),
-   equityBefore:before,equityAfter:equity});
-  i=exitIndex+1;
- }
- return {trades,stats:stats(trades),equity};
+  return out;
 }
-function benchmark(data,begin,end){
- const start=Math.max(begin,0),last=end-1;
- if(last<=start||!data[start]||!data[last])return {ret:NaN,dd:NaN,start:NaN,end:NaN};
- const p0=data[start].open,p1=data[last].close;
- let peak=p0,dd=0;
- for(let i=start;i<end;i++){
-  peak=Math.max(peak,data[i].close);
-  if(peak>0)dd=Math.max(dd,(peak-data[i].close)/peak);
- }
- return {ret:(p1/p0-1)*100,dd:dd*100,start:p0,end:p1};
+
+function rollingHigh(values,period){
+  const out=new Array(values.length).fill(null);
+  for(let i=period;i<values.length;i++){
+    let m=-Infinity;
+    for(let j=i-period;j<i;j++) m=Math.max(m,values[j]);
+    out[i]=m;
+  }
+  return out;
 }
-function pfText(x){return x===Infinity?"∞":fmt(x,2);}
-function makeTable(headers,rows){
- return '<div class="tablewrap"><table><thead><tr>'+
- headers.map(h=>'<th>'+h+'</th>').join("")+
- '</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(v=>'<td>'+v+'</td>').join("")+'</tr>').join("")+
- '</tbody></table></div>';
+function rollingLow(values,period){
+  const out=new Array(values.length).fill(null);
+  for(let i=period;i<values.length;i++){
+    let m=Infinity;
+    for(let j=i-period;j<i;j++) m=Math.min(m,values[j]);
+    out[i]=m;
+  }
+  return out;
 }
-function yearlyResults(trades){
- const m=new Map();
- for(const t of trades){if(!m.has(t.year))m.set(t.year,[]);m.get(t.year).push(t);}
- return [...m.entries()].sort((a,b)=>a[0]-b[0]).map(([year,ts])=>({year,...stats(ts)}));
+function rsi(values,period=14){
+  const out=new Array(values.length).fill(null);
+  let avgGain=0,avgLoss=0;
+  for(let i=1;i<values.length;i++){
+    const d=values[i]-values[i-1];
+    const gain=Math.max(0,d),loss=Math.max(0,-d);
+    if(i<=period){
+      avgGain+=gain;avgLoss+=loss;
+      if(i===period){
+        avgGain/=period;avgLoss/=period;
+        out[i]=avgLoss===0?100:100-100/(1+avgGain/avgLoss);
+      }
+    }else{
+      avgGain=(avgGain*(period-1)+gain)/period;
+      avgLoss=(avgLoss*(period-1)+loss)/period;
+      out[i]=avgLoss===0?100:100-100/(1+avgGain/avgLoss);
+    }
+  }
+  return out;
 }
-function getSegments(n,testShare){
- const trainShare=1-testShare-0.20,a=Math.floor(n*trainShare),b=Math.floor(n*(1-testShare));
- return [{name:"Обучение",start:210,end:a},
-  {name:"Проверка",start:a,end:b},{name:"Финальный тест",start:b,end:n}];
+function atr(data,period=14){
+  const tr=new Array(data.length).fill(null);
+  for(let i=1;i<data.length;i++){
+    tr[i]=Math.max(
+      data[i].h-data[i].l,
+      Math.abs(data[i].h-data[i-1].c),
+      Math.abs(data[i].l-data[i-1].c)
+    );
+  }
+  const out=new Array(data.length).fill(null);
+  let sum=0,prev=null;
+  for(let i=1;i<data.length;i++){
+    if(i<=period){
+      sum+=tr[i];
+      if(i===period){prev=sum/period;out[i]=prev;}
+    }else{
+      prev=(prev*(period-1)+tr[i])/period;
+      out[i]=prev;
+    }
+  }
+  return out;
 }
-function assessment(results){
- const final=results.filter(x=>x.segment==="Финальный тест"&&x.strategy.dir==="LONG");
- const candidates=final.filter(x=>x.stats.n>=30&&x.stats.avg>0&&x.stats.pf>1);
- if(!candidates.length)return "На финальном тесте нет LONG-стратегии, прошедшей базовые фильтры: минимум 30 сделок, положительный средний результат на капитал и PF > 1. Текущие правила не подтвердили преимущество.";
- candidates.sort((a,b)=>b.stats.pf-a.stats.pf);
- const b=candidates[0];
- return "Предварительный кандидат: "+b.strategy.id+", сделок "+b.stats.n+", PF "+pfText(b.stats.pf)+", средний результат на капитал "+pct(b.stats.avg)+", DD "+pct(b.stats.dd)+". Это только кандидат для дальнейшей проверки.";
+function adx(data,period=14){
+  const n=data.length;
+  const tr=new Array(n).fill(0),plus=new Array(n).fill(0),minus=new Array(n).fill(0);
+  for(let i=1;i<n;i++){
+    const up=data[i].h-data[i-1].h;
+    const down=data[i-1].l-data[i].l;
+    plus[i]=up>down&&up>0?up:0;
+    minus[i]=down>up&&down>0?down:0;
+    tr[i]=Math.max(data[i].h-data[i].l,
+      Math.abs(data[i].h-data[i-1].c),Math.abs(data[i].l-data[i-1].c));
+  }
+  const out=new Array(n).fill(null);
+  let trS=0,pS=0,mS=0,prevAdx=null,dxSeed=0,dxCount=0;
+  for(let i=1;i<n;i++){
+    if(i<=period){
+      trS+=tr[i];pS+=plus[i];mS+=minus[i];
+      if(i===period){
+        const p=100*pS/trS,m=100*mS/trS;
+        const dx=(p+m)===0?0:100*Math.abs(p-m)/(p+m);
+        dxSeed+=dx;dxCount++;
+      }
+    }else{
+      trS=trS-trS/period+tr[i];
+      pS=pS-pS/period+plus[i];
+      mS=mS-mS/period+minus[i];
+      const p=trS===0?0:100*pS/trS;
+      const m=trS===0?0:100*mS/trS;
+      const dx=(p+m)===0?0:100*Math.abs(p-m)/(p+m);
+      if(prevAdx===null){
+        dxSeed+=dx;dxCount++;
+        if(dxCount>=period){
+          prevAdx=dxSeed/dxCount;
+          out[i]=prevAdx;
+        }
+      }else{
+        prevAdx=(prevAdx*(period-1)+dx)/period;
+        out[i]=prevAdx;
+      }
+    }
+  }
+  return out;
 }
+
+function buildIndicators(data){
+  const close=data.map(x=>x.c);
+  const high=data.map(x=>x.h);
+  const low=data.map(x=>x.l);
+  const vol=data.map(x=>x.v);
+  const mid=sma(close,20);
+  const variance=new Array(data.length).fill(null);
+  for(let i=19;i<data.length;i++){
+    let sum=0;
+    for(let j=i-19;j<=i;j++)sum+=(close[j]-mid[i])**2;
+    variance[i]=Math.sqrt(sum/20);
+  }
+  return {
+    e20:ema(close,20),e50:ema(close,50),e200:ema(close,200),
+    rsi:rsi(close,14),atr:atr(data,14),adx:adx(data,14),
+    volAvg:sma(vol,20),high20:rollingHigh(high,20),low20:rollingLow(low,20),
+    bbMid:mid,bbStd:variance,
+    momentum:close.map((x,i)=>i>=12?x/close[i-12]-1:null)
+  };
+}
+
+function renderQuality(){
+  const missing=dataGaps.reduce((s,g)=>s+g.missing,0);
+  const longest=dataGaps.reduce((m,g)=>Math.max(m,g.missing),0);
+  const invalid=candles.filter(c=>![c.t,c.o,c.h,c.l,c.c,c.v].every(Number.isFinite)).length;
+  const metrics=[
+    ["Свечи",candles.length.toLocaleString("ru-RU")],
+    ["Начало",dateStr(candles[0].t)],
+    ["Конец",dateStr(candles[candles.length-1].t)],
+    ["Разрывы",dataGaps.length],
+    ["Пропущенные часы",missing],
+    ["Самый длинный пропуск",longest+" ч"],
+    ["Неверные свечи",invalid]
+  ];
+  $("quality").innerHTML=metrics.map(([name,value])=>
+    '<div class="metric"><div class="name">'+esc(name)+
+    '</div><div class="value">'+esc(value)+'</div></div>').join("");
+  $("gapText").textContent=dataGaps.length
+    ? "Разрывы проверяются по временным меткам. Новые позиции, максимальный срок которых пересекает разрыв, исключаются. Сделки не переносятся через разрывы."
+    : "Разрывов между часовыми свечами не обнаружено.";
+}
+
+function makeSegments(){
+  const n=candles.length;
+  const a=Math.floor(n*.60),b=Math.floor(n*.80);
+  return [
+    {id:"train",name:"Train 60%",start:0,end:a},
+    {id:"validation",name:"Validation 20%",start:a,end:b},
+    {id:"test",name:"Final test 20%",start:b,end:n}
+  ];
+}
+function getRuns(start,end){
+  const runs=[];
+  let s=start;
+  for(let i=start+1;i<end;i++){
+    if(candles[i].t-candles[i-1].t!==HOUR){
+      if(i-s>1)runs.push({start:s,end:i});
+      s=i;
+    }
+  }
+  if(end-s>1)runs.push({start:s,end});
+  return runs;
+}
+function signalAt(i,strategy){
+  const d=candles[i],p=candles[i-1],x=indicators;
+  const dir=strategy.dir;
+  const vals=[x.e20[i],x.e50[i],x.e200[i],x.rsi[i],x.atr[i],x.adx[i]];
+  if(vals.some(v=>v===null||!Number.isFinite(v))||
+     x.high20[i]===null||x.low20[i]===null||x.volAvg[i]===null)return false;
+
+  if(strategy.type==="A"){
+    if(dir===1){
+      return x.e50[i]>x.e200[i]&&d.c>x.e200[i]&&
+        d.l<=x.e20[i]*1.003&&d.c>x.e20[i]&&x.rsi[i]>45&&x.rsi[i]<65;
+    }
+    return x.e50[i]<x.e200[i]&&d.c<x.e200[i]&&
+      d.h>=x.e20[i]*.997&&d.c<x.e20[i]&&x.rsi[i]>35&&x.rsi[i]<55;
+  }
+  if(strategy.type==="B"){
+    const volumeOK=d.v>x.volAvg[i]*1.2;
+    return dir===1
+      ? d.c>x.high20[i]&&volumeOK&&x.e50[i]>x.e200[i]
+      : d.c<x.low20[i]&&volumeOK&&x.e50[i]<x.e200[i];
+  }
+  if(strategy.type==="C"){
+    return dir===1
+      ? x.e20[i]>x.e50[i]&&x.e50[i]>x.e200[i]&&
+        x.momentum[i]>.005&&x.rsi[i]>55&&x.rsi[i]<75
+      : x.e20[i]<x.e50[i]&&x.e50[i]<x.e200[i]&&
+        x.momentum[i]<-.005&&x.rsi[i]<45&&x.rsi[i]>25;
+  }
+  if(strategy.type==="D"){
+    if(x.adx[i]>=18||x.bbStd[i]===null)return false;
+    const lower=x.bbMid[i]-2*x.bbStd[i];
+    const upper=x.bbMid[i]+2*x.bbStd[i];
+    return dir===1
+      ? d.c<lower&&x.rsi[i]<30
+      : d.c>upper&&x.rsi[i]>70;
+  }
+  return false;
+}
+
+function config(){
+  const fee=num("fee",0,2)/100;
+  const risk=num("risk",.05,5)/100;
+  const stop=num("stopAtr",.2,10);
+  const target=num("targetAtr",.2,20);
+  const hold=Math.round(num("hold",1,168));
+  return {fee,risk,stop,target,hold};
+}
+
+function simulate(strategy,segment,cfg,feeOverride){
+  const fee=feeOverride===undefined?cfg.fee:feeOverride;
+  const initial=10000;
+  let equity=initial,peak=initial,maxDD=0;
+  let wins=0,losses=0,grossProfit=0,grossLoss=0;
+  let sumRet=0,exposureBars=0,tradeCount=0;
+  let rejectedGap=0,bankrupt=false;
+  const trades=[];
+  const runs=getRuns(segment.start,segment.end);
+
+  for(const run of runs){
+    let i=Math.max(run.start+210,segment.start);
+    while(i<run.end-1){
+      if(bankrupt)break;
+      if(!signalAt(i,strategy)){i++;continue;}
+
+      const entryIndex=i+1;
+      if(entryIndex>=run.end){i++;continue;}
+      const lastAllowed=entryIndex+cfg.hold;
+      // Не открываем сделку, если её максимальный срок удержания
+      // выходит за пределы непрерывного ряда свечей.
+      if(lastAllowed>=run.end){rejectedGap++;i++;continue;}
+
+      const entry=candles[entryIndex].o;
+      const atrValue=indicators.atr[entryIndex];
+      if(!(entry>0&&atrValue>0)){i++;continue;}
+
+      const stopDistance=cfg.stop*atrValue;
+      const targetDistance=cfg.target*atrValue;
+      const stopPrice=entry-strategy.dir*stopDistance;
+      const targetPrice=entry+strategy.dir*targetDistance;
+      const stopPct=stopDistance/entry;
+      if(!(stopPct>0)){i++;continue;}
+
+      // Доля капитала, которая может быть поставлена под риск.
+      // Экспозиция ограничена 100% капитала; плечо отсутствует.
+      const positionFraction=Math.min(1,cfg.risk/stopPct);
+      if(!(positionFraction>0)){i++;continue;}
+
+      let exitIndex=-1,exitPrice=NaN,reason="";
+      for(let j=entryIndex;j<=lastAllowed;j++){
+        const bar=candles[j];
+        let stopHit=false,targetHit=false;
+        if(strategy.dir===1){
+          stopHit=bar.l<=stopPrice;
+          targetHit=bar.h>=targetPrice;
+        }else{
+          stopHit=bar.h>=stopPrice;
+          targetHit=bar.l<=targetPrice;
+        }
+
+        // Если стоп и цель попали в одну свечу, предполагаем худший исход: стоп.
+        if(stopHit){
+          exitIndex=j;
+          exitPrice=(strategy.dir===1&&bar.o<stopPrice)||
+            (strategy.dir===-1&&bar.o>stopPrice)?bar.o:stopPrice;
+          reason="STOP";
+          break;
+        }
+        if(targetHit){
+          exitIndex=j;exitPrice=targetPrice;reason="TARGET";break;
+        }
+      }
+
+      if(exitIndex<0){
+        exitIndex=lastAllowed;
+        // Временной выход моделируется по открытию следующей свечи.
+        exitPrice=candles[exitIndex+1].o;
+        reason="TIME";
+      }
+
+      const rawReturn=strategy.dir*(exitPrice-entry)/entry;
+      const netReturn=positionFraction*rawReturn-2*fee*positionFraction;
+      const tradePnl=equity*netReturn;
+      const before=equity;
+      equity=equity*(1+netReturn);
+      if(!Number.isFinite(equity)||equity<=0){
+        equity=0;bankrupt=true;
+      }
+      peak=Math.max(peak,equity);
+      if(peak>0)maxDD=Math.max(maxDD,(peak-equity)/peak);
+
+      tradeCount++;
+      sumRet+=netReturn;
+      exposureBars+=exitIndex-entryIndex+1;
+      if(netReturn>0){wins++;grossProfit+=tradePnl;}
+      else{losses++;grossLoss+=Math.abs(tradePnl);}
+
+      trades.push({
+        entryTime:candles[entryIndex].t,exitTime:candles[exitIndex].t,
+        entry,exit:exitPrice,reason,positionFraction,
+        ret:netReturn,equityBefore:before,equityAfter:equity
+      });
+      i=exitIndex+1;
+    }
+    if(bankrupt)break;
+  }
+
+  const totalBars=Math.max(1,segment.end-segment.start);
+  const first=candles[segment.start],last=candles[segment.end-1];
+  const durationHours=(last.t-first.t)/HOUR;
+  return {
+    id:strategy.id,name:strategy.name,strategy,
+    trades:tradeCount,wins,losses,
+    winRate:tradeCount?wins/tradeCount:NaN,
+    pf:grossLoss>0?grossProfit/grossLoss:(grossProfit>0?Infinity:0),
+    ret:equity/initial-1,dd:maxDD,
+    avg:tradeCount?sumRet/tradeCount:NaN,
+    exposure:Math.min(1,exposureBars/totalBars),
+    rejectedGap,bankrupt,equity,trades,
+    startTime:first.t,endTime:last.t,durationHours
+  };
+}
+
+function benchmark(segment){
+  const first=candles[segment.start],last=candles[segment.end-1];
+  const start=first.c,end=last.c;
+  let peak=start,maxDD=0;
+  for(let i=segment.start;i<segment.end;i++){
+    peak=Math.max(peak,candles[i].c);
+    if(peak>0)maxDD=Math.max(maxDD,(peak-candles[i].c)/peak);
+  }
+  return {ret:end/start-1,dd:maxDD,startTime:first.t,endTime:last.t};
+}
+
+function renderSegmentTable(segments){
+  $("segmentTable").querySelector("tbody").innerHTML=segments.map(s=>{
+    const b=benchmark(s);
+    return "<tr><td>"+esc(s.name)+"</td><td>"+esc(dateStr(s.startTime))+
+      " — "+esc(dateStr(s.endTime))+"</td><td>"+
+      (s.end-s.start).toLocaleString("ru-RU")+"</td><td>"+
+      signedPct(b.ret)+"</td><td>"+pct(b.dd)+"</td><td>0,00%</td></tr>";
+  }).join("");
+}
+
+function strategyTableRow(r){
+  const retClass=r.ret>0?"good":r.ret<0?"bad":"";
+  return "<tr><td>"+esc(r.name)+"</td><td>"+r.trades+"</td><td>"+
+    pct(r.winRate)+"</td><td>"+(Number.isFinite(r.pf)?fmt(r.pf,3):(r.pf===Infinity?"∞":"—"))+
+    "</td><td class='"+retClass+"'>"+signedPct(r.ret)+"</td><td>"+
+    pct(r.dd)+"</td><td>"+pct(r.exposure)+"</td><td>"+signedPct(r.avg)+"</td></tr>";
+}
+
+function renderYears(testSegment,yearlyResults){
+  const firstYear=new Date(candles[testSegment.start].t).getUTCFullYear();
+  const lastYear=new Date(candles[testSegment.end-1].t).getUTCFullYear();
+  const rows=[];
+  for(let y=firstYear;y<=lastYear;y++){
+    const indexes=[];
+    for(let i=testSegment.start;i<testSegment.end;i++){
+      if(new Date(candles[i].t).getUTCFullYear()===y)indexes.push(i);
+    }
+    if(indexes.length<2)continue;
+    const s={start:indexes[0],end:indexes[indexes.length-1]+1};
+    const b=benchmark(s);
+    const rr=yearlyResults.filter(r=>r.year===y).map(r=>r.ret).filter(Number.isFinite);
+    const range=rr.length?fmt(Math.min(...rr)*100)+"% … "+fmt(Math.max(...rr)*100)+"%":"—";
+    rows.push("<tr><td>"+y+"</td><td>"+signedPct(b.ret)+
+      "</td><td>"+range+"</td></tr>");
+  }
+  $("yearTable").querySelector("tbody").innerHTML=rows.join("");
+}
+
 function runResearch(){
- if(busy||candles.length===0)return;
- setBusy(true);progress(0);$("tables").innerHTML="";
- try{
-  const opts={hold:+$("hold").value,cost:+$("cost").value,stopAtr:+$("stopAtr").value,
-   targetAtr:+$("targetAtr").value,risk:+$("risk").value};
-  const testShare=+$("testShare").value,segments=getSegments(candles.length,testShare);
-  const results=[],benchmarks=[];
-  let done=0,total=strategies.length*segments.length*2+segments.length;
-  for(const strategy of strategies){
-   for(const seg of segments){
-    const r=simulate(candles,strategy,opts,seg.start,seg.end);
-    results.push({strategy,segment:seg.name,stats:r.stats,trades:r.trades});
-    done++;progress(100*done/total);
-   }
+  try{
+    if(candles.length<500||!indicators)throw new Error("Сначала загрузи историю.");
+    const cfg=config();
+    const n=candles.length;
+    const segments=makeSegments();
+    const train=segments[0],validation=segments[1],test=segments[2];
+    const results=[];
+    const stress=[];
+    const yearlyResults=[];
+
+    for(const s of STRATEGIES){
+      const r=simulate(s,test,cfg);
+      results.push(r);
+      stress.push(simulate(s,test,cfg,cfg.fee*2));
+    }
+
+    const trainResults=STRATEGIES.map(s=>simulate(s,train,cfg));
+    const valResults=STRATEGIES.map(s=>simulate(s,validation,cfg));
+    const bTrain=benchmark(train),bVal=benchmark(validation),bTest=benchmark(test);
+
+    // Годовые результаты считаются на финальном отрезке.
+    const firstYear=new Date(candles[test.start].t).getUTCFullYear();
+    const lastYear=new Date(candles[test.end-1].t).getUTCFullYear();
+    for(let y=firstYear;y<=lastYear;y++){
+      const inds=[];
+      for(let i=test.start;i<test.end;i++)
+        if(new Date(candles[i].t).getUTCFullYear()===y)inds.push(i);
+      if(inds.length<2)continue;
+      const seg={start:inds[0],end:inds[inds.length-1]+1};
+      for(const s of STRATEGIES){
+        const r=simulate(s,seg,cfg);
+        yearlyResults.push({year:y,id:s.id,ret:r.ret});
+      }
+    }
+
+    $("resultsTable").querySelector("tbody").innerHTML=
+      results.map(strategyTableRow).join("");
+
+    $("stressTable").querySelector("tbody").innerHTML=stress.map(r=>
+      "<tr><td>"+esc(r.name)+"</td><td>"+r.trades+"</td><td>"+
+      (Number.isFinite(r.pf)?fmt(r.pf,3):(r.pf===Infinity?"∞":"—"))+
+      "</td><td class='"+(r.ret>0?"good":"bad")+"'>"+signedPct(r.ret)+
+      "</td><td>"+pct(r.dd)+"</td></tr>").join("");
+
+    const segmentInfo=segments.map(s=>({
+      ...s,startTime:candles[s.start].t,endTime:candles[s.end-1].t
+    }));
+    renderSegmentTable(segmentInfo);
+    renderYears(test,yearlyResults);
+
+    const qualified=results.filter(r=>r.trades>=30&&r.ret>0&&r.pf>1);
+    const avgExposure=results.length
+      ?results.reduce((s,r)=>s+r.exposure,0)/results.length:0;
+    $("summary").innerHTML=[
+      ["Стратегий",STRATEGIES.length],
+      ["Прошли первичный фильтр",qualified.length],
+      ["BTC: final test",signedPct(bTest.ret)],
+      ["Просадка BTC",pct(bTest.dd)],
+      ["Средняя экспозиция стратегий",pct(avgExposure)],
+      ["Стресс-комиссия",pct(cfg.fee*4)]
+    ].map(([name,value])=>'<div class="metric"><div class="name">'+
+      esc(name)+'</div><div class="value">'+esc(value)+'</div></div>').join("");
+
+    lastResults={cfg,segments,results,stress,trainResults,valResults,
+      bTrain,bVal,bTest,qualified,yearlyResults};
+    $("report").value=makeReport(lastResults);
+    setStatus("Исследование завершено. Результаты рассчитаны для "+n+
+      " свечей. Проверь отчёт и пришли его в чат.");
+  }catch(e){
+    setStatus("Ошибка исследования: "+e.message);
   }
-  for(const seg of segments){
-   benchmarks.push({segment:seg.name,...benchmark(candles,seg.start,seg.end)});
-   done++;progress(100*done/total);
-  }
-
-  const stressCost=opts.cost*2,stressOpts={...opts,cost:stressCost},stress=[];
-  const finalSeg=segments.find(s=>s.name==="Финальный тест");
-  for(const strategy of strategies){
-   const r=simulate(candles,strategy,stressOpts,finalSeg.start,finalSeg.end);
-   stress.push({strategy,stats:r.stats});
-   done++;progress(100*done/total);
-  }
-
-  const finalLong=results.filter(x=>x.segment==="Финальный тест"&&x.strategy.dir==="LONG");
-  const candidates=finalLong.filter(x=>x.stats.n>=30&&x.stats.avg>0&&x.stats.pf>1);
-  const gap=dataQuality||inspectData(candles);
-  $("metrics").innerHTML=[
-   ["Свечей",candles.length.toLocaleString("ru-RU")],
-   ["Стратегий",strategies.length],
-   ["LONG-кандидатов",candidates.length],
-   ["Пропущенных часов",gap.missingHours]
-  ].map(x=>'<div class="metric"><div class="name">'+x[0]+'</div><div class="value">'+x[1]+'</div></div>').join("");
-
-  const rows=results.map(x=>{const s=x.stats;
-   return [x.strategy.id,x.segment,s.n,pct(s.win),pfText(s.pf),pct(s.avg),pct(s.ret),pct(s.dd)];
-  });
-  let html="<h3>Результаты восьми стратегий</h3>"+
-   makeTable(["Стратегия","Участок","Сделок","Win%","PF","Ср. на капитал","Доходность","DD"],rows);
-
-  html+="<h3>Контрольные ориентиры: Buy & Hold и Cash</h3>";
-  html+=makeTable(["Участок","Buy & Hold","DD Buy & Hold","Cash"],benchmarks.map(b=>
-   [b.segment,pct(b.ret),pct(b.dd),"0,00%"]));
-
-  html+="<h3>Стресс-тест: издержки ×2 = "+fmt(stressCost,2)+"%</h3>";
-  html+=makeTable(["Стратегия","Сделок","Win%","PF","Ср. на капитал","Доходность","DD"],
-   stress.map(x=>{const s=x.stats;return [x.strategy.id,s.n,pct(s.win),pfText(s.pf),pct(s.avg),pct(s.ret),pct(s.dd)];}));
-
-  html+="<h3>Годовые результаты финального теста</h3>";
-  const yr=[];
-  for(const x of results.filter(x=>x.segment==="Финальный тест")){
-   for(const y of yearlyResults(x.trades))
-    yr.push([x.strategy.id,y.year,y.n,pct(y.win),pfText(y.pf),pct(y.avg),pct(y.ret),pct(y.dd)]);
-  }
-  html+=makeTable(["Стратегия","Год","Сделок","Win%","PF","Ср. на капитал","Доходность","DD"],yr);
-  html+="<h3>Предварительная оценка</h3><p>"+assessment(results)+"</p>";
-  html+="<p class='small'>Stress test показывает чувствительность к издержкам, но не доказывает устойчивость стратегии. SHORT — теоретическая модель, без funding, ликвидаций и правил конкретного фьючерсного инструмента.</p>";
-  $("tables").innerHTML=html;
-
-  const report=[];
-  report.push("BTC STRATEGY LAB v5.5 — DATA QUALITY, BENCHMARKS & STRESS TEST");
-  report.push("Символ: BTCUSDT, Binance Spot, таймфрейм 1H");
-  report.push("Свечей: "+candles.length);
-  report.push("Период: "+dt(candles[0].time)+" — "+dt(candles[candles.length-1].time));
-  report.push("Разрывов между свечами: "+gap.gaps);
-  report.push("Пропущенных часов по интервалам: "+gap.missingHours);
-  report.push("Самый длинный интервал между свечами, часов: "+fmt(gap.maxGapHours,2));
-  report.push("Дубликатов до удаления: "+gap.duplicates);
-  report.push("Некорректных свечей: "+gap.invalid);
-  report.push("Базовые издержки: "+opts.cost+"%; стресс-издержки: "+stressCost+"%");
-  report.push("Максимальное удержание: "+opts.hold+" часов");
-  report.push("ATR stop: "+opts.stopAtr+"; ATR target: "+opts.targetAtr);
-  report.push("Риск на сделку: "+opts.risk+"% капитала; номинал позиции ограничен 100% капитала");
-  report.push("Разделение: обучение "+Math.round((1-testShare-.2)*100)+"%, проверка 20%, финальный тест "+Math.round(testShare*100)+"%.");
-  report.push("");
-  report.push("МЕТОДИКА И ОГРАНИЧЕНИЯ");
-  report.push("Сигнал на закрытии свечи; вход по открытию следующей.");
-  report.push("Индикаторы рассчитываются по доступной истории.");
-  report.push("При гэпе через стоп используется открытие, если оно хуже стопа.");
-  report.push("Если стоп и тейк достигнуты в одной свече, стоп имеет приоритет.");
-  report.push("При отсутствии стопа/тейка выход по open через заданный горизонт.");
-  report.push("Одна позиция на стратегию; незакрытая на границе сегмента сделка пропускается.");
-  report.push("Buy & Hold: вход по open первой свечи сегмента, выход по close последней. Это ориентир цены, а не сравнение с одинаковым риском.");
-  report.push("Cash: 0% доходности до возможного дохода на свободные средства.");
-  report.push("Стресс-тест повторяет финальный тест при удвоенных издержках.");
-  report.push("");
-  report.push("СТРАТЕГИИ");
-  for(const s of strategies)report.push(s.id+" — "+s.desc);
-  report.push("");
-  report.push("РЕЗУЛЬТАТЫ ПО УЧАСТКАМ");
-  report.push("Стратегия | Участок | Сделок | Win% | PF | Ср. на капитал | Доходность | DD");
-  for(const x of results){const s=x.stats;
-   report.push([x.strategy.id,x.segment,s.n,pct(s.win),pfText(s.pf),pct(s.avg),pct(s.ret),pct(s.dd)].join(" | "));
-  }
-  report.push("");
-  report.push("КОНТРОЛЬНЫЕ ОРИЕНТИРЫ");
-  report.push("Участок | Buy & Hold доходность | Buy & Hold DD | Cash");
-  for(const b of benchmarks)report.push([b.segment,pct(b.ret),pct(b.dd),"0,00%"].join(" | "));
-  report.push("");
-  report.push("СТРЕСС-ТЕСТ ФИНАЛЬНОГО УЧАСТКА");
-  report.push("Издержки ×2: "+stressCost+"%");
-  report.push("Стратегия | Сделок | Win% | PF | Ср. на капитал | Доходность | DD");
-  for(const x of stress){const s=x.stats;
-   report.push([x.strategy.id,s.n,pct(s.win),pfText(s.pf),pct(s.avg),pct(s.ret),pct(s.dd)].join(" | "));
-  }
-  report.push("");
-  report.push("ГОДЫ ФИНАЛЬНОГО ТЕСТА");
-  report.push("Стратегия | Год | Сделок | Win% | PF | Ср. на капитал | Доходность | DD");
-  for(const x of results.filter(x=>x.segment==="Финальный тест"))
-   for(const y of yearlyResults(x.trades))
-    report.push([x.strategy.id,y.year,y.n,pct(y.win),pfText(y.pf),pct(y.avg),pct(y.ret),pct(y.dd)].join(" | "));
-  report.push("");
-  report.push("ПРАВИЛО ОТБОРА");
-  report.push("Предварительный LONG-кандидат: минимум 30 сделок, средний net результат на капитал > 0 и PF > 1 на финальном тесте.");
-  report.push(assessment(results));
-  report.push("");
-  report.push("ОГРАНИЧЕНИЯ");
-  report.push("Это моделирование, а не фактическое исполнение. Не моделируются точный спред, стакан, частичные исполнения, задержки, funding и ликвидации.");
-  report.push("Издержки применяются к номиналу позиции. Риск до издержек не равен максимальному убытку после гэпов.");
-  report.push("Положительный исторический результат не гарантирует будущую прибыль. Не использовать этот отчёт как самостоятельное основание для реальной торговли.");
-
-  lastReport=report.join("\n");$("report").value=lastReport;
-  progress(100);
-  status("Исследование завершено.\nСвечей: "+candles.length+
-   "\nРазрывов: "+gap.gaps+"; пропущенных часов: "+gap.missingHours+
-   "\nLONG-кандидатов: "+candidates.length+
-   "\n"+assessment(results)+"\nСкопируй отчёт и отправь его в чат.");
- }catch(e){status("Ошибка расчёта: "+(e.message||String(e)));}
- finally{setBusy(false);}
 }
+
+function makeReport(x){
+  const {cfg,segments,results,stress,trainResults,valResults,
+    bTrain,bVal,bTest,qualified,yearlyResults}=x;
+  const out=[];
+  out.push("BTC STRATEGY LAB v5.6 — RESEARCH INTEGRITY");
+  out.push("Дата отчёта: "+new Date().toISOString());
+  out.push("Символ: BTCUSDT Spot, таймфрейм 1H");
+  out.push("Свечей: "+candles.length);
+  out.push("Период: "+dateStr(candles[0].t)+" — "+dateStr(candles[candles.length-1].t));
+  out.push("Разрывы: "+dataGaps.length);
+  out.push("Пропущенные часы: "+dataGaps.reduce((s,g)=>s+g.missing,0));
+  out.push("Комиссия на сторону: "+fmt(cfg.fee*100,3)+"%");
+  out.push("Комиссия round trip: "+fmt(cfg.fee*200,3)+"%");
+  out.push("Стресс-комиссия на сторону: "+fmt(cfg.fee*200,3)+"%");
+  out.push("Риск: "+fmt(cfg.risk*100,2)+"%; stop: "+cfg.stop+" ATR; target: "+cfg.target+
+    " ATR; max hold: "+cfg.hold+" часов");
+  out.push("Риск-модель: капитал 10000 условных единиц, экспозиция до 100%, без плеча.");
+  out.push("Исполнение: сигнал на close, вход на следующем open; стоп имеет приоритет.");
+  out.push("Если максимальный срок сделки пересекает разрыв данных или границу сегмента, вход исключается.");
+  out.push("");
+  out.push("BENCHMARK BUY & HOLD / CASH");
+  out.push("Train: BTC "+signedPct(bTrain.ret)+"; DD "+pct(bTrain.dd)+"; Cash 0%");
+  out.push("Validation: BTC "+signedPct(bVal.ret)+"; DD "+pct(bVal.dd)+"; Cash 0%");
+  out.push("Final test: BTC "+signedPct(bTest.ret)+"; DD "+pct(bTest.dd)+"; Cash 0%");
+  out.push("");
+  out.push("FINAL TEST STRATEGIES");
+  out.push("Стратегия | Сделки | Win% | PF | Доходность | DD | Экспозиция | Avg trade | Отброшено у границ");
+  for(const r of results){
+    out.push([r.id,r.trades,pct(r.winRate),
+      Number.isFinite(r.pf)?fmt(r.pf,3):(r.pf===Infinity?"Infinity":"0"),
+      signedPct(r.ret),pct(r.dd),pct(r.exposure),signedPct(r.avg),r.rejectedGap].join(" | "));
+  }
+  out.push("");
+  out.push("DOUBLED COST STRESS TEST");
+  out.push("Стратегия | Сделки | PF | Доходность | DD");
+  for(const r of stress){
+    out.push([r.id,r.trades,Number.isFinite(r.pf)?fmt(r.pf,3):String(r.pf),
+      signedPct(r.ret),pct(r.dd)].join(" | "));
+  }
+  out.push("");
+  out.push("TRAIN / VALIDATION — диагностические показатели");
+  out.push("Стратегия | Train return | Train PF | Validation return | Validation PF");
+  for(let i=0;i<STRATEGIES.length;i++){
+    const a=trainResults[i],b=valResults[i];
+    out.push([STRATEGIES[i].id,signedPct(a.ret),
+      Number.isFinite(a.pf)?fmt(a.pf,3):String(a.pf),
+      signedPct(b.ret),Number.isFinite(b.pf)?fmt(b.pf,3):String(b.pf)].join(" | "));
+  }
+  out.push("");
+  out.push("ГОДЫ FINAL TEST");
+  const years=[...new Set(yearlyResults.map(r=>r.year))].sort();
+  for(const y of years){
+    const vals=yearlyResults.filter(r=>r.year===y);
+    const rs=vals.map(r=>r.ret);
+    out.push(y+": стратегии "+signedPct(Math.min(...rs))+" … "+signedPct(Math.max(...rs)));
+  }
+  out.push("");
+  out.push("ПЕРВИЧНЫЙ ФИЛЬТР: минимум 30 сделок, доходность > 0, PF > 1.");
+  out.push("Количество прошедших: "+qualified.length);
+  out.push(qualified.length?qualified.map(r=>r.id).join(", "):"Нет стратегий, прошедших первичный фильтр.");
+  out.push("");
+  out.push("ОГРАНИЧЕНИЯ И ИНТЕРПРЕТАЦИЯ");
+  out.push("1. Train/validation/final test — хронологические части одной истории, а не независимые рынки.");
+  out.push("2. Если параметры менялись после изучения final test, тест уже не полностью независим.");
+  out.push("3. Buy & Hold имеет другую рыночную экспозицию, поэтому сравнение доходности не является сравнением одинакового риска.");
+  out.push("4. Удержание считается в свечах; пропуски учитываются через непрерывные ряды.");
+  out.push("5. Комиссии моделируются как процент от номинала на каждую сторону; проскальзывание не включено.");
+  out.push("6. Короткие позиции не моделируют funding, ликвидации, требования маржи и реальное исполнение.");
+  out.push("7. Результат не является торговой рекомендацией.");
+  return out.join("\n");
+}
+
 async function copyReport(){
- const el=$("report");
- if(!el.value){status("Сначала проведи исследование.");return;}
- try{await navigator.clipboard.writeText(el.value);status("Отчёт скопирован. Вставь его в чат.");}
- catch(e){
-  el.focus();el.select();
-  try{const ok=document.execCommand("copy");status(ok?"Отчёт скопирован.":"Текст выделен. Используй команду «Копировать».");}
-  catch(err){status("Текст выделен. Удерживай выделение и выбери «Копировать».");}
- }
+  const t=$("report").value;
+  if(!t){setStatus("Сначала запусти исследование.");return;}
+  try{
+    await navigator.clipboard.writeText(t);
+    setStatus("Отчёт скопирован. Теперь вставь его в чат.");
+  }catch(e){
+    selectReport();
+    setStatus("Автоматическое копирование недоступно. Текст выделен — выбери «Копировать» в меню телефона.");
+  }
 }
-$("loadBtn").addEventListener("click",loadHistory);
-$("runBtn").addEventListener("click",runResearch);
-$("copyBtn").addEventListener("click",copyReport);
-$("copyBtn2").addEventListener("click",copyReport);
-$("selectBtn").addEventListener("click",()=>{
- $("report").focus();$("report").select();status("Текст выделен. Используй команду «Копировать».");
-});
+function selectReport(){
+  $("report").focus();
+  $("report").select();
+}
 </script>
 </body>
 </html>
