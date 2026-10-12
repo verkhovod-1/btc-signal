@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#10131b">
-<title>BTC Trend System v8 — LONG only</title>
+<title>BTC Trend System v8.1 — LONG only</title>
 <style>
 :root{color-scheme:dark;--bg:#10131b;--panel:#191f2b;--border:#30394a;--text:#e9edf5;--muted:#a4aec0;--green:#42d392;--red:#ff727e;--yellow:#f5c96b;--blue:#80adff}
 *{box-sizing:border-box}
@@ -21,7 +21,6 @@ button{cursor:pointer;font-weight:650}button.primary{background:#2857a8;border-c
 .actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-top:13px}
 .metric{background:#111722;border:1px solid var(--border);border-radius:10px;padding:12px;min-width:0}
 .metric .name{font-size:12px;color:var(--muted)}.metric .value{font-size:21px;font-weight:750;overflow-wrap:anywhere}
-.metric .detail{font-size:12px;color:var(--muted)}
 .status{padding:10px 12px;background:#111722;border:1px solid var(--border);border-radius:9px;overflow-wrap:anywhere}
 .progress{height:8px;background:#30394a;border-radius:8px;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0;background:var(--blue);transition:width .15s}
 .table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
@@ -35,7 +34,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0c1017;border:1px so
 <main>
 <header>
 <div class="muted">BTCUSDT · Binance Spot · историческое исследование</div>
-<h1>BTC Trend System v8</h1>
+<h1>BTC Trend System v8.1</h1>
 <p class="muted">LONG only: покупаем BTC, держим без фиксированного срока, продаём по сигналу. После продажи ждём следующего входа.</p>
 </header>
 
@@ -56,7 +55,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0c1017;border:1px so
 </div>
 <div class="progress"><div id="bar"></div></div>
 <div id="status" class="status" style="margin-top:10px">Готов к запуску.</div>
-<p class="small">Решения рассчитываются по закрытым свечам, исполнение — по следующему открытию. Никакого SHORT и никакого принудительного выхода через определённое число часов.</p>
+<p class="small">Сигнал формируется по закрытой свече и исполняется на открытии следующей свечи. При пропуске часа подтверждение входа сбрасывается. Принудительного выхода через фиксированное число часов нет.</p>
 </section>
 
 <section class="panel">
@@ -71,14 +70,14 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0c1017;border:1px so
 
 <section class="panel">
 <h2>3. Сравнение стратегий</h2>
-<div class="small">Все стратегии используют один период и одинаковые издержки. Доходность считается на капитале, первоначально выраженном в USDT.</div>
+<div class="small">Все стратегии используют один период. Стратегии учитывают комиссию и проскальзывание при покупке и продаже. Buy & Hold показан без комиссий.</div>
 <div class="table-wrap">
 <table>
 <thead><tr><th>Стратегия</th><th>Train 60%</th><th>Validation 20%</th><th>Final Test 20%</th><th>Весь период</th><th>DD всего</th><th>PF всего</th><th>Сделки</th></tr></thead>
 <tbody id="comparison"><tr><td colspan="8" style="text-align:left">Ожидает запуска.</td></tr></tbody>
 </table>
 </div>
-<p class="small">A — быстрый выход по ослаблению импульса 1h. B — терпеливый выход по слому тренда 4h. Buy & Hold — купить в начале соответствующего периода и держать до конца.</p>
+<p class="small">A — быстрый выход по ослаблению импульса 1h. B — выход при двух последовательных закрытых свечах 4h ниже EMA50. Buy & Hold — купить в начале соответствующего периода и держать до конца.</p>
 </section>
 
 <section class="panel">
@@ -96,7 +95,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0c1017;border:1px so
 <div class="table-wrap">
 <table>
 <thead><tr><th>Год</th><th>Стратегия A</th><th>Стратегия B</th><th>Buy & Hold</th><th>DD A</th><th>DD B</th><th>Сделок A</th><th>Сделок B</th></tr></thead>
-<tbody id="annual"><tr><td colspan="8" style="text-align:left">Ожидает запуска.</td></tr>
+<tbody id="annual"><tr><td colspan="8" style="text-align:left">Ожидает запуска.</td></tr></tbody>
 </table>
 </div>
 </section>
@@ -120,14 +119,15 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0c1017;border:1px so
 <section class="panel">
 <h2>Методика и ограничения</h2>
 <ul>
-<li>Вход: подтверждённый восходящий тренд 4h и положительное подтверждение 1h.</li>
-<li>Стратегия A продаёт при ослаблении импульса на 1h.</li>
-<li>Стратегия B продаёт при подтверждённом сломе тренда на 4h.</li>
+<li>Вход: восходящий тренд 4h, цена выше EMA200 на 1h, EMA20 выше EMA50, RSI выше 50, ADX не ниже заданного порога; вход требует заданного числа подтверждений.</li>
+<li>Стратегия A продаёт при EMA20 ниже EMA50 и RSI ниже 48 в течение заданного числа часовых свечей.</li>
+<li>Стратегия B продаёт, если две последние последовательные полностью закрытые свечи 4h закрылись ниже EMA50 4h.</li>
 <li>После продажи капитал остаётся в USDT до нового сигнала. Шорт не открывается.</li>
-<li>Весь период разбит по времени на Train 60%, Validation 20%, Final Test 20%. Индикаторы используют исторические данные до соответствующего сигнала; результаты отложенных отрезков нужно рассматривать отдельно.</li>
-<li>Buy & Hold считается без комиссий для наглядного сравнения. Стратегии учитывают комиссию и проскальзывание при покупке и продаже.</li>
-<li>Годовые показатели считаются как отдельные календарные срезы с состоянием в начале среза FLAT. Это сравнительные срезы, а не непрерывный портфельный результат.</li>
-<li>Это исследовательский тест, не финансовая рекомендация. Перед торговлей нужно проверить результаты независимым тестом и на реальном исполнении.</li>
+<li>Сигналы на границе сегмента не исполняются за пределами этого сегмента. Каждый сегмент тестируется отдельно с начальным состоянием FLAT.</li>
+<li>Buy & Hold считается без комиссий. Для сравнения его просадка оценивается по закрытиям свечей; стратегии также оцениваются по значениям капитала на закрытиях часовых свечей.</li>
+<li>Годовые результаты — отдельные календарные срезы с начальным состоянием FLAT, а не непрерывный портфельный результат.</li>
+<li>При пропуске часа позиция закрывается по последнему доступному закрытию перед разрывом. Это моделирование риска разрыва, а не гарантия реального исполнения по такой цене.</li>
+<li>Это исследовательский тест, не финансовая рекомендация. Результаты нужно перепроверить независимым тестом и на реальном исполнении.</li>
 </ul>
 </section>
 </main>
@@ -274,7 +274,6 @@ function features(data){
   return {e20,e50,e200,R,A,four,f50,f200,reg,fIndex};
 }
 
-/* Подтверждение входа: только когда режим 4h восходящий и импульс 1h подтверждён. */
 function buildEntry(data,f,adxMin,confirm){
   const raw=Array(data.length).fill(false),entry=Array(data.length).fill(false);
   for(let i=0;i<data.length;i++){
@@ -283,108 +282,127 @@ function buildEntry(data,f,adxMin,confirm){
   }
   let streak=0;
   for(let i=0;i<data.length;i++){
+    if(i>0&&data[i].t-data[i-1].t!==H)streak=0;
     streak=raw[i]?streak+1:0;
     entry[i]=raw[i]&&streak>=confirm;
   }
   return entry;
 }
 
-/* Sell A: EMA20 < EMA50 and RSI < 48 for N closed 1h bars.
-   Sell B: completed 4h close below 4h EMA50 for two consecutive completed 4h bars. */
+/* A: подтверждённое ослабление 1h.
+   B: две последние последовательные завершённые свечи 4h ниже EMA50.
+   B рассчитывается отдельно для каждого часа: сигнал не переносится навсегда в будущее. */
 function buildExits(data,f,sellConfirm){
   const fast=Array(data.length).fill(false),slow=Array(data.length).fill(false);
   let streak=0;
   for(let i=0;i<data.length;i++){
+    if(i>0&&data[i].t-data[i-1].t!==H)streak=0;
     const condition=f.e20[i]!==null&&f.e50[i]!==null&&f.R[i]!==null&&f.e20[i]<f.e50[i]&&f.R[i]<48;
     streak=condition?streak+1:0;
     fast[i]=condition&&streak>=sellConfirm;
-  }
-  let slowStreak=0,lastJ=-1;
-  for(let i=0;i<data.length;i++){
+
     const j=f.fIndex[i];
-    if(j<0){slowStreak=0;continue}
-    if(j===lastJ)continue;
-    lastJ=j;
-    const condition=f.f50[j]!==null&&f.four[j].c<f.f50[j];
-    slowStreak=condition?slowStreak+1:0;
-    /* Exit only after two distinct, fully closed 4h candles below EMA50. */
-    if(slowStreak>=2){
-      const closedAt=f.four[j].t+4*H;
-      for(let k=i;k<data.length&&data[k].t<closedAt+H;k++){
-        if(data[k].t>=closedAt)slow[k]=true;
-      }
+    if(j>=1&&f.four[j].t-f.four[j-1].t===4*H&&
+       f.f50[j]!==null&&f.f50[j-1]!==null&&
+       f.four[j].c<f.f50[j]&&f.four[j-1].c<f.f50[j-1]){
+      slow[i]=true;
     }
   }
   return {fast,slow};
 }
 
-/* Signals at candle close i are executed at open i+1. No short positions. */
+/* Каждый сегмент задаётся диапазоном [start,end).
+   Сигнал на свече i исполняется на следующем open, только если следующая свеча
+   находится внутри сегмента. При разрыве позиции закрываются по последнему close
+   перед разрывом; повторный вход через пропуск не выполняется. */
 function simulate(data,entry,exitSignal,start,end,feePct,slipPct){
   const cost=(feePct+slipPct)/100;
   let cash=1,coin=0,holding=false,entryTime=null,entryValue=null;
   let peak=1,maxDD=0,tradeList=[],wins=0,grossWin=0,grossLoss=0;
-  let buyCount=0,sellCount=0,marketBars=0,exposureHours=0;
-  let equityAtLast=1,prevTime=null;
+  let buyCount=0,sellCount=0,marketBars=0;
   const curve=[];
-  const first=Math.max(0,start),last=Math.min(data.length-1,end);
+  const first=Math.max(0,start),endExclusive=Math.min(data.length,end);
+  if(endExclusive-first<2)return {totalReturn:0,maxDD:0,pf:0,trades:0,wins:0,winRate:0,avgHours:0,marketBars:0,buyCount:0,sellCount:0,tradeList,curve,finalEquity:1};
 
+  function mark(eq,t){
+    curve.push({t,equity:eq});
+    peak=Math.max(peak,eq);
+    maxDD=Math.max(maxDD,peak>0?(peak-eq)/peak:0);
+  }
   function sell(atTime,atPrice){
-    if(!holding||atPrice<=0)return;
+    if(!holding||!(atPrice>0))return;
     cash=coin*atPrice*(1-cost);
     const ret=entryValue>0?cash/entryValue-1:0;
-    const hours=(atTime-entryTime)/H;
-    tradeList.push({ret,hours});
+    tradeList.push({ret,hours:(atTime-entryTime)/H});
     if(ret>0){wins++;grossWin+=ret}else grossLoss+=Math.abs(ret);
     coin=0;holding=false;entryTime=null;entryValue=null;sellCount++;
   }
   function buy(atTime,atPrice){
-    if(holding||atPrice<=0)return;
+    if(holding||!(atPrice>0))return;
     coin=cash*(1-cost)/atPrice;
-    entryValue=cash;
-    cash=0;holding=true;entryTime=atTime;buyCount++;
+    entryValue=cash;cash=0;holding=true;entryTime=atTime;buyCount++;
   }
 
-  for(let i=first;i<last;i++){
+  for(let i=first;i<endExclusive-1;i++){
     const c=data[i],next=data[i+1];
-    if(prevTime!==null&&c.t-prevTime!==H){
-      /* Gap: do not pretend missing prices were tradable. Exit at the last known close. */
-      if(holding)sell(c.t,c.c);
-    }
-    if(next.t-c.t!==H){
-      if(holding)sell(c.t,c.c);
-      const eq=holding?coin*c.c:cash;
-      curve.push({t:c.t,equity:eq});
-      peak=Math.max(peak,eq);maxDD=Math.max(maxDD,(peak-eq)/peak);
-      prevTime=c.t;
+
+    /* Gap check: exit at the last close before the gap, never at a post-gap price. */
+    if(i>first&&c.t-data[i-1].t!==H){
+      const prev=data[i-1];
+      if(holding)sell(prev.t,prev.c);
+      mark(cash,prev.t);
+      /* Current candle is not used to execute a signal across the gap. */
+      if(next.t-c.t!==H){
+        if(holding)sell(c.t,c.c);
+        mark(cash,c.t);
+        continue;
+      }
+      if(holding&&exitSignal[i])sell(next.t,next.o);
+      else if(!holding&&entry[i])buy(next.t,next.o);
+      const eq=holding?coin*next.c:cash;
+      if(holding)marketBars++;
+      mark(eq,next.t);
       continue;
     }
-    const targetTime=next.t;
-    if(holding&&exitSignal[i]){
-      sell(targetTime,next.o);
-    }else if(!holding&&entry[i]){
-      buy(targetTime,next.o);
+
+    if(next.t-c.t!==H){
+      if(holding)sell(c.t,c.c);
+      mark(cash,c.t);
+      continue;
     }
-    const eq=holding?coin*next.o:cash;
-    curve.push({t:targetTime,equity:eq});
-    peak=Math.max(peak,eq);maxDD=Math.max(maxDD,(peak-eq)/peak);
-    if(holding){marketBars++;exposureHours++}
-    equityAtLast=eq;prevTime=c.t;
+
+    if(holding&&exitSignal[i])sell(next.t,next.o);
+    else if(!holding&&entry[i])buy(next.t,next.o);
+
+    const eq=holding?coin*next.c:cash;
+    if(holding)marketBars++;
+    mark(eq,next.t);
   }
 
-  /* Mark to market at the final available close; do not force a final sale. */
-  const lastC=data[last];
+  const lastC=data[endExclusive-1];
   const finalEquity=holding?coin*lastC.c:cash;
+  /* Mark the final close, without forcing a sale or executing an out-of-segment signal. */
+  if(!curve.length||curve[curve.length-1].t!==lastC.t)mark(finalEquity,lastC.t);
+  else{
+    curve[curve.length-1].equity=finalEquity;
+    peak=Math.max(peak,finalEquity);
+    maxDD=Math.max(maxDD,peak>0?(peak-finalEquity)/peak:0);
+  }
   const totalReturn=finalEquity-1;
   const pf=grossLoss>0?grossWin/grossLoss:(grossWin>0?Infinity:0);
   const avgHours=tradeList.length?tradeList.reduce((s,t)=>s+t.hours,0)/tradeList.length:0;
   return {totalReturn,maxDD,pf,trades:tradeList.length,wins,winRate:tradeList.length?wins/tradeList.length:0,
     avgHours,marketBars,buyCount,sellCount,tradeList,curve,finalEquity};
 }
+
 function buyHold(data,start,end){
   if(end-start<2)return {ret:0,dd:0};
   const base=data[start].o,finish=data[end-1].c;
   let peak=base,dd=0;
-  for(let i=start;i<end;i++){peak=Math.max(peak,data[i].h);dd=Math.max(dd,(peak-data[i].l)/peak)}
+  for(let i=start;i<end;i++){
+    peak=Math.max(peak,data[i].c);
+    dd=Math.max(dd,peak>0?(peak-data[i].c)/peak:0);
+  }
   return {ret:finish/base-1,dd};
 }
 function segment(data,entry,exit,start,end,fee,slip){
@@ -409,7 +427,7 @@ function rowComparison(name,a,v,t,all){
   function cell(x,kind){
     if(!x)return "—";
     const val=kind==="dd"?-x.sim.maxDD:kind==="pf"?x.sim.pf:x.sim.totalReturn;
-    return kind==="pf"? (val===Infinity?"∞":fmt(val)) : pct(val);
+    return kind==="pf"?(val===Infinity?"∞":fmt(val)):pct(val);
   }
   return "<tr><td>"+name+"</td><td>"+cell(a)+"</td><td>"+cell(v)+"</td><td>"+cell(t)+"</td><td>"+cell(all)+"</td><td>"+cell(all,"dd")+"</td><td>"+cell(all,"pf")+"</td><td>"+(all?all.sim.trades:"—")+"</td></tr>";
 }
@@ -424,14 +442,15 @@ function annualResults(data,entry,exitA,exitB,fee,slip){
   $("annual").innerHTML=rows.join("")||"<tr><td colspan='8'>Нет данных</td></tr>";
 }
 function createReport(data,f,entry,exits,stats,fee,slip,miss){
-  const i=data.length-1;
-  const stateA=stats.allA.sim,stateB=stats.allB.sim;
+  const i=data.length-1,stateA=stats.allA.sim,stateB=stats.allB.sim;
   return [
-    "BTC TREND SYSTEM v8 — LONG ONLY",
+    "BTC TREND SYSTEM v8.1 — LONG ONLY",
     "Дата отчёта: "+new Date().toISOString(),
     "Период: "+utc(data[0].t)+" — "+utc(data[i].t),
     "Свечей: "+data.length+"; пропущенных часов: "+miss,
     "Комиссия за сторону: "+fee+"%; проскальзывание за сторону: "+slip+"%",
+    "DD стратегии и Buy & Hold считается по закрытиям часовых свечей; Buy & Hold без комиссий.",
+    "Каждый сегмент тестируется отдельно, начальное состояние FLAT. Сигналы не исполняются за пределами сегмента.",
     "",
     "ПОСЛЕДНИЕ ДАННЫЕ",
     "Цена закрытия: "+price(data[i].c),
@@ -447,7 +466,7 @@ function createReport(data,f,entry,exits,stats,fee,slip,miss){
     "Validation: "+(stats.valA?pct(stats.valA.sim.totalReturn):"—"),
     "Final Test: "+(stats.testA?pct(stats.testA.sim.totalReturn):"—"),
     "Весь период: "+pct(stateA.totalReturn)+"; Buy & Hold: "+pct(stats.allA.bh.ret),
-    "Макс. просадка: "+pct(-stateA.maxDD)+"; PF: "+(stateA.pf===Infinity?"∞":fmt(stateA.pf)),
+    "Макс. просадка: "+pct(-stateA.maxDD)+"; PF: "+pfText(stateA.pf),
     "Сделок: "+stateA.trades+"; доля прибыльных: "+pct(stateA.winRate)+"; среднее удержание: "+fmt(stateA.avgHours,1)+" ч",
     "",
     "СТРАТЕГИЯ B — ВЫХОД ПО 4H",
@@ -455,7 +474,7 @@ function createReport(data,f,entry,exits,stats,fee,slip,miss){
     "Validation: "+(stats.valB?pct(stats.valB.sim.totalReturn):"—"),
     "Final Test: "+(stats.testB?pct(stats.testB.sim.totalReturn):"—"),
     "Весь период: "+pct(stateB.totalReturn)+"; Buy & Hold: "+pct(stats.allB.bh.ret),
-    "Макс. просадка: "+pct(-stateB.maxDD)+"; PF: "+(stateB.pf===Infinity?"∞":fmt(stateB.pf)),
+    "Макс. просадка: "+pct(-stateB.maxDD)+"; PF: "+pfText(stateB.pf),
     "Сделок: "+stateB.trades+"; доля прибыльных: "+pct(stateB.winRate)+"; среднее удержание: "+fmt(stateB.avgHours,1)+" ч",
     "",
     "ВАЖНО: исторический результат не гарантирует будущую доходность. Сигналы являются гипотезами, а не финансовой рекомендацией."
@@ -479,7 +498,7 @@ async function run(){
     progress(48);await wait(10);
     const f=features(data),entry=buildEntry(data,f,adxMin,confirm),exits=buildExits(data,f,sellConfirm);
     if(stopped)throw Error("Остановлено пользователем.");
-    const n=data.length,warm=500,trEnd=Math.floor(n*.60),valEnd=Math.floor(n*.80),end=n-1;
+    const n=data.length,warm=500,trEnd=Math.floor(n*.60),valEnd=Math.floor(n*.80),end=n;
     const trainA=segment(data,entry,exits.fast,warm,trEnd,fee,slip);
     const valA=segment(data,entry,exits.fast,trEnd,valEnd,fee,slip);
     const testA=segment(data,entry,exits.fast,valEnd,end,fee,slip);
@@ -509,7 +528,7 @@ async function run(){
       "<br><b>Условия входа:</b> "+(entry[i]?"выполнены":"не выполнены")+
       " · <b>Выход A:</b> "+(exits.fast[i]?"сигнал":"нет сигнала")+
       " · <b>Выход B:</b> "+(exits.slow[i]?"сигнал":"нет сигнала")+
-      "<br><span class='small'>Это состояние по последней закрытой свече. Оно не является торговым приказом.</span>";
+      "<br><span class='small'>Состояние по последней загруженной закрытой свече. Не является торговым приказом.</span>";
     reportText=createReport(data,f,entry,exits,stats,fee,slip,miss);
     $("report").textContent=reportText;
     progress(100);status("Расчёт завершён. Сначала сравни Final Test, просадки и число сделок.");
