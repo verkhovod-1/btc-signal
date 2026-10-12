@@ -1,0 +1,392 @@
+
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10131b">
+<title>BTC Trend System v8.2</title>
+<style>
+:root{color-scheme:dark;--bg:#10131b;--panel:#191f2b;--border:#30394a;--text:#e9edf5;--muted:#a4aec0;--green:#42d392;--red:#ff727e;--yellow:#f5c96b;--blue:#80adff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:1100px;margin:auto;padding:14px}
+h1{font-size:24px}h2{font-size:19px;margin:0 0 10px}h3{font-size:15px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+input,select,button{width:100%;padding:10px;background:#111722;color:var(--text);border:1px solid var(--border);border-radius:8px;font:inherit}
+button{cursor:pointer;font-weight:650}.primary{background:#2857a8}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px}
+.status,.metric{background:#111722;border:1px solid var(--border);border-radius:9px;padding:11px;overflow-wrap:anywhere}
+.metric .name,.small{color:var(--muted);font-size:12px}.metric .value{font-size:20px;font-weight:700}
+.progress{height:7px;background:#30394a;margin-top:10px;border-radius:9px;overflow:hidden}.progress div{height:100%;background:var(--blue);width:0}
+.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}
+td,th{padding:8px;border-bottom:1px solid var(--border);text-align:right}td:first-child,th:first-child{text-align:left}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0c1017;border:1px solid var(--border);border-radius:8px;padding:12px;max-height:500px;overflow:auto;font-size:12px}
+.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}
+</style>
+</head>
+<body><main>
+<header>
+<div class="small">BTCUSDT · Binance Spot · историческое исследование</div>
+<h1>BTC Trend System v8.2</h1>
+<p class="small">LONG only. Сигнал по закрытой свече, исполнение на следующем open. После продажи капитал остаётся в USDT.</p>
+</header>
+
+<section class="panel">
+<h2>1. Настройки</h2>
+<div class="grid">
+<div><label>История</label><select id="years"><option value="3">3 года</option><option value="5">5 лет</option><option value="8" selected>8 лет</option></select></div>
+<div><label>Комиссия за сторону, %</label><input id="fee" type="number" value="0.10" min="0" max="2" step=".01"></div>
+<div><label>Проскальзывание за сторону, %</label><input id="slip" type="number" value=".05" min="0" max="2" step=".01"></div>
+<div><label>ADX для входа</label><input id="adx" type="number" value="18" min="5" max="60"></div>
+<div><label>Подтверждение входа, 1h</label><select id="confirm"><option>1</option><option selected>2</option><option>3</option></select></div>
+<div><label>Подтверждение быстрого выхода</label><select id="sellConfirm"><option>1</option><option selected>2</option><option>3</option></select></div>
+</div>
+<div class="actions">
+<button class="primary" id="run">Загрузить и проверить</button>
+<button id="stop" disabled>Остановить</button>
+<button id="copy">Скопировать отчёт</button>
+</div>
+<div class="progress"><div id="bar"></div></div>
+<div class="status" id="status" style="margin-top:10px">Готов к запуску.</div>
+</section>
+
+<section class="panel">
+<h2>2. Загруженные данные</h2>
+<div class="grid">
+<div class="metric"><div class="name">Часовых свечей</div><div class="value" id="count">—</div></div>
+<div class="metric"><div class="name">Пропущенных часов</div><div class="value" id="missing">—</div></div>
+<div class="metric"><div class="name">Свечей 4h</div><div class="value" id="count4">—</div></div>
+<div class="metric"><div class="name">Период</div><div class="value" id="period" style="font-size:12px">—</div></div>
+</div>
+</section>
+
+<section class="panel">
+<h2>3. Сравнение стратегий</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Стратегия</th><th>Train</th><th>Validation</th><th>Final Test</th><th>Весь период</th><th>DD</th><th>PF</th><th>Сделки</th></tr></thead>
+<tbody id="comparison"><tr><td colspan="8">Ожидает запуска.</td></tr></tbody>
+</table></div>
+<p class="small">Train 60%, Validation 20%, Final Test 20%. Сегменты начинаются без открытой позиции. Buy & Hold без комиссий.</p>
+</section>
+
+<section class="panel">
+<h2>4. Концентрация прибыли</h2>
+<p class="small">Считается по чистой доходности закрытых сделок Final Test. Доля от положительной прибыли сделок — не то же самое, что доля в прибыли портфеля.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Метрика</th><th>A — быстрый выход</th><th>B — выход 4h</th></tr></thead>
+<tbody id="concentration"><tr><td colspan="3">Ожидает запуска.</td></tr></tbody>
+</table></div>
+</section>
+
+<section class="panel">
+<h2>5. Walk-forward проверка</h2>
+<p class="small">Последовательные шестимесячные тестовые окна после начального исторического периода. Каждый отрезок начинается с USDT. Это проверяет смену рыночных режимов, но не моделирует непрерывный портфель.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Окно</th><th>A</th><th>B</th><th>Buy & Hold</th><th>DD B</th><th>Сделок B</th></tr></thead>
+<tbody id="walk"><tr><td colspan="6">Ожидает запуска.</td></tr></tbody>
+</table></div>
+</section>
+
+<section class="panel">
+<h2>6. Чувствительность параметров</h2>
+<p class="small">Проверка стратегии B на нескольких значениях ADX и подтверждения входа. Это диагностический тест на полном периоде, а не независимый тест: не выбирай лучший вариант по этому разделу.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>ADX</th><th>Подтверждение</th><th>Доходность B</th><th>DD B</th><th>PF</th><th>Сделок</th><th>Final Test</th></tr></thead>
+<tbody id="sensitivity"><tr><td colspan="7">Ожидает запуска.</td></tr></tbody>
+</table></div>
+</section>
+
+<section class="panel">
+<h2>7. Сделки Final Test</h2>
+<p class="small">Последние 100 сделок каждой стратегии. Доходность сделки включает расходы при покупке и продаже. Открытая в конце окна позиция не считается закрытой сделкой.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Стратегия</th><th>Вход UTC</th><th>Выход UTC</th><th>Часы</th><th>Доходность</th><th>Причина</th></tr></thead>
+<tbody id="trades"><tr><td colspan="6">Ожидает запуска.</td></tr></tbody>
+</table></div>
+</section>
+
+<section class="panel">
+<h2>8. Последние индикаторы</h2>
+<div id="signal" class="status">Ожидает запуска.</div>
+</section>
+
+<section class="panel">
+<h2>9. Отчёт для копирования</h2>
+<pre id="report">Отчёт появится после расчёта.</pre>
+</section>
+
+<section class="panel">
+<h2>10. Журнал</h2>
+<pre id="log">Приложение готово.</pre>
+</section>
+
+<section class="panel">
+<h2>Методика и ограничения</h2>
+<ul>
+<li>Вход: подтверждённый восходящий режим 4h, цена выше EMA200 1h, EMA20 выше EMA50, RSI выше 50 и ADX не ниже порога.</li>
+<li>A выходит при EMA20 ниже EMA50 и RSI ниже 48 в течение заданного количества свечей.</li>
+<li>B выходит после двух последовательных закрытых свечей 4h ниже EMA50 4h.</li>
+<li>На разрыве данных позиция закрывается по последнему close перед разрывом. Это условная модель, а не гарантия реального исполнения.</li>
+<li>Просадка стратегии и Buy & Hold оценивается по часовым закрытиям. Внутрисвечные просадки не отражаются.</li>
+<li>Walk-forward окна независимы: в каждом стартовое состояние FLAT. Показатель не равен доходности непрерывного портфеля.</li>
+<li>Чувствительность на полном периоде используется только для диагностики устойчивости, а не для выбора параметров.</li>
+<li>Исторические результаты не гарантируют будущую доходность. Это исследовательский инструмент, не финансовая рекомендация.</li>
+</ul>
+</section>
+</main>
+<script>
+"use strict";
+const H=3600000,$=id=>document.getElementById(id);
+let stopped=false,busy=false,reportText="";
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const fmt=(n,d=2)=>Number.isFinite(n)?n.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const pct=n=>Number.isFinite(n)?(n>=0?"+":"")+fmt(n*100,2)+"%":"—";
+const pfText=n=>n===Infinity?"∞":Number.isFinite(n)?fmt(n):"—";
+const utc=t=>new Date(t).toISOString().slice(0,16).replace("T"," ");
+const price=n=>Number.isFinite(n)?n.toLocaleString("en-US",{maximumFractionDigits:2}):"—";
+function log(s){$("log").textContent+="\n["+new Date().toLocaleTimeString("ru-RU")+"] "+s}
+function status(s){$("status").textContent=s}
+function progress(n){$("bar").style.width=Math.max(0,Math.min(100,n))+"%"}
+
+async function loadCandles(years){
+ const end=Math.floor(Date.now()/H)*H,start=end-years*365.25*24*H;
+ let cursor=Math.floor(start/H)*H;const map=new Map();
+ const hosts=["https://api.binance.com","https://api1.binance.com","https://api2.binance.com"];
+ let calls=0,empty=0;
+ while(cursor<end){
+  if(stopped)throw Error("Остановлено пользователем.");
+  const q=new URLSearchParams({symbol:"BTCUSDT",interval:"1h",startTime:String(cursor),endTime:String(end-1),limit:"1000"});
+  let chunk=null,errors=[];
+  for(const host of hosts){
+   try{const r=await fetch(host+"/api/v3/klines?"+q,{cache:"no-store"});
+    if(!r.ok)throw Error("HTTP "+r.status);
+    const a=await r.json();if(!Array.isArray(a))throw Error("Ответ не является массивом");
+    if(a.length){chunk=a;break}errors.push(host+": пустой ответ");
+   }catch(e){errors.push(host+": "+e.message)}
+  }
+  calls++;
+  if(!chunk){if(++empty>=2)throw Error("Binance не вернул данные: "+errors.join(" | "));await sleep(700);continue}
+  empty=0;
+  for(const k of chunk){const t=+k[0];if(t>=start&&t<end)map.set(t,{t,o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]})}
+  const next=+chunk[chunk.length-1][0]+H;if(next<=cursor)throw Error("Загрузка не продвигается");cursor=next;
+  progress(35*(cursor-start)/(end-start));
+  if(calls===1||calls%10===0){status("Загружено "+map.size.toLocaleString("ru-RU")+" свечей");log("Запросов Binance: "+calls+"; свечей: "+map.size)}
+  await sleep(80);
+ }
+ const a=[...map.values()].sort((x,y)=>x.t-y.t);
+ if(a.length<3000)throw Error("Недостаточно данных: "+a.length);
+ return a;
+}
+function missingHours(d){let n=0;for(let i=1;i<d.length;i++)if(d[i].t-d[i-1].t>H)n+=Math.round((d[i].t-d[i-1].t)/H)-1;return n}
+function ema(d,p,step=H){
+ const o=Array(d.length).fill(null),alpha=2/(p+1);let v=null,pt=null;
+ for(let i=0;i<d.length;i++){if(pt!==null&&d[i].t-pt!==step)v=null;v=v===null?d[i].c:alpha*d[i].c+(1-alpha)*v;o[i]=v;pt=d[i].t}return o;
+}
+function rsi(d,p=14){
+ const o=Array(d.length).fill(null);let prev=null,pt=null,n=0,g=0,l=0,ag=null,al=null;
+ for(let i=0;i<d.length;i++){const c=d[i];if(pt!==null&&c.t-pt!==H){prev=null;n=0;g=0;l=0;ag=null;al=null}
+  if(prev!==null){const x=c.c-prev,gg=Math.max(0,x),ll=Math.max(0,-x);
+   if(n<p){g+=gg;l+=ll;n++;if(n===p){ag=g/p;al=l/p;o[i]=al===0?100:100-100/(1+ag/al)}}
+   else{ag=(ag*(p-1)+gg)/p;al=(al*(p-1)+ll)/p;o[i]=al===0?100:100-100/(1+ag/al)}
+  }prev=c.c;pt=c.t
+ }return o;
+}
+function adx(d,p=14,step=H){
+ const o=Array(d.length).fill(null);let prev=null,trS=0,pS=0,mS=0,n=0,trs=null,ps=null,ms=null,dxS=0,dxN=0,a=null;
+ for(let i=0;i<d.length;i++){const c=d[i];if(prev&&c.t-prev.t!==step){prev=null;trS=0;pS=0;mS=0;n=0;trs=null;ps=null;ms=null;dxS=0;dxN=0;a=null}
+  if(!prev){prev=c;continue}
+  const up=c.h-prev.h,down=prev.l-c.l,pd=up>down&&up>0?up:0,md=down>up&&down>0?down:0;
+  const tr=Math.max(c.h-c.l,Math.abs(c.h-prev.c),Math.abs(c.l-prev.c));
+  if(n<p){trS+=tr;pS+=pd;mS+=md;n++;if(n===p){trs=trS;ps=pS;ms=mS}}
+  else{trs=trs-trs/p+tr;ps=ps-ps/p+pd;ms=ms-ms/p+md;
+   const plus=trs?100*ps/trs:0,minus=trs?100*ms/trs:0,dx=plus+minus?100*Math.abs(plus-minus)/(plus+minus):0;
+   if(dxN<p){dxS+=dx;dxN++;if(dxN===p){a=dxS/p;o[i]=a}}
+   else{a=(a*(p-1)+dx)/p;o[i]=a}
+  }prev=c;
+ }return o;
+}
+function aggregate4(d){
+ const m=new Map();for(const c of d){const t=Math.floor(c.t/(4*H))*4*H;if(!m.has(t))m.set(t,[]);m.get(t).push(c)}
+ const out=[];for(const [t,a] of m){a.sort((x,y)=>x.t-y.t);if(a.length===4&&a.every((x,i)=>x.t===t+i*H))out.push({t,o:a[0].o,h:Math.max(...a.map(x=>x.h)),l:Math.min(...a.map(x=>x.l)),c:a[3].c,v:a.reduce((s,x)=>s+x.v,0)})}
+ return out.sort((a,b)=>a.t-b.t);
+}
+function features(d){
+ const e20=ema(d,20),e50=ema(d,50),e200=ema(d,200),R=rsi(d),A=adx(d),four=aggregate4(d);
+ const f50=ema(four,50,4*H),f200=ema(four,200,4*H),reg=Array(d.length).fill(0),fIndex=Array(d.length).fill(-1);
+ let j=-1;
+ for(let i=0;i<d.length;i++){
+  while(j+1<four.length&&four[j+1].t+4*H<=d[i].t)j++;
+  fIndex[i]=j;if(j<3||f50[j]===null||f200[j]===null)continue;
+  if(four[j].t-four[j-1].t!==4*H||four[j].t-four[j-3].t!==12*H)continue;
+  const rising=f50[j]>f50[j-3],falling=f50[j]<f50[j-3];
+  if(four[j].c>f200[j]&&f50[j]>f200[j]&&rising)reg[i]=1;
+  else if(four[j].c<f200[j]&&f50[j]<f200[j]&&falling)reg[i]=-1;
+ }
+ return {e20,e50,e200,R,A,four,f50,f200,reg,fIndex};
+}
+function buildEntry(d,f,adxMin,confirm){
+ const raw=d.map((c,i)=>f.reg[i]===1&&f.e20[i]!==null&&f.e50[i]!==null&&f.e200[i]!==null&&f.R[i]!==null&&f.A[i]!==null&&c.c>f.e200[i]&&f.e20[i]>f.e50[i]&&f.R[i]>50&&f.A[i]>=adxMin);
+ const out=Array(d.length).fill(false);let streak=0;
+ for(let i=0;i<d.length;i++){if(i&&d[i].t-d[i-1].t!==H)streak=0;streak=raw[i]?streak+1:0;out[i]=raw[i]&&streak>=confirm}
+ return out;
+}
+function buildExits(d,f,sellConfirm){
+ const fast=Array(d.length).fill(false),slow=Array(d.length).fill(false);let streak=0;
+ for(let i=0;i<d.length;i++){
+  if(i&&d[i].t-d[i-1].t!==H)streak=0;
+  const cond=f.e20[i]!==null&&f.e50[i]!==null&&f.R[i]!==null&&f.e20[i]<f.e50[i]&&f.R[i]<48;
+  streak=cond?streak+1:0;fast[i]=cond&&streak>=sellConfirm;
+  const j=f.fIndex[i];
+  if(j>=1&&f.four[j].t-f.four[j-1].t===4*H&&f.f50[j]!==null&&f.f50[j-1]!==null&&f.four[j].c<f.f50[j]&&f.four[j-1].c<f.f50[j-1])slow[i]=true;
+ }
+ return {fast,slow};
+}
+/* Диапазон [start,end); сигналы исполняются только на следующем open внутри окна. */
+function simulate(d,entry,exitSig,start,end,fee,slip){
+ const cost=(fee+slip)/100,first=Math.max(0,start),last=Math.min(d.length,end);
+ let cash=1,coin=0,holding=false,entryTime=null,entryValue=null,entryPrice=null,peak=1,dd=0,marketBars=0,buyCount=0,sellCount=0,wins=0,gp=0,gl=0;
+ const trades=[],curve=[];
+ if(last-first<2)return {ret:0,dd:0,pf:0,trades:[],wins:0,winRate:0,avgHours:0,marketBars:0,curve,final:1};
+ function mark(t){const eq=holding?coin*d[t].c:cash;curve.push({t:d[t].t,equity:eq});peak=Math.max(peak,eq);dd=Math.max(dd,peak?(peak-eq)/peak:0);if(holding)marketBars++}
+ function sell(t,px,reason){
+  if(!holding||!(px>0))return;
+  cash=coin*px*(1-cost);const ret=entryValue?cash/entryValue-1:0;
+  trades.push({entryTime,exitTime:t,hours:(t-entryTime)/H,ret,reason,entryPrice,exitPrice:px});
+  if(ret>0){wins++;gp+=ret}else gl+=Math.abs(ret);
+  coin=0;holding=false;entryTime=null;entryValue=null;entryPrice=null;sellCount++;
+ }
+ function buy(t,px){
+  if(holding||!(px>0))return;
+  entryValue=cash;coin=cash*(1-cost)/px;cash=0;holding=true;entryTime=t;entryPrice=px;buyCount++;
+ }
+ for(let i=first;i<last-1;i++){
+  const c=d[i],nx=d[i+1];
+  if(nx.t-c.t!==H){if(holding)sell(c.t,c.c,"Разрыв данных");mark(i);continue}
+  if(holding&&exitSig[i])sell(nx.t,nx.o,exitSig===null?"Сигнал":(exitSig[i]?"Сигнал":""));
+  else if(!holding&&entry[i])buy(nx.t,nx.o);
+  mark(i+1);
+ }
+ const finalBar=last-1;
+ if(finalBar>=first){
+  const eq=holding?coin*d[finalBar].c:cash;
+  if(!curve.length||curve[curve.length-1].t!==d[finalBar].t){curve.push({t:d[finalBar].t,equity:eq});peak=Math.max(peak,eq);dd=Math.max(dd,peak?(peak-eq)/peak:0)}
+ }
+ const final=holding?coin*d[finalBar].c:cash,pf=gl?gp/gl:(gp?Infinity:0);
+ return {ret:final-1,dd,pf,trades,wins,winRate:trades.length?wins/trades.length:0,avgHours:trades.length?trades.reduce((s,x)=>s+x.hours,0)/trades.length:0,marketBars,buyCount,sellCount,curve,final};
+}
+function buyHold(d,a,b){
+ if(b-a<2)return {ret:0,dd:0};
+ const base=d[a].o,finish=d[b-1].c;let peak=base,dd=0;
+ for(let i=a;i<b;i++){peak=Math.max(peak,d[i].c);dd=Math.max(dd,peak?(peak-d[i].c)/peak:0)}
+ return {ret:finish/base-1,dd};
+}
+function segment(d,en,ex,a,b,fee,slip){
+ if(b-a<300)return null;
+ return {sim:simulate(d,en,ex,a,b,fee,slip),bh:buyHold(d,a,b),start:a,end:b};
+}
+function idxAt(d,t){let lo=0,hi=d.length;while(lo<hi){const m=(lo+hi)>>1;if(d[m].t<t)lo=m+1;else hi=m}return lo}
+function rowComp(name,a,v,t,all){
+ const c=(x,k="ret")=>!x?"—":k==="dd"?pct(-x.sim.dd):k==="pf"?pfText(x.sim.pf):k==="n"?x.sim.trades:pct(x.sim.ret);
+ return "<tr><td>"+name+"</td><td>"+c(a)+"</td><td>"+c(v)+"</td><td>"+c(t)+"</td><td>"+c(all)+"</td><td>"+c(all,"dd")+"</td><td>"+c(all,"pf")+"</td><td>"+c(all,"n")+"</td></tr>";
+}
+function concentrationRow(s){
+ const ts=s?.sim?.trades||[],sorted=[...ts].sort((a,b)=>b.ret-a.ret),positive=ts.reduce((n,t)=>n+Math.max(0,t.ret),0);
+ const top=k=>sorted.slice(0,k).reduce((n,t)=>n+Math.max(0,t.ret),0);
+ return {count:ts.length,positive,top5:positive?top(5)/positive:0,top10:positive?top(10)/positive:0,best:sorted[0]?.ret||0,median:ts.length?[...ts].map(t=>t.ret).sort((a,b)=>a-b)[Math.floor(ts.length/2)]:0};
+}
+function walkForward(d,en,ea,eb,fee,slip){
+ const rows=[];const six=24*30.4375*6;
+ let start=idxAt(d,d[0].t+365.25*24*H*2);
+ while(start<d.length-300){
+  const end=idxAt(d,d[start].t+six);if(end-start<300)break;
+  const A=simulate(d,en,ea,start,end,fee,slip),B=simulate(d,en,eb,start,end,fee,slip),bh=buyHold(d,start,end);
+  rows.push({start,end,A,B,bh});start=end;
+ }
+ return rows;
+}
+function renderTrades(a,b){
+ const all=[...(a?.sim?.trades||[]).map(t=>({...t,which:"A"})),...(b?.sim?.trades||[]).map(t=>({...t,which:"B"}))];
+ all.sort((x,y)=>y.exitTime-x.exitTime);
+ $("trades").innerHTML=all.slice(0,100).map(t=>"<tr><td>"+t.which+"</td><td>"+utc(t.entryTime)+"</td><td>"+utc(t.exitTime)+"</td><td>"+fmt(t.hours,1)+"</td><td class='"+(t.ret>=0?"green":"red")+"'>"+pct(t.ret)+"</td><td>"+t.reason+"</td></tr>").join("")||"<tr><td colspan='6'>Нет закрытых сделок</td></tr>";
+}
+function renderConcentration(a,b){
+ const x=concentrationRow(a),y=concentrationRow(b);
+ const row=(label,key)=>"<tr><td>"+label+"</td><td>"+(typeof x[key]==="number"&&key!=="count"?pct(x[key]):x[key])+"</td><td>"+(typeof y[key]==="number"&&key!=="count"?pct(y[key]):y[key])+"</td></tr>";
+ $("concentration").innerHTML=row("Закрытых сделок","count")+row("Доля положительной прибыли от топ-5","top5")+row("Доля положительной прибыли от топ-10","top10")+row("Лучшая сделка","best")+row("Медианная доходность сделки","median");
+}
+function renderWalk(rows){
+ $("walk").innerHTML=rows.map(r=>"<tr><td>"+utc(r.start<0?0:r._t0||0)+" — "+utc(r._t1||0)+"</td><td>"+pct(r.A.ret)+"</td><td>"+pct(r.B.ret)+"</td><td>"+pct(r.bh.ret)+"</td><td>"+pct(-r.B.dd)+"</td><td>"+r.B.trades.length+"</td></tr>").join("")||"<tr><td colspan='6'>Недостаточно данных</td></tr>";
+}
+async function run(){
+ if(busy)return;busy=true;stopped=false;$("run").disabled=true;$("stop").disabled=false;$("log").textContent="Начало анализа.";
+ try{
+  const years=+$("years").value,fee=+$("fee").value,slip=+$("slip").value,adxMin=+$("adx").value,confirm=+$("confirm").value,sellConfirm=+$("sellConfirm").value;
+  if(![years,fee,slip,adxMin,confirm,sellConfirm].every(Number.isFinite)||fee<0||slip<0||adxMin<5)throw Error("Проверь параметры.");
+  log("Загрузка Binance BTCUSDT 1h.");
+  const d=await loadCandles(years);if(stopped)throw Error("Остановлено.");
+  const miss=missingHours(d),f=features(d),en=buildEntry(d,f,adxMin,confirm),ex=buildExits(d,f,sellConfirm),n=d.length;
+  $("count").textContent=n.toLocaleString("ru-RU");$("missing").textContent=miss;$("count4").textContent=f.four.length;
+  $("period").textContent=utc(d[0].t)+" — "+utc(d[n-1].t);
+  status("Рассчитываем основные тесты...");progress(50);await sleep(10);
+  const warm=500,tr=Math.floor(n*.6),va=Math.floor(n*.8),end=n;
+  const aTr=segment(d,en,ex.fast,warm,tr,fee,slip),aVa=segment(d,en,ex.fast,tr,va,fee,slip),aTe=segment(d,en,ex.fast,va,end,fee,slip),aAll=segment(d,en,ex.fast,warm,end,fee,slip);
+  const bTr=segment(d,en,ex.slow,warm,tr,fee,slip),bVa=segment(d,en,ex.slow,tr,va,fee,slip),bTe=segment(d,en,ex.slow,va,end,fee,slip),bAll=segment(d,en,ex.slow,warm,end,fee,slip);
+  $("comparison").innerHTML=rowComp("A · быстрый выход",aTr,aVa,aTe,aAll)+rowComp("B · выход 4h",bTr,bVa,bTe,bAll);
+  renderConcentration(aTe,bTe);renderTrades(aTe,bTe);
+  status("Walk-forward проверка...");progress(60);await sleep(10);
+  const wf=walkForward(d,en,ex.fast,ex.slow,fee,slip);
+  $("walk").innerHTML=wf.map(r=>"<tr><td>"+utc(d[r.start].t)+" — "+utc(d[r.end-1].t)+"</td><td>"+pct(r.A.ret)+"</td><td>"+pct(r.B.ret)+"</td><td>"+pct(r.bh.ret)+"</td><td>"+pct(-r.B.dd)+"</td><td>"+r.B.trades.length+"</td></tr>").join("")||"<tr><td colspan='6'>Недостаточно данных</td></tr>";
+  status("Проверяем чувствительность параметров...");progress(72);await sleep(10);
+  const sens=[];
+  for(const adxV of [14,18,22]){
+   for(const confV of [1,2,3]){
+    if(stopped)throw Error("Остановлено.");
+    const en2=buildEntry(d,f,adxV,confV);
+    const B=segment(d,en2,ex.slow,warm,end,fee,slip),BT=segment(d,en2,ex.slow,va,end,fee,slip);
+    sens.push({adxV,confV,B,BT});
+   }
+  }
+  $("sensitivity").innerHTML=sens.map(s=>"<tr><td>"+s.adxV+"</td><td>"+s.confV+"</td><td>"+pct(s.B.sim.ret)+"</td><td>"+pct(-s.B.sim.dd)+"</td><td>"+pfText(s.B.sim.pf)+"</td><td>"+s.B.sim.trades.length+"</td><td>"+pct(s.BT.sim.ret)+"</td></tr>").join("");
+  const i=n-1;
+  $("signal").innerHTML="<b>Закрытие:</b> "+price(d[i].c)+" · <b>4h:</b> "+(f.reg[i]===1?"восходящий":f.reg[i]===-1?"нисходящий":"нейтральный")+"<br>EMA20: "+price(f.e20[i])+" · EMA50: "+price(f.e50[i])+" · EMA200: "+price(f.e200[i])+"<br>RSI: "+fmt(f.R[i])+" · ADX: "+fmt(f.A[i])+"<br>Вход: "+(en[i]?"ДА":"НЕТ")+" · Выход A: "+(ex.fast[i]?"ДА":"НЕТ")+" · Выход B: "+(ex.slow[i]?"ДА":"НЕТ");
+  const cx=concentrationRow(aTe),cy=concentrationRow(bTe);
+  reportText=[
+   "BTC TREND SYSTEM v8.2 — LONG ONLY",
+   "Период: "+utc(d[0].t)+" — "+utc(d[n-1].t),
+   "Свечей: "+n+"; пропущенных часов: "+miss,
+   "Комиссия за сторону: "+fee+"%; проскальзывание: "+slip+"%",
+   "DD по часовым закрытиям; Buy & Hold без комиссий.",
+   "",
+   "ОСНОВНЫЕ РЕЗУЛЬТАТЫ",
+   "A Train "+pct(aTr.sim.ret)+"; Validation "+pct(aVa.sim.ret)+"; Final Test "+pct(aTe.sim.ret)+"; весь период "+pct(aAll.sim.ret)+"; DD "+pct(-aAll.sim.dd)+"; PF "+pfText(aAll.sim.pf)+"; сделок "+aAll.sim.trades.length,
+   "B Train "+pct(bTr.sim.ret)+"; Validation "+pct(bVa.sim.ret)+"; Final Test "+pct(bTe.sim.ret)+"; весь период "+pct(bAll.sim.ret)+"; DD "+pct(-bAll.sim.dd)+"; PF "+pfText(bAll.sim.pf)+"; сделок "+bAll.sim.trades.length,
+   "Buy & Hold весь период: "+pct(aAll.bh.ret),
+   "",
+   "КОНЦЕНТРАЦИЯ FINAL TEST",
+   "A: топ-5 / положительная прибыль сделок "+pct(cx.top5)+"; топ-10 "+pct(cx.top10)+"; лучшая сделка "+pct(cx.best),
+   "B: топ-5 / положительная прибыль сделок "+pct(cy.top5)+"; топ-10 "+pct(cy.top10)+"; лучшая сделка "+pct(cy.best),
+   "",
+   "WALK-FORWARD: "+wf.length+" окон; положительных у B: "+wf.filter(x=>x.B.ret>0).length+"; превысили Buy & Hold: "+wf.filter(x=>x.B.ret>x.bh.ret).length,
+   ...wf.map(r=>"Окно "+utc(d[r.start].t)+" — "+utc(d[r.end-1].t)+": B "+pct(r.B.ret)+"; B&H "+pct(r.bh.ret)+"; DD B "+pct(-r.B.dd)+"; сделок "+r.B.trades.length),
+   "",
+   "ЧУВСТВИТЕЛЬНОСТЬ B",
+   ...sens.map(s=>"ADX "+s.adxV+", confirm "+s.confV+": весь период "+pct(s.B.sim.ret)+"; Final Test "+pct(s.BT.sim.ret)+"; DD "+pct(-s.B.sim.dd)+"; PF "+pfText(s.B.sim.pf)+"; сделок "+s.B.sim.trades.length),
+   "",
+   "Последние данные: "+price(d[i].c)+"; режим 4h "+(f.reg[i]===1?"восходящий":f.reg[i]===-1?"нисходящий":"нейтральный"),
+   "Сигнал входа "+(en[i]?"ДА":"НЕТ")+"; выход A "+(ex.fast[i]?"ДА":"НЕТ")+"; выход B "+(ex.slow[i]?"ДА":"НЕТ"),
+   "",
+   "Ограничения: тесты используют исторические данные, сегменты и walk-forward окна начинаются с FLAT. Концентрация прибыли считается по закрытым сделкам, а не по ежедневной кривой капитала. Чувствительность на полном периоде не является независимой проверкой. Исторические результаты не гарантируют будущую доходность."
+  ].join("\n");
+  $("report").textContent=reportText;progress(100);status("Готово. Сначала изучи Final Test и walk-forward, затем чувствительность.");
+  log("Готово. Walk-forward окон: "+wf.length+". B Final Test: "+pct(bTe.sim.ret)+".");
+ }catch(e){status("ОШИБКА: "+(e.message||String(e)));log("ОШИБКА: "+(e.message||String(e)));$("report").textContent="Ошибка исследования:\n"+(e.message||String(e))}
+ finally{busy=false;$("run").disabled=false;$("stop").disabled=true}
+}
+$("run").addEventListener("click",run);
+$("stop").addEventListener("click",()=>{stopped=true;status("Запрошена остановка.")});
+$("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("report").textContent);status("Отчёт скопирован.")}catch(e){status("Выдели отчёт вручную и скопируй.")}});
+</script>
+</body></html>
